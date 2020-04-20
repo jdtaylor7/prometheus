@@ -7,13 +7,13 @@ public:
     Camera(std::size_t screen_width,
            std::size_t screen_height,
            float horizontal_boundary_,
-           float top_boundary_,
-           float bottom_boundary_) :
+           float bottom_boundary_,
+           float top_boundary_) :
         lastx(screen_width / 2),
         lasty(screen_height / 2),
         horizontal_boundary(horizontal_boundary_ - 0.2f),
-        top_boundary(top_boundary_),
-        bottom_boundary(bottom_boundary_)
+        bottom_boundary(bottom_boundary_ + 0.2f),
+        top_boundary(top_boundary_ - 0.2f)
         {}
 
     glm::vec3 get_pos() const;
@@ -26,7 +26,7 @@ public:
     void update_pov(double yoffset);
     void update_frames();
 private:
-    glm::vec3 pos = glm::vec3(0.0f, 0.0f, 3.0f);
+    glm::vec3 pos = glm::vec3(0.0f, 1.0f, 3.0f);
     glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -76,17 +76,17 @@ inline void Camera::constrain_to_boundary()
 {
     if (pos.x > horizontal_boundary)
         pos.x = horizontal_boundary;
-    if (pos.x < (-1 * horizontal_boundary))
+    else if (pos.x < (-1 * horizontal_boundary))
         pos.x = (-1 * horizontal_boundary);
 
     if (pos.y > top_boundary)
         pos.y = top_boundary;
-    if (pos.y < bottom_boundary)
+    else if (pos.y < bottom_boundary)
         pos.y = bottom_boundary;
 
     if (pos.z > horizontal_boundary)
         pos.z = horizontal_boundary;
-    if (pos.z < (-1 * horizontal_boundary))
+    else if (pos.z < (-1 * horizontal_boundary))
         pos.z = (-1 * horizontal_boundary);
 }
 
