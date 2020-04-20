@@ -11,6 +11,7 @@
 
 #include "camera.hpp"
 #include "shader.hpp"
+#include "vertex_data.hpp"
 
 constexpr std::size_t SCREEN_WIDTH = 1200;
 constexpr std::size_t SCREEN_HEIGHT = 900;
@@ -20,66 +21,17 @@ const std::string fragment_shader_path = "src/shaders/shader.fs";
 
 const std::string container_texture_path = "include/textures/container.jpg";
 const std::string face_texture_path = "include/textures/awesomeface.png";
-const std::string wall_texture_path = "include/textures/wall.png";
+const std::string wall_texture_path = "include/textures/wall.jpg";
 
 glm::vec3 room_color = glm::vec3(1.0, 1.0, 1.0);
 glm::vec3 drone_color = glm::vec3(1.0, 0.5, 0.2);
 
 constexpr float room_size = 10.0f;
-glm::vec3 room_pos(0.0, 4.5, 0.0);
+glm::vec3 room_pos(0.0, 5.0, 0.0);
 
-Camera camera(SCREEN_WIDTH, SCREEN_HEIGHT, room_size / 2);
+Camera camera(SCREEN_WIDTH, SCREEN_HEIGHT, room_size / 2, 0.0f, room_size);
 
-const std::vector<float> vertices = {
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-};
-
-const std::vector<unsigned int> indices = {
-    0, 1, 3,  // right triangle
-    1, 2, 3,  // left triangle
-};
-
-glm::vec3 drone_pos(0.0, 0.0, 0.0);
+glm::vec3 drone_pos(0.0, 0.5, 0.0);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -225,10 +177,11 @@ int main()
 
     // Load and generate face texture.
     stbi_set_flip_vertically_on_load(true);
-    data = stbi_load(face_texture_path.c_str(), &width, &height, &num_channels, 0);
+    data = stbi_load(wall_texture_path.c_str(), &width, &height, &num_channels, 0);
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
         stbi_image_free(data);
     }
@@ -236,15 +189,6 @@ int main()
     {
         std::cout << "Failed to load texture\n";
     }
-
-    // Set uniforms.
-    shader.use();
-    // std::cout << "texture1 = " << textures[0] << '\n';
-    // std::cout << "texture2 = " << textures[1] << '\n';
-    // shader.set_int("texture1", textures[0]);
-    // shader.set_int("texture2", textures[1]);
-    // shader.set_int("texture1", 0);
-    // shader.set_int("texture2", 1);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -288,22 +232,24 @@ int main()
         projection = glm::perspective(glm::radians(camera.get_fov()), 800.0f / 600.0f, 0.1f, 100.0f);
 
         shader.use();
-        // shader.set_int("texture1", 0);
-        // shader.set_int("texture2", 0);
-        shader.set_vec3("in_color", room_color);
         shader.set_mat4fv("model", model);
         shader.set_mat4fv("view", view);
         shader.set_mat4fv("projection", projection);
         glBindVertexArray(VAO);
 
         // Draw room.
+        shader.set_bool("use_texture", true);
+        shader.set_int("texture1", 0);
+        shader.set_int("texture2", 0);
+        // shader.set_vec3("in_color", room_color);
         shader.set_mat4fv("model", room_model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // Draw drone.
-        // shader.set_int("texture1", 1);
-        // shader.set_int("texture2", 1);
-        shader.set_vec3("in_color", drone_color);
+        shader.set_bool("use_texture", true);
+        shader.set_int("texture1", 1);
+        shader.set_int("texture2", 1);
+        // shader.set_vec3("in_color", drone_color);
         model = glm::mat4(1.0f);
         model = glm::translate(model, drone_pos);
         model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));

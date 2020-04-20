@@ -6,11 +6,14 @@ class Camera
 public:
     Camera(std::size_t screen_width,
            std::size_t screen_height,
-           float boundary) :
+           float horizontal_boundary_,
+           float top_boundary_,
+           float bottom_boundary_) :
         lastx(screen_width / 2),
         lasty(screen_height / 2),
-        upper_boundary(boundary - 0.2f),
-        lower_boundary((-1 * boundary) + 0.2f)
+        horizontal_boundary(horizontal_boundary_ - 0.2f),
+        top_boundary(top_boundary_),
+        bottom_boundary(bottom_boundary_)
         {}
 
     glm::vec3 get_pos() const;
@@ -42,8 +45,9 @@ private:
 
     float fov = 45.0f;
 
-    float upper_boundary;
-    float lower_boundary;
+    float horizontal_boundary;
+    float top_boundary;
+    float bottom_boundary;
 
     inline void constrain_to_boundary();
 };
@@ -70,20 +74,20 @@ float Camera::get_fov() const
 
 inline void Camera::constrain_to_boundary()
 {
-    if (pos.x > upper_boundary)
-        pos.x = upper_boundary;
-    if (pos.x < lower_boundary)
-        pos.x = lower_boundary;
+    if (pos.x > horizontal_boundary)
+        pos.x = horizontal_boundary;
+    if (pos.x < (-1 * horizontal_boundary))
+        pos.x = (-1 * horizontal_boundary);
 
-    if (pos.y > upper_boundary)
-        pos.y = upper_boundary;
-    if (pos.y < lower_boundary)
-        pos.y = lower_boundary;
+    if (pos.y > top_boundary)
+        pos.y = top_boundary;
+    if (pos.y < bottom_boundary)
+        pos.y = bottom_boundary;
 
-    if (pos.z > upper_boundary)
-        pos.z = upper_boundary;
-    if (pos.z < lower_boundary)
-        pos.z = lower_boundary;
+    if (pos.z > horizontal_boundary)
+        pos.z = horizontal_boundary;
+    if (pos.z < (-1 * horizontal_boundary))
+        pos.z = (-1 * horizontal_boundary);
 }
 
 void Camera::update_pos(GLFWwindow* window)
