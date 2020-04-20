@@ -4,17 +4,28 @@
 class Camera
 {
 public:
-    Camera(std::size_t screen_width, std::size_t screen_height) :
-        lastx(screen_width / 2), lasty(screen_height / 2) {}
+    Camera(std::size_t screen_width,
+           std::size_t screen_height,
+           float boundary) :
+        lastx(screen_width / 2),
+        lasty(screen_height / 2),
+        upper_boundary(boundary - 0.2f),
+        lower_boundary((-1 * boundary) + 0.2f)
+        {}
+
+    glm::vec3 get_pos() const;
+    glm::vec3 get_front() const;
+    glm::vec3 get_up() const;
+    float get_fov() const;
 
     void update_pos(GLFWwindow* window);
     void update_angle(double xpos, double ypos);
     void update_pov(double yoffset);
     void update_frames();
-public:
-    glm::vec3 camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
-    glm::vec3 camera_front = glm::vec3(0.0f, 0.0f, -1.0f);
-    glm::vec3 camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
+private:
+    glm::vec3 pos = glm::vec3(0.0f, 0.0f, 3.0f);
+    glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 
     float delta_time = 0.0f;
     float last_frame = 0.0f;
@@ -30,20 +41,75 @@ public:
     bool first_mouse = true;
 
     float fov = 45.0f;
+
+    float upper_boundary;
+    float lower_boundary;
+
+    inline void constrain_to_boundary();
 };
+
+glm::vec3 Camera::get_pos() const
+{
+    return pos;
+}
+
+glm::vec3 Camera::get_front() const
+{
+    return front;
+}
+
+glm::vec3 Camera::get_up() const
+{
+    return up;
+}
+
+float Camera::get_fov() const
+{
+    return fov;
+}
+
+inline void Camera::constrain_to_boundary()
+{
+    if (pos.x > upper_boundary)
+        pos.x = upper_boundary;
+    if (pos.x < lower_boundary)
+        pos.x = lower_boundary;
+
+    if (pos.y > upper_boundary)
+        pos.y = upper_boundary;
+    if (pos.y < lower_boundary)
+        pos.y = lower_boundary;
+
+    if (pos.z > upper_boundary)
+        pos.z = upper_boundary;
+    if (pos.z < lower_boundary)
+        pos.z = lower_boundary;
+}
 
 void Camera::update_pos(GLFWwindow* window)
 {
     float camera_speed = 2.5f * delta_time;
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera_pos += camera_speed * camera_front;
+    {
+        pos += camera_speed * front;
+        constrain_to_boundary();
+    }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera_pos -= camera_speed * camera_front;
+    {
+        pos -= camera_speed * front;
+        constrain_to_boundary();
+    }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera_pos -= glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
+    {
+        pos -= glm::normalize(glm::cross(front, up)) * camera_speed;
+        constrain_to_boundary();
+    }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera_pos += glm::normalize(glm::cross(camera_front, camera_up)) * camera_speed;
+    {
+        pos += glm::normalize(glm::cross(front, up)) * camera_speed;
+        constrain_to_boundary();
+    }
 }
 
 void Camera::update_angle(double xpos, double ypos)
@@ -75,7 +141,7 @@ void Camera::update_angle(double xpos, double ypos)
     direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     direction.y = sin(glm::radians(pitch));
     direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    camera_front = glm::normalize(direction);
+    front = glm::normalize(direction);
 }
 
 void Camera::update_pov(double yoffset)

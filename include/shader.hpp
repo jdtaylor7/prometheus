@@ -19,7 +19,8 @@ public:
     void set_bool(const std::string& name, bool value) const;
     void set_int(const std::string& name, int value) const;
     void set_float(const std::string& name, float value) const;
-    void set_mat4fv(const std::string& name, const glm::mat4& transform);
+    void set_mat4fv(const std::string& name, const glm::mat4& m);
+    void set_vec3(const std::string& name, const glm::vec3& v);
 private:
     unsigned int id;
 };
@@ -129,9 +130,14 @@ void Shader::set_float(const std::string& name, float value) const
     glUniform1f(glGetUniformLocation(id, name.c_str()), value);
 }
 
-void Shader::set_mat4fv(const std::string& name, const glm::mat4& transform)
+void Shader::set_vec3(const std::string& name, const glm::vec3& v)
 {
-    glUniformMatrix4fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, glm::value_ptr(transform));
+    glUniform3f(glGetUniformLocation(id, name.c_str()), v.x, v.y, v.z);
+}
+
+void Shader::set_mat4fv(const std::string& name, const glm::mat4& m)
+{
+    glUniformMatrix4fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, glm::value_ptr(m));
 }
 
 #endif /* SHADER_HPP */

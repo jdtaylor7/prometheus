@@ -20,8 +20,15 @@ const std::string fragment_shader_path = "src/shaders/shader.fs";
 
 const std::string container_texture_path = "include/textures/container.jpg";
 const std::string face_texture_path = "include/textures/awesomeface.png";
+const std::string wall_texture_path = "include/textures/wall.png";
 
-Camera camera(SCREEN_WIDTH, SCREEN_HEIGHT);
+glm::vec3 room_color = glm::vec3(1.0, 1.0, 1.0);
+glm::vec3 drone_color = glm::vec3(1.0, 0.5, 0.2);
+
+constexpr float room_size = 10.0f;
+glm::vec3 room_pos(0.0, 4.5, 0.0);
+
+Camera camera(SCREEN_WIDTH, SCREEN_HEIGHT, room_size / 2);
 
 const std::vector<float> vertices = {
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -72,7 +79,6 @@ const std::vector<unsigned int> indices = {
     1, 2, 3,  // left triangle
 };
 
-glm::vec3 room_pos(0.0, 4.5, 0.0);
 glm::vec3 drone_pos(0.0, 0.0, 0.0);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
@@ -233,10 +239,18 @@ int main()
 
     // Set uniforms.
     shader.use();
-    shader.set_int("texture1", 0);
-    shader.set_int("texture2", 1);
+    // std::cout << "texture1 = " << textures[0] << '\n';
+    // std::cout << "texture2 = " << textures[1] << '\n';
+    // shader.set_int("texture1", textures[0]);
+    // shader.set_int("texture2", textures[1]);
+    // shader.set_int("texture1", 0);
+    // shader.set_int("texture2", 1);
 
     glEnable(GL_DEPTH_TEST);
+
+    glm::mat4 room_model = glm::mat4(1.0f);
+    room_model = glm::translate(room_model, room_pos);
+    room_model = glm::scale(room_model, glm::vec3(room_size, room_size, room_size));
 
     /*
      * Render loop.
@@ -270,23 +284,26 @@ int main()
         glm::mat4 projection = glm::mat4(1.0f);
 
         model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-        view = glm::lookAt(camera.camera_pos, camera.camera_pos + camera.camera_front, camera.camera_up);
-        projection = glm::perspective(glm::radians(camera.fov), 800.0f / 600.0f, 0.1f, 100.0f);
+        view = glm::lookAt(camera.get_pos(), camera.get_pos() + camera.get_front(), camera.get_up());
+        projection = glm::perspective(glm::radians(camera.get_fov()), 800.0f / 600.0f, 0.1f, 100.0f);
 
         shader.use();
+        // shader.set_int("texture1", 0);
+        // shader.set_int("texture2", 0);
+        shader.set_vec3("in_color", room_color);
         shader.set_mat4fv("model", model);
         shader.set_mat4fv("view", view);
         shader.set_mat4fv("projection", projection);
         glBindVertexArray(VAO);
 
         // Draw room.
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, room_pos);
-        model = glm::scale(model, glm::vec3(10.0, 10.0, 10.0));
-        shader.set_mat4fv("model", model);
+        shader.set_mat4fv("model", room_model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // Draw drone.
+        // shader.set_int("texture1", 1);
+        // shader.set_int("texture2", 1);
+        shader.set_vec3("in_color", drone_color);
         model = glm::mat4(1.0f);
         model = glm::translate(model, drone_pos);
         model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
