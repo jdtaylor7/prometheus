@@ -1,4 +1,5 @@
 #include <iostream>
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -10,29 +11,55 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "camera.hpp"
+#include "printer.hpp"
+#include "resource_manager.hpp"
 #include "shader.hpp"
 #include "vertex_data.hpp"
 
+namespace fs = std::filesystem;
+
+/*
+ * Global data.
+ */
 constexpr std::size_t SCREEN_WIDTH = 1200;
 constexpr std::size_t SCREEN_HEIGHT = 900;
 
-const std::string vertex_shader_path = "src/shaders/shader.vs";
-const std::string fragment_shader_path = "src/shaders/shader.fs";
+const fs::path shader_dir = "src/shaders";
+const fs::path vertex_shader_path = shader_dir / "shader.vs";
+const fs::path fragment_shader_path = shader_dir / "shader.fs";
 
-const std::string container_texture_path = "include/textures/container.jpg";
-const std::string face_texture_path = "include/textures/awesomeface.png";
-const std::string wall_texture_path = "include/textures/wall.jpg";
-
-glm::vec3 room_color = glm::vec3(1.0, 1.0, 1.0);
-glm::vec3 drone_color = glm::vec3(1.0, 0.5, 0.2);
+const fs::path texture_dir = "include/textures";
+const fs::path container_texture_path = texture_dir / "container.jpg";
+const fs::path face_texture_path = texture_dir / "awesomeface.png";
+const fs::path wall_texture_path = texture_dir / "wall.jpg";
 
 constexpr float room_size = 10.0f;
-glm::vec3 room_pos(0.0, 5.0, 0.0);
+constexpr float drone_size = 0.2f;
 
-Camera camera(SCREEN_WIDTH, SCREEN_HEIGHT, room_size / 2, 0.0f, room_size);
+glm::vec3 room_pos(0.0, 0.0 + (room_size / 2), 0.0);
+glm::vec3 drone_pos(0.0, 0.0f + (drone_size / 2), 0.0);
 
-glm::vec3 drone_pos(0.0, 0.5, 0.0);
+glm::vec3 initial_camera_pos(0.0, 1.0, 4.0);
+glm::vec3 initial_camera_target(0.0, 1.0, 3.0);
 
+/*
+ * Global objects.
+ */
+ResourceManager resource_manager{};
+
+Camera camera(resource_manager,
+              SCREEN_WIDTH,
+              SCREEN_HEIGHT,
+              room_size / 2,
+              room_size,
+              initial_camera_pos,
+              initial_camera_target);
+
+Printer printer(resource_manager, camera);
+
+/*
+ * Callback functions.
+ */
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
@@ -42,6 +69,29 @@ void process_input(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+    {
+        printer.print_camera_details();
+
+        // glm::vec3 pos = camera.get_pos();
+        // glm::vec3 target = camera.get_pos() + camera.get_front();
+        //
+        // std::cout << "pos.x = " << pos.x << '\n';
+        // std::cout << "pos.y = " << pos.y << '\n';
+        // std::cout << "pos.z = " << pos.z << '\n';
+        //
+        // std::cout << "target.x = " << target.x << '\n';
+        // std::cout << "target.y = " << target.y << '\n';
+        // std::cout << "target.z = " << target.z << '\n';
+        // std::cout << '\n';
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        drone_pos.y += 0.003f;
+
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        drone_pos.y -= 0.003f;
 
     camera.update_pos(window);
 }
@@ -56,6 +106,9 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     camera.update_pov(yoffset);
 }
 
+/*
+ * Main function.
+ */
 int main()
 {
     unsigned int VAO;
@@ -192,6 +245,9 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
+    unsigned int fps_counter = 0;
+    double fps_time = glfwGetTime();
+
     glm::mat4 room_model = glm::mat4(1.0f);
     room_model = glm::translate(room_model, room_pos);
     room_model = glm::scale(room_model, glm::vec3(room_size, room_size, room_size));
@@ -201,6 +257,14 @@ int main()
      */
     while (!glfwWindowShouldClose(window))
     {
+        fps_counter++;
+        if ((glfwGetTime() - fps_time) > 1.0)
+        {
+            fps_time = glfwGetTime();
+            std::cout << "fps: " << fps_counter << '\n';
+            fps_counter = 0;
+        }
+
         camera.update_frames();
 
         /*
@@ -241,7 +305,6 @@ int main()
         shader.set_bool("use_texture", true);
         shader.set_int("texture1", 0);
         shader.set_int("texture2", 0);
-        // shader.set_vec3("in_color", room_color);
         shader.set_mat4fv("model", room_model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -249,10 +312,9 @@ int main()
         shader.set_bool("use_texture", true);
         shader.set_int("texture1", 1);
         shader.set_int("texture2", 1);
-        // shader.set_vec3("in_color", drone_color);
         model = glm::mat4(1.0f);
         model = glm::translate(model, drone_pos);
-        model = glm::scale(model, glm::vec3(0.2, 0.2, 0.2));
+        model = glm::scale(model, glm::vec3(drone_size, drone_size, drone_size));
         shader.set_mat4fv("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 

@@ -1,6 +1,7 @@
 #ifndef SHADER_HPP
 #define SHADER_HPP
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -9,10 +10,12 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
+namespace fs = std::filesystem;
+
 class Shader
 {
 public:
-    Shader(const std::string& vertex_path, const std::string& fragment_path);
+    Shader(const fs::path& vertex_path, const fs::path& fragment_path);
 
     void use();
 
@@ -25,7 +28,7 @@ private:
     unsigned int id;
 };
 
-Shader::Shader(const std::string& vertex_path, const std::string& fragment_path)
+Shader::Shader(const fs::path& vertex_path, const fs::path& fragment_path)
 {
     std::string vertex_code;
     std::string fragment_code;

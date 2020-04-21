@@ -1,19 +1,28 @@
+#ifndef CAMERA_HPP
+#define CAMERA_HPP
+
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+
+#include "resource_manager.hpp"
 
 class Camera
 {
 public:
-    Camera(std::size_t screen_width,
+    Camera(ResourceManager& rm_,
+           std::size_t screen_width,
            std::size_t screen_height,
            float horizontal_boundary_,
-           float bottom_boundary_,
-           float top_boundary_) :
+           float top_boundary_,
+           glm::vec3 initial_pos,
+           glm::vec3 initial_target) :
+        rm(rm_),
         lastx(screen_width / 2),
         lasty(screen_height / 2),
         horizontal_boundary(horizontal_boundary_ - 0.2f),
-        bottom_boundary(bottom_boundary_ + 0.2f),
-        top_boundary(top_boundary_ - 0.2f)
+        top_boundary(top_boundary_ - 0.2f),
+        pos(initial_pos),
+        front(initial_target - initial_pos)
         {}
 
     glm::vec3 get_pos() const;
@@ -26,9 +35,11 @@ public:
     void update_pov(double yoffset);
     void update_frames();
 private:
-    glm::vec3 pos = glm::vec3(0.0f, 1.0f, 3.0f);
-    glm::vec3 front = glm::vec3(0.0f, 0.0f, -1.0f);
-    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    ResourceManager& rm;
+
+    glm::vec3 pos;
+    glm::vec3 front;
+    const glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 
     float delta_time = 0.0f;
     float last_frame = 0.0f;
@@ -47,7 +58,7 @@ private:
 
     float horizontal_boundary;
     float top_boundary;
-    float bottom_boundary;
+    const float bottom_boundary = 0.2f;
 
     inline void constrain_to_boundary();
 };
@@ -94,6 +105,8 @@ void Camera::update_pos(GLFWwindow* window)
 {
     float camera_speed = 2.5f * delta_time;
 
+    std::lock_guard<std::mutex> g(rm.camera_mutex);
+
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
         pos += camera_speed * front;
@@ -118,6 +131,8 @@ void Camera::update_pos(GLFWwindow* window)
 
 void Camera::update_angle(double xpos, double ypos)
 {
+    std::lock_guard<std::mutex> g(rm.camera_mutex);
+
     if (first_mouse)
     {
         lastx = xpos;
@@ -150,6 +165,8 @@ void Camera::update_angle(double xpos, double ypos)
 
 void Camera::update_pov(double yoffset)
 {
+    std::lock_guard<std::mutex> g(rm.camera_mutex);
+
     fov -= yoffset;
 
     if (fov <= 1.0f)
@@ -160,7 +177,11 @@ void Camera::update_pov(double yoffset)
 
 void Camera::update_frames()
 {
+    std::lock_guard<std::mutex> g(rm.camera_mutex);
+
     float current_frame = glfwGetTime();
     delta_time = current_frame - last_frame;
     last_frame = current_frame;
 }
+
+#endif /* CAMERA_HPP */
