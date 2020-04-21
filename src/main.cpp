@@ -11,6 +11,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "camera.hpp"
+#include "fps_counter.hpp"
 #include "printer.hpp"
 #include "resource_manager.hpp"
 #include "shader.hpp"
@@ -41,6 +42,9 @@ glm::vec3 drone_pos(0.0, 0.0f + (drone_size / 2), 0.0);
 
 glm::vec3 initial_camera_pos(0.0, 1.0, 4.0);
 glm::vec3 initial_camera_target(0.0, 1.0, 3.0);
+
+bool display_fps = true;
+float fps_update_rate_s = 0.5;
 
 /*
  * Global objects.
@@ -73,18 +77,6 @@ void process_input(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
     {
         printer.print_camera_details();
-
-        // glm::vec3 pos = camera.get_pos();
-        // glm::vec3 target = camera.get_pos() + camera.get_front();
-        //
-        // std::cout << "pos.x = " << pos.x << '\n';
-        // std::cout << "pos.y = " << pos.y << '\n';
-        // std::cout << "pos.z = " << pos.z << '\n';
-        //
-        // std::cout << "target.x = " << target.x << '\n';
-        // std::cout << "target.y = " << target.y << '\n';
-        // std::cout << "target.z = " << target.z << '\n';
-        // std::cout << '\n';
     }
 
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
@@ -126,7 +118,7 @@ int main()
     /*
      * GLFW window creation.
      */
-    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Hello Triangle", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Drone Viewer", NULL, NULL);
     if (!window)
     {
         std::cout << "Failed to create GLFW window\n";
@@ -245,32 +237,31 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
-    unsigned int fps_counter = 0;
-    double fps_time = glfwGetTime();
-
+    // Initialize room model.
     glm::mat4 room_model = glm::mat4(1.0f);
     room_model = glm::translate(room_model, room_pos);
     room_model = glm::scale(room_model, glm::vec3(room_size, room_size, room_size));
+
+    // Initialize fps counter.
+    FpsCounter fps(display_fps, fps_update_rate_s);
 
     /*
      * Render loop.
      */
     while (!glfwWindowShouldClose(window))
     {
-        fps_counter++;
-        if ((glfwGetTime() - fps_time) > 1.0)
-        {
-            fps_time = glfwGetTime();
-            std::cout << "fps: " << fps_counter << '\n';
-            fps_counter = 0;
-        }
-
-        camera.update_frames();
+        // Compute fps.
+        fps.update();
 
         /*
-         * Input.
+         * Process input.
          */
         process_input(window);
+
+        /*
+         * Update camera.
+         */
+        camera.update_frames();
 
         /*
          * Render.
@@ -286,15 +277,15 @@ int main()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, textures[1]);
 
-        // Create transformation matrices.
+        // Update transformation matrices.
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 projection = glm::mat4(1.0f);
-
         model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
         view = glm::lookAt(camera.get_pos(), camera.get_pos() + camera.get_front(), camera.get_up());
         projection = glm::perspective(glm::radians(camera.get_fov()), 800.0f / 600.0f, 0.1f, 100.0f);
 
+        // Update uniforms.
         shader.use();
         shader.set_mat4fv("model", model);
         shader.set_mat4fv("view", view);
@@ -318,6 +309,7 @@ int main()
         shader.set_mat4fv("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
+        // Unbind VAO.
         glBindVertexArray(0);
 
         /*

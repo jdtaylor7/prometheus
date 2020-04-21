@@ -83,6 +83,9 @@ float Camera::get_fov() const
     return fov;
 }
 
+/*
+ * Prevent camera from leaving enclosure.
+ */
 inline void Camera::constrain_to_boundary()
 {
     if (pos.x > horizontal_boundary)
@@ -175,6 +178,9 @@ void Camera::update_pov(double yoffset)
         fov = 45.0f;
 }
 
+/*
+ * Maintain consistent movement speed regardless of processing power.
+ */
 void Camera::update_frames()
 {
     std::lock_guard<std::mutex> g(rm.camera_mutex);

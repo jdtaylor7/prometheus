@@ -40,6 +40,9 @@ void Printer::print_camera_details()
         std::cout << "target.z = " << target.z << '\n';
         std::cout << '\n';
 
+        /*
+         * Delay added to ensure values don't get printed continuously.
+         */
         std::thread t1([this](){
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
             camera_print_recent.clear();
