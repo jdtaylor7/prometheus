@@ -28,6 +28,7 @@ namespace fs = std::filesystem;
  */
 constexpr std::size_t SCREEN_WIDTH = 1600;
 constexpr std::size_t SCREEN_HEIGHT = 1200;
+constexpr float WINDOW_BUF = 20.0f;
 
 const fs::path shader_dir = "src/shaders";
 const fs::path vertex_shader_path = shader_dir / "shader.vs";
@@ -49,6 +50,13 @@ glm::vec3 initial_camera_target(0.0, 1.0, 3.0);
 
 bool display_fps = true;
 float fps_update_rate_s = 0.5;
+
+// struct DroneData
+// {
+//     glm::vec3 pos;
+// };
+//
+// DroneData drone_data(glm::vec3(0.0f, 0.0f, 0.0f));
 
 /*
  * Global objects.
@@ -285,17 +293,117 @@ int main()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        // {
+        //     ImGui::ShowDemoWindow(&show_demo_window);
+        // }
+
+        // FPS window.
+        float fps_window_width = 93.0;
+        float fps_window_height = 32.0;
+        float fps_window_xpos = WINDOW_BUF;
+        float fps_window_ypos = WINDOW_BUF;
+        ImGui::SetNextWindowSize(ImVec2(fps_window_width, fps_window_height), ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2(fps_window_xpos, fps_window_ypos), ImGuiCond_Always);
         {
-            ImGui::ShowDemoWindow(&show_demo_window);
+            ImGui::Begin("FPS", NULL, ImGuiWindowFlags_NoTitleBar);
+            ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+            ImGui::End();
         }
 
-        if (show_another_window)
+        // Mode window.
+        float mode_window_width = 165.0;
+        float mode_window_height = 123.0;
+        float mode_window_xpos = SCREEN_WIDTH - mode_window_width - WINDOW_BUF;
+        float mode_window_ypos = WINDOW_BUF;
+        ImGui::SetNextWindowSize(ImVec2(mode_window_width, mode_window_height), ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2(mode_window_xpos, mode_window_ypos), ImGuiCond_Always);
         {
-            ImGui::Begin("Hello, world!");
-            ImGui::Text("Useful text");
+            ImGui::Begin("Application Mode");
 
-            if (ImGui::Button("close me"))
-                show_another_window = false;
+            static int e = 0;
+            ImGui::RadioButton("GUI (g)", &e, 0);
+            ImGui::RadioButton("Simulate (s)", &e, 1);
+            ImGui::RadioButton("Camera control (c)", &e, 2);
+            ImGui::RadioButton("Drone control (d)", &e, 3);
+
+            ImGui::End();
+        }
+
+        // Controls window.
+        float controls_window_width = 163.0;
+        float controls_window_height = 82.0;
+        float controls_window_xpos = SCREEN_WIDTH - controls_window_width - WINDOW_BUF;
+        float controls_window_ypos = mode_window_ypos + mode_window_height + WINDOW_BUF;
+        ImGui::SetNextWindowSize(ImVec2(controls_window_width, controls_window_height), ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2(controls_window_xpos, controls_window_ypos), ImGuiCond_Always);
+        {
+            ImGui::Begin("Simulation Controls");
+
+            ImGui::BulletText("Start/Stop (space)");
+            ImGui::BulletText("Pause (p)");
+            ImGui::BulletText("Reset (r)");
+
+            ImGui::End();
+        }
+
+        // Drone data window.
+        float drone_window_width = 121.0;
+        float drone_window_height = 167.0;
+        float drone_window_xpos = WINDOW_BUF;
+        float drone_window_ypos = fps_window_ypos + fps_window_height + WINDOW_BUF;
+        ImGui::SetNextWindowSize(ImVec2(drone_window_width, drone_window_height), ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2(drone_window_xpos, drone_window_ypos), ImGuiCond_Always);
+        {
+            ImGui::Begin("Drone Data");
+
+            ImGui::Text("Position");
+            ImGui::BulletText("x:     %.3f", 0.000f);
+            ImGui::BulletText("y:     %.3f", 0.000f);
+            ImGui::BulletText("z:     %.3f", 0.000f);
+
+            ImGui::Text("Angle");
+            ImGui::BulletText("Roll:  %.3f", 0.000f);
+            ImGui::BulletText("Pitch: %.3f", 0.000f);
+            ImGui::BulletText("Yaw:   %.3f", 0.000f);
+
+            ImGui::End();
+        }
+
+        // Camera data window.
+        float camera_window_width = 121.0;
+        float camera_window_height = 167.0;
+        float camera_window_xpos = WINDOW_BUF;
+        float camera_window_ypos = drone_window_ypos + drone_window_height + WINDOW_BUF;
+        ImGui::SetNextWindowSize(ImVec2(camera_window_width, camera_window_height), ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2(camera_window_xpos, camera_window_ypos), ImGuiCond_Always);
+        {
+            ImGui::Begin("Camera Data");
+
+            ImGui::Text("Camera Position");
+            ImGui::BulletText("x: %.3f", 0.000f);
+            ImGui::BulletText("y: %.3f", 0.000f);
+            ImGui::BulletText("z: %.3f", 0.000f);
+
+            ImGui::Text("Target Position");
+            ImGui::BulletText("x: %.3f", 0.000f);
+            ImGui::BulletText("y: %.3f", 0.000f);
+            ImGui::BulletText("z: %.3f", 0.000f);
+
+            ImGui::End();
+        }
+
+        // Data queue window.
+        float queue_window_width = 171.0;
+        float queue_window_height = 65.0;
+        float queue_window_xpos = WINDOW_BUF;
+        float queue_window_ypos = camera_window_ypos + camera_window_height + WINDOW_BUF;
+        ImGui::SetNextWindowSize(ImVec2(queue_window_width, queue_window_height), ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2(queue_window_xpos, queue_window_ypos), ImGuiCond_Always);
+        {
+            ImGui::Begin("Data Queue Elements");
+
+            ImGui::Text("Producer: %u", 0);
+            ImGui::Text("Consumer: %u", 0);
 
             ImGui::End();
         }
@@ -308,7 +416,7 @@ int main()
          */
 
         // Compute fps.
-        fps.update();
+        // fps.update();
 
         /*
          * Process input.

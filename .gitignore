@@ -3,3 +3,4 @@ bazel-*
 *.exe
 *.o.tmp
 *.exe.stackdump
+imgui.ini
