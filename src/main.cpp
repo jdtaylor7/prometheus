@@ -10,6 +10,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 #include "camera.hpp"
 #include "fps_counter.hpp"
 #include "printer.hpp"
@@ -22,8 +26,8 @@ namespace fs = std::filesystem;
 /*
  * Global data.
  */
-constexpr std::size_t SCREEN_WIDTH = 1200;
-constexpr std::size_t SCREEN_HEIGHT = 900;
+constexpr std::size_t SCREEN_WIDTH = 1600;
+constexpr std::size_t SCREEN_HEIGHT = 1200;
 
 const fs::path shader_dir = "src/shaders";
 const fs::path vertex_shader_path = shader_dir / "shader.vs";
@@ -85,17 +89,17 @@ void process_input(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
         drone_pos.y -= 0.003f;
 
-    camera.update_pos(window);
+    // camera.update_pos(window);
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    camera.update_angle(xpos, ypos);
+    // camera.update_angle(xpos, ypos);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    camera.update_pov(yoffset);
+    // camera.update_pov(yoffset);
 }
 
 /*
@@ -127,7 +131,7 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
@@ -139,6 +143,29 @@ int main()
         std::cout << "Failed to initialize GLAD\n";
         return -1;
     }
+
+    /***************************************************************************
+     * ImGUI start
+     ***************************************************************************
+     */
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    std::string glsl_version = "#version 330";
+    ImGui_ImplOpenGL3_Init(glsl_version.c_str());
+
+    bool show_demo_window = true;
+    bool show_another_window = true;
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+    /***************************************************************************
+     * ImGUI end
+     ***************************************************************************
+     */
 
     /*
      * Build buffers and vertex array object.
@@ -250,6 +277,36 @@ int main()
      */
     while (!glfwWindowShouldClose(window))
     {
+        /***********************************************************************
+         * ImGUI start
+         ***********************************************************************
+         */
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        {
+            ImGui::ShowDemoWindow(&show_demo_window);
+        }
+
+        if (show_another_window)
+        {
+            ImGui::Begin("Hello, world!");
+            ImGui::Text("Useful text");
+
+            if (ImGui::Button("close me"))
+                show_another_window = false;
+
+            ImGui::End();
+        }
+
+        ImGui::Render();
+
+        /***********************************************************************
+         * ImGUI end
+         ***********************************************************************
+         */
+
         // Compute fps.
         fps.update();
 
@@ -312,12 +369,18 @@ int main()
         // Unbind VAO.
         glBindVertexArray(0);
 
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         /*
          * Swap buffers and poll I/O events.
          */
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     /*
      * Clean up.
