@@ -49,7 +49,10 @@ glm::vec3 initial_camera_pos(0.0, 1.0, 4.0);
 glm::vec3 initial_camera_target(0.0, 1.0, 3.0);
 
 bool display_fps = true;
-float fps_update_rate_s = 0.5;
+float fps_update_rate_s = 1.0;
+
+ImGuiWindowFlags imgui_window_flags = ImGuiWindowFlags_NoResize |
+                                      ImGuiWindowFlags_NoCollapse;
 
 // struct DroneData
 // {
@@ -305,7 +308,7 @@ int main()
         ImGui::SetNextWindowSize(ImVec2(fps_window_width, fps_window_height), ImGuiCond_Always);
         ImGui::SetNextWindowPos(ImVec2(fps_window_xpos, fps_window_ypos), ImGuiCond_Always);
         {
-            ImGui::Begin("FPS", NULL, ImGuiWindowFlags_NoTitleBar);
+            ImGui::Begin("FPS", NULL, imgui_window_flags | ImGuiWindowFlags_NoTitleBar);
             ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
             ImGui::End();
         }
@@ -318,7 +321,7 @@ int main()
         ImGui::SetNextWindowSize(ImVec2(mode_window_width, mode_window_height), ImGuiCond_Always);
         ImGui::SetNextWindowPos(ImVec2(mode_window_xpos, mode_window_ypos), ImGuiCond_Always);
         {
-            ImGui::Begin("Application Mode");
+            ImGui::Begin("Application Mode", NULL, imgui_window_flags);
 
             static int e = 0;
             ImGui::RadioButton("GUI (g)", &e, 0);
@@ -337,7 +340,7 @@ int main()
         ImGui::SetNextWindowSize(ImVec2(controls_window_width, controls_window_height), ImGuiCond_Always);
         ImGui::SetNextWindowPos(ImVec2(controls_window_xpos, controls_window_ypos), ImGuiCond_Always);
         {
-            ImGui::Begin("Simulation Controls");
+            ImGui::Begin("Simulation Controls", NULL, imgui_window_flags);
 
             ImGui::BulletText("Start/Stop (space)");
             ImGui::BulletText("Pause (p)");
@@ -354,7 +357,7 @@ int main()
         ImGui::SetNextWindowSize(ImVec2(drone_window_width, drone_window_height), ImGuiCond_Always);
         ImGui::SetNextWindowPos(ImVec2(drone_window_xpos, drone_window_ypos), ImGuiCond_Always);
         {
-            ImGui::Begin("Drone Data");
+            ImGui::Begin("Drone Data", NULL, imgui_window_flags);
 
             ImGui::Text("Position");
             ImGui::BulletText("x:     %.3f", 0.000f);
@@ -377,7 +380,7 @@ int main()
         ImGui::SetNextWindowSize(ImVec2(camera_window_width, camera_window_height), ImGuiCond_Always);
         ImGui::SetNextWindowPos(ImVec2(camera_window_xpos, camera_window_ypos), ImGuiCond_Always);
         {
-            ImGui::Begin("Camera Data");
+            ImGui::Begin("Camera Data", NULL, imgui_window_flags);
 
             ImGui::Text("Camera Position");
             ImGui::BulletText("x: %.3f", 0.000f);
@@ -400,7 +403,7 @@ int main()
         ImGui::SetNextWindowSize(ImVec2(queue_window_width, queue_window_height), ImGuiCond_Always);
         ImGui::SetNextWindowPos(ImVec2(queue_window_xpos, queue_window_ypos), ImGuiCond_Always);
         {
-            ImGui::Begin("Data Queue Elements");
+            ImGui::Begin("Data Queue Elements", NULL, imgui_window_flags);
 
             ImGui::Text("Producer: %u", 0);
             ImGui::Text("Consumer: %u", 0);
@@ -416,7 +419,7 @@ int main()
          */
 
         // Compute fps.
-        // fps.update();
+        fps.update();
 
         /*
          * Process input.
