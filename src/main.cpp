@@ -16,6 +16,7 @@
 
 #include "camera.hpp"
 #include "fps_counter.hpp"
+#include "imgui_manager.hpp"
 #include "printer.hpp"
 #include "resource_manager.hpp"
 #include "shader.hpp"
@@ -48,18 +49,11 @@ glm::vec3 drone_pos(0.0, 0.0f + (drone_size / 2), 0.0);
 glm::vec3 initial_camera_pos(0.0, 1.0, 4.0);
 glm::vec3 initial_camera_target(0.0, 1.0, 3.0);
 
-bool display_fps = true;
+bool display_fps = false;
 float fps_update_rate_s = 1.0;
 
 ImGuiWindowFlags imgui_window_flags = ImGuiWindowFlags_NoResize |
                                       ImGuiWindowFlags_NoCollapse;
-
-// struct DroneData
-// {
-//     glm::vec3 pos;
-// };
-//
-// DroneData drone_data(glm::vec3(0.0f, 0.0f, 0.0f));
 
 /*
  * Global objects.
@@ -169,7 +163,7 @@ int main()
     std::string glsl_version = "#version 330";
     ImGui_ImplOpenGL3_Init(glsl_version.c_str());
 
-    bool show_demo_window = true;
+    bool show_demo_window = false;
     bool show_another_window = true;
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -296,9 +290,10 @@ int main()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // {
-        //     ImGui::ShowDemoWindow(&show_demo_window);
-        // }
+        if (show_demo_window)
+        {
+            ImGui::ShowDemoWindow(&show_demo_window);
+        }
 
         // FPS window.
         float fps_window_width = 93.0;
