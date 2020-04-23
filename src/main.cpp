@@ -77,15 +77,7 @@ int main()
     unsigned int EBO;
 
     /*
-     * GLFW initialization and configuration.
-     */
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    /*
-     * GLFW window creation.
+     * GLFW initialization.
      */
     GlfwManager glfw_manager(SCREEN_WIDTH, SCREEN_HEIGHT);
     if (glfw_manager.did_window_creation_fail())
