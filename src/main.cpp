@@ -12,6 +12,7 @@
 
 #include "camera.hpp"
 #include "fps_counter.hpp"
+#include "glfw_manager.hpp"
 #include "imgui_manager.hpp"
 #include "printer.hpp"
 #include "resource_manager.hpp"
@@ -67,43 +68,6 @@ Camera camera(resource_manager,
 Printer printer(resource_manager, camera);
 
 /*
- * Callback functions.
- */
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
-
-void process_input(GLFWwindow* window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-
-    // if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
-    // {
-    //     printer.print_camera_details();
-    // }
-    //
-    // if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-    //     drone_pos.y += 0.003f;
-    //
-    // if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-    //     drone_pos.y -= 0.003f;
-    //
-    // camera.update_pos(window);
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    // camera.update_angle(xpos, ypos);
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-    // camera.update_pov(yoffset);
-}
-
-/*
  * Main function.
  */
 int main()
@@ -123,29 +87,22 @@ int main()
     /*
      * GLFW window creation.
      */
-    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Drone Viewer", NULL, NULL);
-    if (!window)
+    GlfwManager glfw_manager(SCREEN_WIDTH, SCREEN_HEIGHT);
+    if (glfw_manager.did_window_creation_fail())
     {
         std::cout << "Failed to create GLFW window\n";
-        glfwTerminate();
         return -1;
     }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
 
     /*
      * Load OpenGL function pointers.
      */
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    if (!glfw_manager.load_glad_loader())
     {
         std::cout << "Failed to initialize GLAD\n";
         return -1;
     }
-
-    ImguiManager imgui_manager(window, "#version 330", SCREEN_WIDTH, SCREEN_HEIGHT);
+    ImguiManager imgui_manager(glfw_manager.get_window(), "#version 330", SCREEN_WIDTH, SCREEN_HEIGHT);
 
     /*
      * Build buffers and vertex array object.
@@ -255,9 +212,10 @@ int main()
     /*
      * Render loop.
      */
-    while (!glfwWindowShouldClose(window))
+    while (!glfw_manager.should_window_close())
     {
         // Update ImGUI windows.
+        // imgui_manager.update_drone_data(drone_x, 0.0, 0.0, 0.0, 0.0, 0.0);
         imgui_manager.execute_frame();
         imgui_manager.render();
 
@@ -267,7 +225,7 @@ int main()
         /*
          * Process input.
          */
-        process_input(window);
+        glfw_manager.process_input();
 
         /*
          * Update camera.
@@ -328,13 +286,9 @@ int main()
         /*
          * Swap buffers and poll I/O events.
          */
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        glfw_manager.swap_buffers();
+        glfw_manager.poll_events();
     }
-
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
 
     /*
      * Clean up.
@@ -343,6 +297,5 @@ int main()
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
 
-    glfwTerminate();
     return 0;
 }

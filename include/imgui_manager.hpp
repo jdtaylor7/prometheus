@@ -33,7 +33,7 @@ struct ImguiWindowSettings
 class ImguiManager
 {
 public:
-    ImguiManager(GLFWwindow* window, const std::string& glsl_version,
+    ImguiManager(GLFWwindow* window_, const std::string& glsl_version,
         std::size_t screen_width_, std::size_t screen_height_);
     ~ImguiManager();
 
@@ -48,6 +48,7 @@ public:
         float tx, float ty, float tz);
     void update_queue_data(unsigned int p, unsigned int c);
 private:
+    GLFWwindow* window;
     std::size_t screen_width;
     std::size_t screen_height;
 
@@ -88,12 +89,13 @@ private:
     void update_window_settings();
 };
 
-ImguiManager::ImguiManager(GLFWwindow* window,
+ImguiManager::ImguiManager(GLFWwindow* window_,
                            const std::string& glsl_version,
                            std::size_t screen_width_,
                            std::size_t screen_height_) :
+    window(window_),
     fps(93.0, 32.0),
-    mode(165.0, 123.0),
+    mode(165.0, 80.0),
     controls(163.0, 82.0),
     drone(121.0, 167.0),
     camera(121.0, 167.0),
@@ -111,6 +113,7 @@ ImguiManager::ImguiManager(GLFWwindow* window,
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+
     /*
      * Can't initialize ImGuiIO& in initializer list because it's necessary to
      * call ImGui::CreateContext() first. So instead, storing io as a solid type
@@ -124,16 +127,6 @@ ImguiManager::ImguiManager(GLFWwindow* window,
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version.c_str());
-
-    std::cout << "mode.width = " << mode.width << '\n';
-    std::cout << "mode.height = " << mode.height << '\n';
-    std::cout << "mode.xpos = " << mode.xpos << '\n';
-    std::cout << "mode.ypos = " << mode.ypos << '\n';
-
-    std::cout << "controls.width = " << controls.width << '\n';
-    std::cout << "controls.height = " << controls.height << '\n';
-    std::cout << "controls.xpos = " << controls.xpos << '\n';
-    std::cout << "controls.ypos = " << controls.ypos << '\n';
 }
 
 ImguiManager::~ImguiManager()
@@ -146,10 +139,8 @@ ImguiManager::~ImguiManager()
 void ImguiManager::execute_frame()
 {
     ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
+    ImGui_ImplGlfw_NewFrame(); // offending line
     ImGui::NewFrame();
-
-    // std::cout << "show_demo_window = " << this->show_demo_window << '\n';
 
     if (show_demo_window)
     {
@@ -172,10 +163,8 @@ void ImguiManager::execute_frame()
         ImGui::Begin("Application Mode", NULL, imgui_window_flags);
 
         static int e = 0;
-        ImGui::RadioButton("GUI (g)", &e, 0);
-        ImGui::RadioButton("Simulate (s)", &e, 1);
-        ImGui::RadioButton("Camera control (c)", &e, 2);
-        ImGui::RadioButton("Drone control (d)", &e, 3);
+        ImGui::RadioButton("Telemetry (t)", &e, 0);
+        ImGui::RadioButton("Edit scene (e)", &e, 1);
 
         ImGui::End();
     }
@@ -276,12 +265,12 @@ void ImguiManager::update_window_settings()
 void ImguiManager::update_drone_data(float dx, float dy, float dz,
     float roll, float pitch, float yaw)
 {
-    float drone_x = dx;
-    float drone_y = dy;
-    float drone_z = dz;
-    float drone_roll = roll;
-    float drone_pitch = pitch;
-    float drone_yaw = yaw;
+    drone_x = dx;
+    drone_y = dy;
+    drone_z = dz;
+    drone_roll = roll;
+    drone_pitch = pitch;
+    drone_yaw = yaw;
 }
 
 void ImguiManager::camera_data(float cx, float cy, float cz,
