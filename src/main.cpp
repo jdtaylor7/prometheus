@@ -10,10 +10,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
-
 #include "camera.hpp"
 #include "fps_counter.hpp"
 #include "imgui_manager.hpp"
@@ -83,17 +79,17 @@ void process_input(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
-    {
-        printer.print_camera_details();
-    }
-
-    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        drone_pos.y += 0.003f;
-
-    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-        drone_pos.y -= 0.003f;
-
+    // if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+    // {
+    //     printer.print_camera_details();
+    // }
+    //
+    // if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    //     drone_pos.y += 0.003f;
+    //
+    // if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    //     drone_pos.y -= 0.003f;
+    //
     // camera.update_pos(window);
 }
 
@@ -149,28 +145,7 @@ int main()
         return -1;
     }
 
-    /***************************************************************************
-     * ImGUI start
-     ***************************************************************************
-     */
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    std::string glsl_version = "#version 330";
-    ImGui_ImplOpenGL3_Init(glsl_version.c_str());
-
-    bool show_demo_window = false;
-    bool show_another_window = true;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-
-    /***************************************************************************
-     * ImGUI end
-     ***************************************************************************
-     */
+    ImguiManager imgui_manager(window, "#version 330", SCREEN_WIDTH, SCREEN_HEIGHT);
 
     /*
      * Build buffers and vertex array object.
@@ -282,136 +257,9 @@ int main()
      */
     while (!glfwWindowShouldClose(window))
     {
-        /***********************************************************************
-         * ImGUI start
-         ***********************************************************************
-         */
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        if (show_demo_window)
-        {
-            ImGui::ShowDemoWindow(&show_demo_window);
-        }
-
-        // FPS window.
-        float fps_window_width = 93.0;
-        float fps_window_height = 32.0;
-        float fps_window_xpos = WINDOW_BUF;
-        float fps_window_ypos = WINDOW_BUF;
-        ImGui::SetNextWindowSize(ImVec2(fps_window_width, fps_window_height), ImGuiCond_Always);
-        ImGui::SetNextWindowPos(ImVec2(fps_window_xpos, fps_window_ypos), ImGuiCond_Always);
-        {
-            ImGui::Begin("FPS", NULL, imgui_window_flags | ImGuiWindowFlags_NoTitleBar);
-            ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-            ImGui::End();
-        }
-
-        // Mode window.
-        float mode_window_width = 165.0;
-        float mode_window_height = 123.0;
-        float mode_window_xpos = SCREEN_WIDTH - mode_window_width - WINDOW_BUF;
-        float mode_window_ypos = WINDOW_BUF;
-        ImGui::SetNextWindowSize(ImVec2(mode_window_width, mode_window_height), ImGuiCond_Always);
-        ImGui::SetNextWindowPos(ImVec2(mode_window_xpos, mode_window_ypos), ImGuiCond_Always);
-        {
-            ImGui::Begin("Application Mode", NULL, imgui_window_flags);
-
-            static int e = 0;
-            ImGui::RadioButton("GUI (g)", &e, 0);
-            ImGui::RadioButton("Simulate (s)", &e, 1);
-            ImGui::RadioButton("Camera control (c)", &e, 2);
-            ImGui::RadioButton("Drone control (d)", &e, 3);
-
-            ImGui::End();
-        }
-
-        // Controls window.
-        float controls_window_width = 163.0;
-        float controls_window_height = 82.0;
-        float controls_window_xpos = SCREEN_WIDTH - controls_window_width - WINDOW_BUF;
-        float controls_window_ypos = mode_window_ypos + mode_window_height + WINDOW_BUF;
-        ImGui::SetNextWindowSize(ImVec2(controls_window_width, controls_window_height), ImGuiCond_Always);
-        ImGui::SetNextWindowPos(ImVec2(controls_window_xpos, controls_window_ypos), ImGuiCond_Always);
-        {
-            ImGui::Begin("Simulation Controls", NULL, imgui_window_flags);
-
-            ImGui::BulletText("Start/Stop (space)");
-            ImGui::BulletText("Pause (p)");
-            ImGui::BulletText("Reset (r)");
-
-            ImGui::End();
-        }
-
-        // Drone data window.
-        float drone_window_width = 121.0;
-        float drone_window_height = 167.0;
-        float drone_window_xpos = WINDOW_BUF;
-        float drone_window_ypos = fps_window_ypos + fps_window_height + WINDOW_BUF;
-        ImGui::SetNextWindowSize(ImVec2(drone_window_width, drone_window_height), ImGuiCond_Always);
-        ImGui::SetNextWindowPos(ImVec2(drone_window_xpos, drone_window_ypos), ImGuiCond_Always);
-        {
-            ImGui::Begin("Drone Data", NULL, imgui_window_flags);
-
-            ImGui::Text("Position");
-            ImGui::BulletText("x:     %.3f", 0.000f);
-            ImGui::BulletText("y:     %.3f", 0.000f);
-            ImGui::BulletText("z:     %.3f", 0.000f);
-
-            ImGui::Text("Angle");
-            ImGui::BulletText("Roll:  %.3f", 0.000f);
-            ImGui::BulletText("Pitch: %.3f", 0.000f);
-            ImGui::BulletText("Yaw:   %.3f", 0.000f);
-
-            ImGui::End();
-        }
-
-        // Camera data window.
-        float camera_window_width = 121.0;
-        float camera_window_height = 167.0;
-        float camera_window_xpos = WINDOW_BUF;
-        float camera_window_ypos = drone_window_ypos + drone_window_height + WINDOW_BUF;
-        ImGui::SetNextWindowSize(ImVec2(camera_window_width, camera_window_height), ImGuiCond_Always);
-        ImGui::SetNextWindowPos(ImVec2(camera_window_xpos, camera_window_ypos), ImGuiCond_Always);
-        {
-            ImGui::Begin("Camera Data", NULL, imgui_window_flags);
-
-            ImGui::Text("Camera Position");
-            ImGui::BulletText("x: %.3f", 0.000f);
-            ImGui::BulletText("y: %.3f", 0.000f);
-            ImGui::BulletText("z: %.3f", 0.000f);
-
-            ImGui::Text("Target Position");
-            ImGui::BulletText("x: %.3f", 0.000f);
-            ImGui::BulletText("y: %.3f", 0.000f);
-            ImGui::BulletText("z: %.3f", 0.000f);
-
-            ImGui::End();
-        }
-
-        // Data queue window.
-        float queue_window_width = 171.0;
-        float queue_window_height = 65.0;
-        float queue_window_xpos = WINDOW_BUF;
-        float queue_window_ypos = camera_window_ypos + camera_window_height + WINDOW_BUF;
-        ImGui::SetNextWindowSize(ImVec2(queue_window_width, queue_window_height), ImGuiCond_Always);
-        ImGui::SetNextWindowPos(ImVec2(queue_window_xpos, queue_window_ypos), ImGuiCond_Always);
-        {
-            ImGui::Begin("Data Queue Elements", NULL, imgui_window_flags);
-
-            ImGui::Text("Producer: %u", 0);
-            ImGui::Text("Consumer: %u", 0);
-
-            ImGui::End();
-        }
-
-        ImGui::Render();
-
-        /***********************************************************************
-         * ImGUI end
-         ***********************************************************************
-         */
+        // Update ImGUI windows.
+        imgui_manager.execute_frame();
+        imgui_manager.render();
 
         // Compute fps.
         fps.update();
@@ -475,7 +323,7 @@ int main()
         // Unbind VAO.
         glBindVertexArray(0);
 
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        imgui_manager.render_draw_data();
 
         /*
          * Swap buffers and poll I/O events.

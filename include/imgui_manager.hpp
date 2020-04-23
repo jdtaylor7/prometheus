@@ -2,6 +2,7 @@
 #define IMGUI_MANAGER_HPP
 
 #include <string>
+#include <type_traits>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -12,46 +13,60 @@
 
 struct ImguiWindowSettings
 {
-    float width;
-    float height;
-    float xpos;
-    float ypos;
+    ImguiWindowSettings(float width_, float height_) :
+        width(width_), height(height_) {}
 
-    float bottom() { return ypos + height };
+    float width = 0.0;
+    float height = 0.0;
+    float xpos = 0.0;
+    float ypos = 0.0;
+
+    float bottom() const { return ypos + height; };
+
+    void set_pos(float x, float y)
+    {
+        xpos = x;
+        ypos = y;
+    }
 };
 
 class ImguiManager
 {
 public:
-    ImguiManager(GLFWwindow* window, const std::string& glsl_version);
+    ImguiManager(GLFWwindow* window, const std::string& glsl_version,
+        std::size_t screen_width_, std::size_t screen_height_);
     ~ImguiManager();
 
     void execute_frame();
     void render();
+    void render_draw_data();
 
+    void update_screen_dimensions(std::size_t width, std::size_t height);
     void update_drone_data(float dx, float dy, float dz,
         float roll, float pitch, float yaw);
     void camera_data(float cx, float cy, float cz,
         float tx, float ty, float tz);
     void update_queue_data(unsigned int p, unsigned int c);
 private:
+    std::size_t screen_width;
+    std::size_t screen_height;
+
     const ImGuiWindowFlags imgui_window_flags = ImGuiWindowFlags_NoResize |
                                                 ImGuiWindowFlags_NoCollapse;
 
-    ImGuiIO& io;
+    ImGuiIO io;
 
-    bool show_demo_window;
-    bool show_another_window;
-    const ImVec4 clear_color(0.45f, 0.55f, 0.60f, 1.00f);
+    bool show_demo_window = false;
+    const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    constexpr float WINDOW_BUF = 20.0f;
+    const float WINDOW_BUF = 20.0f;
 
-    ImGuiWindowSettings fps{93.0, 32.0, WINDOW_BUF, WINDOW_BUF};
-    ImGuiWindowSettings mode{165.0, 123.0, SCREEN_WIDTH - mode.width - WINDOW_BUF, WINDOW_BUF};
-    ImGuiWindowSettings controls{163.0, 82.0, SCREEN_WIDTH - controls.width, mode.bottom() + WINDOW_BUF};
-    ImGuiWindowSettings drone{121.0, 167.0, WINDOW_BUF, fps.bottom() + WINDOW_BUF};
-    ImGuiWindowSettings camera{121.0, 167.0, WINDOW_BUF, drone.bottom() + WINDOW_BUF};
-    ImGuiWindowSettings queue{171.0, 65.0, WINDOW_BUF, camera.bottom() + WINDOW_BUF};
+    ImguiWindowSettings fps;
+    ImguiWindowSettings mode;
+    ImguiWindowSettings controls;
+    ImguiWindowSettings drone;
+    ImguiWindowSettings camera;
+    ImguiWindowSettings queue;
 
     float drone_x = 0.000f;
     float drone_y = 0.000f;
@@ -69,21 +84,56 @@ private:
 
     unsigned int producer_n = 0;
     unsigned int consumer_n = 0;
+
+    void update_window_settings();
 };
 
-ImguiManager::ImguiManager(GLFWwindow* window, const std::string& glsl_version)
+ImguiManager::ImguiManager(GLFWwindow* window,
+                           const std::string& glsl_version,
+                           std::size_t screen_width_,
+                           std::size_t screen_height_) :
+    fps(93.0, 32.0),
+    mode(165.0, 123.0),
+    controls(163.0, 82.0),
+    drone(121.0, 167.0),
+    camera(121.0, 167.0),
+    queue(171.0, 65.0)
 {
+    screen_width = screen_width_;
+    screen_height = screen_height_;
+
+    fps.set_pos(WINDOW_BUF, WINDOW_BUF);
+    mode.set_pos(screen_width - mode.width - WINDOW_BUF, WINDOW_BUF);
+    controls.set_pos(mode.xpos, mode.bottom() + WINDOW_BUF);
+    drone.set_pos(WINDOW_BUF, fps.bottom() + WINDOW_BUF);
+    camera.set_pos(WINDOW_BUF, drone.bottom() + WINDOW_BUF);
+    queue.set_pos(WINDOW_BUF, camera.bottom() + WINDOW_BUF);
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    io = ImGui::GetIO();
+    /*
+     * Can't initialize ImGuiIO& in initializer list because it's necessary to
+     * call ImGui::CreateContext() first. So instead, storing io as a solid type
+     * rather than a reference, necessitating the use of this awkward
+     * conversion.
+     */
+    // io = ImGui::GetIO();
+    io = std::remove_reference_t<decltype(ImGui::GetIO())>(ImGui::GetIO());
 
     ImGui::StyleColorsDark();
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version.c_str());
 
-    show_demo_window = true;
-    show_another_window = true;
+    std::cout << "mode.width = " << mode.width << '\n';
+    std::cout << "mode.height = " << mode.height << '\n';
+    std::cout << "mode.xpos = " << mode.xpos << '\n';
+    std::cout << "mode.ypos = " << mode.ypos << '\n';
+
+    std::cout << "controls.width = " << controls.width << '\n';
+    std::cout << "controls.height = " << controls.height << '\n';
+    std::cout << "controls.xpos = " << controls.xpos << '\n';
+    std::cout << "controls.ypos = " << controls.ypos << '\n';
 }
 
 ImguiManager::~ImguiManager()
@@ -98,6 +148,8 @@ void ImguiManager::execute_frame()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+
+    // std::cout << "show_demo_window = " << this->show_demo_window << '\n';
 
     if (show_demo_window)
     {
@@ -114,8 +166,8 @@ void ImguiManager::execute_frame()
     }
 
     // Mode window.
-    ImGui::SetNextWindowSize(ImVec2(mode_window_width, mode_window_height), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(mode_window_xpos, mode_window_ypos), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(mode.width, mode.height), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(mode.xpos, mode.ypos), ImGuiCond_Always);
     {
         ImGui::Begin("Application Mode", NULL, imgui_window_flags);
 
@@ -129,8 +181,8 @@ void ImguiManager::execute_frame()
     }
 
     // Controls window.
-    ImGui::SetNextWindowSize(ImVec2(controls_window_width, controls_window_height), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(controls_window_xpos, controls_window_ypos), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(controls.width, controls.height), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(controls.xpos, controls.ypos), ImGuiCond_Always);
     {
         ImGui::Begin("Simulation Controls", NULL, imgui_window_flags);
 
@@ -142,8 +194,8 @@ void ImguiManager::execute_frame()
     }
 
     // Drone data window.
-    ImGui::SetNextWindowSize(ImVec2(drone_window_width, drone_window_height), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(drone_window_xpos, drone_window_ypos), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(drone.width, drone.height), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(drone.xpos, drone.ypos), ImGuiCond_Always);
     {
         ImGui::Begin("Drone Data", NULL, imgui_window_flags);
 
@@ -161,8 +213,8 @@ void ImguiManager::execute_frame()
     }
 
     // Camera data window.
-    ImGui::SetNextWindowSize(ImVec2(camera_window_width, camera_window_height), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(camera_window_xpos, camera_window_ypos), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(camera.width, camera.height), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(camera.xpos, camera.ypos), ImGuiCond_Always);
     {
         ImGui::Begin("Camera Data", NULL, imgui_window_flags);
 
@@ -180,8 +232,8 @@ void ImguiManager::execute_frame()
     }
 
     // Data queue window.
-    ImGui::SetNextWindowSize(ImVec2(queue_window_width, queue_window_height), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(queue_window_xpos, queue_window_ypos), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(queue.width, queue.height), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(queue.xpos, queue.ypos), ImGuiCond_Always);
     {
         ImGui::Begin("Data Queue Elements", NULL, imgui_window_flags);
 
@@ -192,10 +244,33 @@ void ImguiManager::execute_frame()
     }
 }
 
-void ImgerManager::render()
+void ImguiManager::render()
 {
     ImGui::Render();
+}
+
+void ImguiManager::render_draw_data()
+{
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void ImguiManager::update_screen_dimensions(std::size_t width,
+    std::size_t height)
+{
+    screen_width = width;
+    screen_height = height;
+
+    update_window_settings();
+}
+
+void ImguiManager::update_window_settings()
+{
+    fps.set_pos(WINDOW_BUF, WINDOW_BUF);
+    mode.set_pos(screen_width - mode.width - WINDOW_BUF, WINDOW_BUF);
+    controls.set_pos(screen_width - controls.width, mode.bottom() + WINDOW_BUF);
+    drone.set_pos(WINDOW_BUF, fps.bottom() + WINDOW_BUF);
+    camera.set_pos(WINDOW_BUF, drone.bottom() + WINDOW_BUF);
+    queue.set_pos(WINDOW_BUF, camera.bottom() + WINDOW_BUF);
 }
 
 void ImguiManager::update_drone_data(float dx, float dy, float dz,
