@@ -2,6 +2,7 @@
 #define IMGUI_MANAGER_HPP
 
 #include <string>
+#include <memory>
 #include <type_traits>
 
 #include <glad/glad.h>
@@ -11,11 +12,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-enum class ViewerMode : unsigned char
-{
-    Telemetry,
-    Edit,
-};
+#include "viewer_mode.hpp"
 
 struct ImguiWindowSettings
 {
@@ -40,7 +37,8 @@ class ImguiManager
 {
 public:
     ImguiManager(GLFWwindow* window_, const std::string& glsl_version,
-        std::size_t screen_width_, std::size_t screen_height_);
+        std::size_t screen_width_, std::size_t screen_height_,
+        std::shared_ptr<ViewerMode> viewer_mode_);
     ~ImguiManager();
 
     void execute_frame();
@@ -63,7 +61,7 @@ private:
 
     ImGuiIO io;
 
-    ViewerMode viewer_mode = ViewerMode::Telemetry;
+    std::shared_ptr<ViewerMode> viewer_mode;
 
     bool show_demo_window = false;
     const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -100,14 +98,16 @@ private:
 ImguiManager::ImguiManager(GLFWwindow* window_,
                            const std::string& glsl_version,
                            std::size_t screen_width_,
-                           std::size_t screen_height_) :
+                           std::size_t screen_height_,
+                           std::shared_ptr<ViewerMode> viewer_mode_) :
     window(window_),
     fps(93.0, 32.0),
     mode(165.0, 80.0),
     controls(163.0, 82.0),
     drone(121.0, 167.0),
     camera(121.0, 167.0),
-    queue(145.0, 65.0)
+    queue(145.0, 65.0),
+    viewer_mode(viewer_mode_)
 {
     screen_width = screen_width_;
     screen_height = screen_height_;
@@ -172,11 +172,11 @@ void ImguiManager::execute_frame()
         static int e = 0;
         if (ImGui::RadioButton("Telemetry (t)", &e, 0))
         {
-            viewer_mode = ViewerMode::Telemetry;
+            *viewer_mode = ViewerMode::Telemetry;
         }
         if (ImGui::RadioButton("Edit scene (e)", &e, 1))
         {
-            viewer_mode = ViewerMode::Edit;
+            *viewer_mode = ViewerMode::Edit;
         }
 
         ImGui::End();
@@ -186,7 +186,7 @@ void ImguiManager::execute_frame()
     ImGui::SetNextWindowSize(ImVec2(controls.width, controls.height), ImGuiCond_Always);
     ImGui::SetNextWindowPos(ImVec2(controls.xpos, controls.ypos), ImGuiCond_Always);
     {
-        switch (viewer_mode)
+        switch (*viewer_mode)
         {
         case ViewerMode::Telemetry:
             ImGui::Begin("Telemetry Controls", NULL, imgui_window_flags);
@@ -200,9 +200,9 @@ void ImguiManager::execute_frame()
         case ViewerMode::Edit:
             ImGui::Begin("Edit Controls", NULL, imgui_window_flags);
 
-            ImGui::BulletText("Camera control (c, default)");
-            ImGui::BulletText("Drone control (d)");
-            ImGui::BulletText("Reset (r)");
+            ImGui::BulletText("Camera control (1, default)");
+            ImGui::BulletText("Drone control (2)");
+            ImGui::BulletText("Reset view (r)");
 
             ImGui::End();
             break;

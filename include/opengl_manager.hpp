@@ -14,6 +14,7 @@
 
 #include "shader.hpp"
 #include "vertex_data.hpp"
+// #include "viewer_mode.hpp"
 
 namespace fs = std::filesystem;
 
@@ -24,6 +25,8 @@ public:
     ~OpenglManager();
 
     void process_frame();
+
+    void update_drone_data(std::shared_ptr<glm::vec3> pos, float roll, float pitch, float yaw);
 private:
     std::size_t screen_width;
     std::size_t screen_height;
@@ -173,6 +176,12 @@ void OpenglManager::process_frame()
 
     // Unbind VAO.
     glBindVertexArray(0);
+}
+
+void OpenglManager::update_drone_data(std::shared_ptr<glm::vec3> pos,
+    float roll, float pitch, float yaw)
+{
+    drone_pos = *pos;
 }
 
 bool OpenglManager::make_jpeg_texture(fs::path texture_path)

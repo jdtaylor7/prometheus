@@ -1,8 +1,13 @@
 #ifndef GLFW_MANAGER_HPP
 #define GLFW_MANAGER_HPP
 
+#include <memory>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+
+#include "viewer_mode.hpp"
 
 /*
  * Callback functions.
@@ -25,7 +30,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 class GlfwManager
 {
 public:
-    GlfwManager(std::size_t width, std::size_t height);
+    GlfwManager(std::size_t width, std::size_t height,
+        std::shared_ptr<glm::vec3> drone_pos, std::shared_ptr<ViewerMode> viewer_mode);
     ~GlfwManager();
 
     bool did_window_creation_fail() const;
@@ -42,10 +48,17 @@ private:
     std::size_t screen_height;
     GLFWwindow* window;
     bool window_creation_failed = false;
+
+    std::shared_ptr<glm::vec3> drone_pos;
+    std::shared_ptr<ViewerMode> viewer_mode;
 };
 
-GlfwManager::GlfwManager(std::size_t width, std::size_t height) :
-    screen_width(width), screen_height(height)
+GlfwManager::GlfwManager(std::size_t width, std::size_t height,
+        std::shared_ptr<glm::vec3> drone_pos_, std::shared_ptr<ViewerMode> viewer_mode_) :
+    screen_width(width),
+    screen_height(height),
+    drone_pos(drone_pos_),
+    viewer_mode(viewer_mode_)
 {
     /*
      * GLFW initialization and configuration.
@@ -108,13 +121,16 @@ void GlfwManager::process_input()
     // {
     //     printer.print_camera_details();
     // }
-    //
-    // if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-    //     drone_pos.y += 0.003f;
-    //
-    // if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-    //     drone_pos.y -= 0.003f;
-    //
+
+    if (*viewer_mode == ViewerMode::Edit)
+    {
+        if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+            drone_pos->y += 0.003f;
+
+        if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+            drone_pos->y -= 0.003f;
+    }
+
     // camera.update_pos(window);
 }
 
