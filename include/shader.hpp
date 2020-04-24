@@ -15,8 +15,11 @@ namespace fs = std::filesystem;
 class Shader
 {
 public:
-    Shader(const fs::path& vertex_path, const fs::path& fragment_path);
+    Shader() : vertex_path{}, fragment_path{} {}
+    Shader(const fs::path& vpath, const fs::path& fpath) :
+        vertex_path(vpath), fragment_path(fpath) {}
 
+    void configure();
     void use();
 
     void set_bool(const std::string& name, bool value) const;
@@ -25,10 +28,13 @@ public:
     void set_mat4fv(const std::string& name, const glm::mat4& m);
     void set_vec3(const std::string& name, const glm::vec3& v);
 private:
+    fs::path vertex_path;
+    fs::path fragment_path;
     unsigned int id;
 };
 
-Shader::Shader(const fs::path& vertex_path, const fs::path& fragment_path)
+
+void Shader::configure()
 {
     std::string vertex_code;
     std::string fragment_code;

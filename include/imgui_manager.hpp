@@ -11,6 +11,12 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+enum class ViewerMode : unsigned char
+{
+    Telemetry,
+    Edit,
+};
+
 struct ImguiWindowSettings
 {
     ImguiWindowSettings(float width_, float height_) :
@@ -57,10 +63,12 @@ private:
 
     ImGuiIO io;
 
+    ViewerMode viewer_mode = ViewerMode::Telemetry;
+
     bool show_demo_window = false;
     const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    const float WINDOW_BUF = 20.0f;
+    static constexpr float WINDOW_BUF = 20.0f;
 
     ImguiWindowSettings fps;
     ImguiWindowSettings mode;
@@ -99,7 +107,7 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
     controls(163.0, 82.0),
     drone(121.0, 167.0),
     camera(121.0, 167.0),
-    queue(171.0, 65.0)
+    queue(145.0, 65.0)
 {
     screen_width = screen_width_;
     screen_height = screen_height_;
@@ -118,9 +126,8 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
      * Can't initialize ImGuiIO& in initializer list because it's necessary to
      * call ImGui::CreateContext() first. So instead, storing io as a solid type
      * rather than a reference, necessitating the use of this awkward
-     * conversion.
+     * conversion. The original line is simply `io = ImGui::GetIO();`
      */
-    // io = ImGui::GetIO();
     io = std::remove_reference_t<decltype(ImGui::GetIO())>(ImGui::GetIO());
 
     ImGui::StyleColorsDark();
@@ -139,7 +146,7 @@ ImguiManager::~ImguiManager()
 void ImguiManager::execute_frame()
 {
     ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame(); // offending line
+    ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
     if (show_demo_window)
@@ -163,8 +170,14 @@ void ImguiManager::execute_frame()
         ImGui::Begin("Application Mode", NULL, imgui_window_flags);
 
         static int e = 0;
-        ImGui::RadioButton("Telemetry (t)", &e, 0);
-        ImGui::RadioButton("Edit scene (e)", &e, 1);
+        if (ImGui::RadioButton("Telemetry (t)", &e, 0))
+        {
+            viewer_mode = ViewerMode::Telemetry;
+        }
+        if (ImGui::RadioButton("Edit scene (e)", &e, 1))
+        {
+            viewer_mode = ViewerMode::Edit;
+        }
 
         ImGui::End();
     }
@@ -173,13 +186,27 @@ void ImguiManager::execute_frame()
     ImGui::SetNextWindowSize(ImVec2(controls.width, controls.height), ImGuiCond_Always);
     ImGui::SetNextWindowPos(ImVec2(controls.xpos, controls.ypos), ImGuiCond_Always);
     {
-        ImGui::Begin("Simulation Controls", NULL, imgui_window_flags);
+        switch (viewer_mode)
+        {
+        case ViewerMode::Telemetry:
+            ImGui::Begin("Telemetry Controls", NULL, imgui_window_flags);
 
-        ImGui::BulletText("Start/Stop (space)");
-        ImGui::BulletText("Pause (p)");
-        ImGui::BulletText("Reset (r)");
+            ImGui::BulletText("Start/Stop (space)");
+            ImGui::BulletText("Pause (p)");
+            ImGui::BulletText("Reset (r)");
 
-        ImGui::End();
+            ImGui::End();
+            break;
+        case ViewerMode::Edit:
+            ImGui::Begin("Edit Controls", NULL, imgui_window_flags);
+
+            ImGui::BulletText("Camera control (c, default)");
+            ImGui::BulletText("Drone control (d)");
+            ImGui::BulletText("Reset (r)");
+
+            ImGui::End();
+            break;
+        }
     }
 
     // Drone data window.
