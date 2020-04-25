@@ -4,6 +4,7 @@
 struct DroneData
 {
     DroneData(glm::vec3 p, glm::vec3 o) : position(p), orientation(o) {}
+    // DroneData(glm::vec3 p, glm::vec3 o) : position(p), orientation(o) {}
     glm::vec3 position;
     glm::vec3 orientation;
 };
