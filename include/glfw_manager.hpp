@@ -10,37 +10,37 @@
 #include "shared.hpp"
 #include "viewer_mode.hpp"
 
-/*
- * Callback functions.
- */
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
-
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-    // if (*viewer_mode == ViewerMode::Edit)
-    //     camera.update_angle(xpos, ypos);
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-    // if (*viewer_mode == ViewerMode::Edit)
-    //     camera.update_pov(yoffset);
-}
+// /*
+//  * Callback functions.
+//  */
+// void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+// {
+//     glViewport(0, 0, width, height);
+// }
+//
+// void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+// {
+//     // if (*viewer_mode == ViewerMode::Edit)
+//     //     camera.update_angle(xpos, ypos);
+// }
+//
+// void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+// {
+//     // if (*viewer_mode == ViewerMode::Edit)
+//     //     camera.update_pov(yoffset);
+// }
 
 class GlfwManager
 {
 public:
     GlfwManager(std::size_t width,
                 std::size_t height,
-                std::shared_ptr<DroneData> drone_data_,
-                std::shared_ptr<ViewerMode> viewer_mode_) :
+                std::shared_ptr<ViewerMode> viewer_mode_,
+                std::shared_ptr<DroneData> drone_data_) :
     screen_width(width),
     screen_height(height),
-    drone_data(drone_data_),
-    viewer_mode(viewer_mode_)
+    viewer_mode(viewer_mode_),
+    drone_data(drone_data_)
     {}
 
     ~GlfwManager();
@@ -64,6 +64,13 @@ private:
 
     std::shared_ptr<DroneData> drone_data;
     std::shared_ptr<ViewerMode> viewer_mode;
+
+    /*
+     * Callback functions.
+     */
+    static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+    static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+    static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 };
 
 bool GlfwManager::init()
@@ -139,6 +146,12 @@ void GlfwManager::process_input()
     //     printer.print_camera_details();
     // }
 
+    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+        *viewer_mode = ViewerMode::Telemetry;
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+        *viewer_mode = ViewerMode::Edit;
+
+    // TODO Testing.
     if (*viewer_mode == ViewerMode::Edit)
     {
         if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
@@ -159,6 +172,26 @@ void GlfwManager::swap_buffers()
 void GlfwManager::poll_events()
 {
     glfwPollEvents();
+}
+
+/*
+ * Callback functions.
+ */
+void GlfwManager::framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
+void GlfwManager::mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    // if (*viewer_mode == ViewerMode::Edit)
+    //     camera.update_angle(xpos, ypos);
+}
+
+void GlfwManager::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    // if (*viewer_mode == ViewerMode::Edit)
+    //     camera.update_pov(yoffset);
 }
 
 #endif /* GLFW_MANAGER_HPP */

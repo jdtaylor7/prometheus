@@ -16,17 +16,25 @@
 #include "viewer_mode.hpp"
 
 /*
- * Global data.
+ * Global constants.
  */
 constexpr std::size_t SCREEN_WIDTH = 1600;
 constexpr std::size_t SCREEN_HEIGHT = 1200;
 
+const auto INITIAL_DRONE_POSITION = glm::vec3(0.0, 0.1, 0.0);
+const auto INITIAL_DRONE_ORIENTATION = glm::vec3(0.0, 0.0, 0.0);
+const auto INITIAL_CAMERA_POSITION = glm::vec3(0.0, 1.0, 4.0);
+const auto INITIAL_CAMERA_TARGET = glm::vec3(0.0, 1.0, 3.0);
+
+/*
+ * Global state.
+ */
 auto viewer_mode = std::make_shared<ViewerMode>(ViewerMode::Telemetry);
 
-auto drone_data = std::make_shared<DroneData>(glm::vec3(0.0, 0.1, 0.0),
-                                              glm::vec3(0.0, 0.0, 0.0));
-auto camera_data = std::make_shared<CameraData>(glm::vec3(0.0, 1.0, 4.0),
-                                                glm::vec3(0.0, 1.0, 3.0));
+auto drone_data = std::make_shared<DroneData>(INITIAL_DRONE_POSITION,
+                                              INITIAL_DRONE_ORIENTATION);
+auto camera_data = std::make_shared<CameraData>(INITIAL_CAMERA_POSITION,
+                                                INITIAL_CAMERA_TARGET);
 
 /*
  * Main function.
@@ -36,7 +44,7 @@ int main()
     /*
      * GLFW initialization.
      */
-    GlfwManager glfw_manager(SCREEN_WIDTH, SCREEN_HEIGHT, drone_data, viewer_mode);
+    GlfwManager glfw_manager(SCREEN_WIDTH, SCREEN_HEIGHT, viewer_mode, drone_data);
     if (!glfw_manager.init()) { return -1; }
 
     ImguiManager imgui_manager(glfw_manager.get_window(), "#version 330", SCREEN_WIDTH, SCREEN_HEIGHT, viewer_mode, drone_data, camera_data);
@@ -50,18 +58,16 @@ int main()
      */
     while (!glfw_manager.should_window_close())
     {
-        // Update ImGUI windows.
-        imgui_manager.execute_frame();
-        imgui_manager.render();
-
         /*
          * Process input.
          */
         glfw_manager.process_input();
 
         /*
-         * Render.
+         * Render. Order between imgui_manager and opengl_manager is important.
          */
+        imgui_manager.process_frame();
+        imgui_manager.render();
         opengl_manager.process_frame();
         imgui_manager.render_draw_data();
 

@@ -50,7 +50,7 @@ public:
 
     bool init();
 
-    void execute_frame();
+    void process_frame();
     void render();
     void render_draw_data();
 
@@ -77,7 +77,8 @@ private:
 
     ImguiWindowSettings fps;
     ImguiWindowSettings mode;
-    ImguiWindowSettings controls;
+    ImguiWindowSettings controls_t;
+    ImguiWindowSettings controls_e;
     ImguiWindowSettings drone;
     ImguiWindowSettings camera;
     ImguiWindowSettings queue;
@@ -102,7 +103,8 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
     glsl_version(glsl_version_),
     fps(93.0, 32.0),
     mode(165.0, 80.0),
-    controls(163.0, 82.0),
+    controls_t(165.0, 82.0),
+    controls_e(228.0, 82.0),
     drone(121.0, 167.0),
     camera(121.0, 167.0),
     queue(145.0, 65.0),
@@ -114,8 +116,9 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
     screen_height = screen_height_;
 
     fps.set_pos(WINDOW_BUF, WINDOW_BUF);
-    mode.set_pos(screen_width - mode.width - WINDOW_BUF, WINDOW_BUF);
-    controls.set_pos(mode.xpos, mode.bottom() + WINDOW_BUF);
+    mode.set_pos(screen_width - WINDOW_BUF - mode.width, WINDOW_BUF);
+    controls_t.set_pos(screen_width - WINDOW_BUF - controls_t.width, mode.bottom() + WINDOW_BUF);
+    controls_e.set_pos(screen_width - WINDOW_BUF - controls_e.width, mode.bottom() + WINDOW_BUF);
     drone.set_pos(WINDOW_BUF, fps.bottom() + WINDOW_BUF);
     camera.set_pos(WINDOW_BUF, drone.bottom() + WINDOW_BUF);
     queue.set_pos(WINDOW_BUF, camera.bottom() + WINDOW_BUF);
@@ -149,7 +152,7 @@ ImguiManager::~ImguiManager()
     ImGui::DestroyContext();
 }
 
-void ImguiManager::execute_frame()
+void ImguiManager::process_frame()
 {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -176,6 +179,17 @@ void ImguiManager::execute_frame()
         ImGui::Begin("Application Mode", NULL, imgui_window_flags);
 
         static int e = 0;
+
+        switch (*viewer_mode)
+        {
+        case ViewerMode::Telemetry:
+            e = 0;
+            break;
+        case ViewerMode::Edit:
+            e = 1;
+            break;
+        }
+
         if (ImGui::RadioButton("Telemetry (t)", &e, 0))
         {
             *viewer_mode = ViewerMode::Telemetry;
@@ -188,13 +202,14 @@ void ImguiManager::execute_frame()
         ImGui::End();
     }
 
-    // Controls window.
-    ImGui::SetNextWindowSize(ImVec2(controls.width, controls.height), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(controls.xpos, controls.ypos), ImGuiCond_Always);
+    // Controls window. Couldn't find good method to auto resize window, so it's
+    // manual for now.
     {
         switch (*viewer_mode)
         {
         case ViewerMode::Telemetry:
+            ImGui::SetNextWindowSize(ImVec2(controls_t.width, controls_t.height), ImGuiCond_Always);
+            ImGui::SetNextWindowPos(ImVec2(controls_t.xpos, controls_t.ypos), ImGuiCond_Always);
             ImGui::Begin("Telemetry Controls", NULL, imgui_window_flags);
 
             ImGui::BulletText("Start/Stop (space)");
@@ -204,6 +219,8 @@ void ImguiManager::execute_frame()
             ImGui::End();
             break;
         case ViewerMode::Edit:
+            ImGui::SetNextWindowSize(ImVec2(controls_e.width, controls_e.height), ImGuiCond_Always);
+            ImGui::SetNextWindowPos(ImVec2(controls_e.xpos, controls_e.ypos), ImGuiCond_Always);
             ImGui::Begin("Edit Controls", NULL, imgui_window_flags);
 
             ImGui::BulletText("Camera control (1, default)");
@@ -241,17 +258,11 @@ void ImguiManager::execute_frame()
         ImGui::Begin("Camera Data", NULL, imgui_window_flags);
 
         ImGui::Text("Camera Position");
-        // ImGui::BulletText("x: %.3f", camera_x);
-        // ImGui::BulletText("y: %.3f", camera_x);
-        // ImGui::BulletText("z: %.3f", camera_y);
         ImGui::BulletText("x: %.3f", camera_data->position.x);
         ImGui::BulletText("y: %.3f", camera_data->position.y);
         ImGui::BulletText("z: %.3f", camera_data->position.z);
 
         ImGui::Text("Target Position");
-        // ImGui::BulletText("x: %.3f", target_x);
-        // ImGui::BulletText("y: %.3f", target_y);
-        // ImGui::BulletText("z: %.3f", target_z);
         ImGui::BulletText("x: %.3f", camera_data->target.x);
         ImGui::BulletText("y: %.3f", camera_data->target.y);
         ImGui::BulletText("z: %.3f", camera_data->target.z);
@@ -295,7 +306,8 @@ void ImguiManager::update_window_settings()
 {
     fps.set_pos(WINDOW_BUF, WINDOW_BUF);
     mode.set_pos(screen_width - mode.width - WINDOW_BUF, WINDOW_BUF);
-    controls.set_pos(screen_width - controls.width, mode.bottom() + WINDOW_BUF);
+    controls_t.set_pos(screen_width - controls_t.width, mode.bottom() + WINDOW_BUF);
+    controls_e.set_pos(screen_width - controls_e.width, mode.bottom() + WINDOW_BUF);
     drone.set_pos(WINDOW_BUF, fps.bottom() + WINDOW_BUF);
     camera.set_pos(WINDOW_BUF, drone.bottom() + WINDOW_BUF);
     queue.set_pos(WINDOW_BUF, camera.bottom() + WINDOW_BUF);
