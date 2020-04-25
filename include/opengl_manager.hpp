@@ -14,19 +14,21 @@
 
 #include "shader.hpp"
 #include "vertex_data.hpp"
-// #include "viewer_mode.hpp"
 
 namespace fs = std::filesystem;
 
 class OpenglManager
 {
 public:
-    OpenglManager(std::size_t screen_width_, std::size_t screen_height_);
+    OpenglManager(std::size_t screen_width_,
+                  std::size_t screen_height_,
+                  std::shared_ptr<DroneData> drone_data_,
+                  std::shared_ptr<CameraData> camera_data_);
     ~OpenglManager();
 
-    void process_frame();
+    bool init();
 
-    void update_drone_data(std::shared_ptr<glm::vec3> pos, float roll, float pitch, float yaw);
+    void process_frame();
 private:
     std::size_t screen_width;
     std::size_t screen_height;
@@ -44,24 +46,16 @@ private:
     static constexpr float room_size = 10.0f;
     static constexpr float drone_size = 0.2f;
 
-    // glm::vec3 room_pos(0.0, 0.0 + (room_size / 2), 0.0);
-    // glm::vec3 drone_pos(0.0, 0.0f + (drone_size / 2), 0.0);
     glm::vec3 room_pos{};
-    glm::vec3 drone_pos{};
-
-    // glm::vec3 initial_camera_pos(0.0, 1.0, 4.0);
-    // glm::vec3 initial_camera_target(0.0, 1.0, 3.0);
-    glm::vec3 initial_camera_pos;
-    glm::vec3 initial_camera_target;
+    std::shared_ptr<DroneData> drone_data;
+    std::shared_ptr<CameraData> camera_data;
 
     unsigned int vao;
     unsigned int vbo;
     unsigned int ebo;
 
-    // Shader shader(vertex_shader_path, fragment_shader_path);
     Shader shader{};
 
-    // std::vector<unsigned int> textures(2);
     std::array<unsigned int, 2> textures{};
     std::size_t next_texture = 0;
 
@@ -77,14 +71,16 @@ private:
 };
 
 OpenglManager::OpenglManager(std::size_t screen_width_,
-    std::size_t screen_height) :
-        screen_width(screen_width_), screen_height(screen_height)
+                             std::size_t screen_height,
+                             std::shared_ptr<DroneData> drone_data_,
+                             std::shared_ptr<CameraData> camera_data_) :
+        screen_width(screen_width_),
+        screen_height(screen_height),
+        drone_data(drone_data_),
+        camera_data(camera_data_)
 {
     // Set dependent values.
-    initial_camera_pos = glm::vec3(0.0, 1.0, 4.0);
-    initial_camera_target = glm::vec3(0.0, 1.0, 3.0);
     room_pos = glm::vec3(0.0, 0.0 + (room_size / 2), 0.0);
-    drone_pos = glm::vec3(0.0, 0.0f + (drone_size / 2), 0.0);
 
     // Create camera.
     camera = std::make_unique<Camera>(resource_manager,
@@ -92,9 +88,11 @@ OpenglManager::OpenglManager(std::size_t screen_width_,
         screen_height,
         room_size / 2,
         room_size,
-        initial_camera_pos,
-        initial_camera_target);
+        camera_data);
+}
 
+bool OpenglManager::init()
+{
     // Generate array and buffer objects.
     make_opengl_objects();
     configure_buffers();
@@ -118,6 +116,8 @@ OpenglManager::OpenglManager(std::size_t screen_width_,
     room_model = glm::mat4(1.0f);
     room_model = glm::translate(room_model, room_pos);
     room_model = glm::scale(room_model, glm::vec3(room_size, room_size, room_size));
+
+    return true;
 }
 
 OpenglManager::~OpenglManager()
@@ -129,9 +129,6 @@ OpenglManager::~OpenglManager()
 
 void OpenglManager::process_frame()
 {
-    // Update camera.
-    camera->update_frames();
-
     // Color buffer.
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -169,19 +166,13 @@ void OpenglManager::process_frame()
     shader.set_int("texture1", 1);
     shader.set_int("texture2", 1);
     model = glm::mat4(1.0f);
-    model = glm::translate(model, drone_pos);
+    model = glm::translate(model, drone_data->position);
     model = glm::scale(model, glm::vec3(drone_size, drone_size, drone_size));
     shader.set_mat4fv("model", model);
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
     // Unbind VAO.
     glBindVertexArray(0);
-}
-
-void OpenglManager::update_drone_data(std::shared_ptr<glm::vec3> pos,
-    float roll, float pitch, float yaw)
-{
-    drone_pos = *pos;
 }
 
 bool OpenglManager::make_jpeg_texture(fs::path texture_path)

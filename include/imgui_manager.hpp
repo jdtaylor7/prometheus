@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory>
+#include <mutex>
 #include <type_traits>
 
 #include <glad/glad.h>
@@ -12,6 +13,8 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+#include "resource_manager.hpp"
+#include "shared.hpp"
 #include "viewer_mode.hpp"
 
 struct ImguiWindowSettings
@@ -36,23 +39,27 @@ struct ImguiWindowSettings
 class ImguiManager
 {
 public:
-    ImguiManager(GLFWwindow* window_, const std::string& glsl_version,
-        std::size_t screen_width_, std::size_t screen_height_,
-        std::shared_ptr<ViewerMode> viewer_mode_);
+    ImguiManager(GLFWwindow* window_,
+                 const std::string& glsl_version,
+                 std::size_t screen_width_,
+                 std::size_t screen_height_,
+                 std::shared_ptr<ViewerMode> viewer_mode_,
+                 std::shared_ptr<DroneData> drone_data_,
+                 std::shared_ptr<CameraData> camera_data_);
     ~ImguiManager();
+
+    bool init();
 
     void execute_frame();
     void render();
     void render_draw_data();
 
     void update_screen_dimensions(std::size_t width, std::size_t height);
-    void update_drone_data(float dx, float dy, float dz,
-        float roll, float pitch, float yaw);
-    void camera_data(float cx, float cy, float cz,
-        float tx, float ty, float tz);
     void update_queue_data(unsigned int p, unsigned int c);
 private:
     GLFWwindow* window;
+    std::string glsl_version;
+
     std::size_t screen_width;
     std::size_t screen_height;
 
@@ -75,19 +82,8 @@ private:
     ImguiWindowSettings camera;
     ImguiWindowSettings queue;
 
-    float drone_x = 0.000f;
-    float drone_y = 0.000f;
-    float drone_z = 0.000f;
-    float drone_roll = 0.000f;
-    float drone_pitch = 0.000f;
-    float drone_yaw = 0.000f;
-
-    float camera_x = 0.000f;
-    float camera_y = 0.000f;
-    float camera_z = 0.000f;
-    float target_x = 0.000f;
-    float target_y = 0.000f;
-    float target_z = 0.000f;
+    std::shared_ptr<DroneData> drone_data;
+    std::shared_ptr<CameraData> camera_data;
 
     unsigned int producer_n = 0;
     unsigned int consumer_n = 0;
@@ -96,18 +92,23 @@ private:
 };
 
 ImguiManager::ImguiManager(GLFWwindow* window_,
-                           const std::string& glsl_version,
+                           const std::string& glsl_version_,
                            std::size_t screen_width_,
                            std::size_t screen_height_,
-                           std::shared_ptr<ViewerMode> viewer_mode_) :
+                           std::shared_ptr<ViewerMode> viewer_mode_,
+                           std::shared_ptr<DroneData> drone_data_,
+                           std::shared_ptr<CameraData> camera_data_) :
     window(window_),
+    glsl_version(glsl_version_),
     fps(93.0, 32.0),
     mode(165.0, 80.0),
     controls(163.0, 82.0),
     drone(121.0, 167.0),
     camera(121.0, 167.0),
     queue(145.0, 65.0),
-    viewer_mode(viewer_mode_)
+    viewer_mode(viewer_mode_),
+    drone_data(drone_data_),
+    camera_data(camera_data_)
 {
     screen_width = screen_width_;
     screen_height = screen_height_;
@@ -118,7 +119,10 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
     drone.set_pos(WINDOW_BUF, fps.bottom() + WINDOW_BUF);
     camera.set_pos(WINDOW_BUF, drone.bottom() + WINDOW_BUF);
     queue.set_pos(WINDOW_BUF, camera.bottom() + WINDOW_BUF);
+}
 
+bool ImguiManager::init()
+{
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
@@ -134,6 +138,8 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version.c_str());
+
+    return true;
 }
 
 ImguiManager::~ImguiManager()
@@ -216,14 +222,14 @@ void ImguiManager::execute_frame()
         ImGui::Begin("Drone Data", NULL, imgui_window_flags);
 
         ImGui::Text("Position");
-        ImGui::BulletText("x:     %.3f", drone_x);
-        ImGui::BulletText("y:     %.3f", drone_y);
-        ImGui::BulletText("z:     %.3f", drone_z);
+        ImGui::BulletText("x:     %.3f", drone_data->position.x);
+        ImGui::BulletText("y:     %.3f", drone_data->position.y);
+        ImGui::BulletText("z:     %.3f", drone_data->position.z);
 
-        ImGui::Text("Angle");
-        ImGui::BulletText("Roll:  %.3f", drone_roll);
-        ImGui::BulletText("Pitch: %.3f", drone_pitch);
-        ImGui::BulletText("Yaw:   %.3f", drone_yaw);
+        ImGui::Text("Orientation");
+        ImGui::BulletText("Roll:  %.3f", drone_data->orientation.x);
+        ImGui::BulletText("Pitch: %.3f", drone_data->orientation.y);
+        ImGui::BulletText("Yaw:   %.3f", drone_data->orientation.z);
 
         ImGui::End();
     }
@@ -235,14 +241,20 @@ void ImguiManager::execute_frame()
         ImGui::Begin("Camera Data", NULL, imgui_window_flags);
 
         ImGui::Text("Camera Position");
-        ImGui::BulletText("x: %.3f", camera_x);
-        ImGui::BulletText("y: %.3f", camera_x);
-        ImGui::BulletText("z: %.3f", camera_y);
+        // ImGui::BulletText("x: %.3f", camera_x);
+        // ImGui::BulletText("y: %.3f", camera_x);
+        // ImGui::BulletText("z: %.3f", camera_y);
+        ImGui::BulletText("x: %.3f", camera_data->position.x);
+        ImGui::BulletText("y: %.3f", camera_data->position.y);
+        ImGui::BulletText("z: %.3f", camera_data->position.z);
 
         ImGui::Text("Target Position");
-        ImGui::BulletText("x: %.3f", target_x);
-        ImGui::BulletText("y: %.3f", target_y);
-        ImGui::BulletText("z: %.3f", target_z);
+        // ImGui::BulletText("x: %.3f", target_x);
+        // ImGui::BulletText("y: %.3f", target_y);
+        // ImGui::BulletText("z: %.3f", target_z);
+        ImGui::BulletText("x: %.3f", camera_data->target.x);
+        ImGui::BulletText("y: %.3f", camera_data->target.y);
+        ImGui::BulletText("z: %.3f", camera_data->target.z);
 
         ImGui::End();
     }
@@ -287,28 +299,6 @@ void ImguiManager::update_window_settings()
     drone.set_pos(WINDOW_BUF, fps.bottom() + WINDOW_BUF);
     camera.set_pos(WINDOW_BUF, drone.bottom() + WINDOW_BUF);
     queue.set_pos(WINDOW_BUF, camera.bottom() + WINDOW_BUF);
-}
-
-void ImguiManager::update_drone_data(float dx, float dy, float dz,
-    float roll, float pitch, float yaw)
-{
-    drone_x = dx;
-    drone_y = dy;
-    drone_z = dz;
-    drone_roll = roll;
-    drone_pitch = pitch;
-    drone_yaw = yaw;
-}
-
-void ImguiManager::camera_data(float cx, float cy, float cz,
-    float tx, float ty, float tz)
-{
-    camera_x = cx;
-    camera_y = cy;
-    camera_z = cz;
-    target_x = tx;
-    target_y = ty;
-    target_z = tz;
 }
 
 void ImguiManager::update_queue_data(unsigned int p, unsigned int c)

@@ -6,7 +6,8 @@
 class ResourceManager
 {
 public:
-    std::mutex camera_mutex;
+    std::mutex camera_data_mutex;
+    std::mutex drone_data_mutex;
 };
 
 #endif /* RESOURCE_MANAGER_HPP */
