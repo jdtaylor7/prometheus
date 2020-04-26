@@ -19,7 +19,7 @@ public:
     Shader(const fs::path& vpath, const fs::path& fpath) :
         vertex_path(vpath), fragment_path(fpath) {}
 
-    void configure();
+    void init();
     void use();
 
     void set_bool(const std::string& name, bool value) const;
@@ -34,7 +34,7 @@ private:
 };
 
 
-void Shader::configure()
+void Shader::init()
 {
     std::string vertex_code;
     std::string fragment_code;

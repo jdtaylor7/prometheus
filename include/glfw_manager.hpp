@@ -10,26 +10,6 @@
 #include "shared.hpp"
 #include "viewer_mode.hpp"
 
-// /*
-//  * Callback functions.
-//  */
-// void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-// {
-//     glViewport(0, 0, width, height);
-// }
-//
-// void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-// {
-//     // if (*viewer_mode == ViewerMode::Edit)
-//     //     camera.update_angle(xpos, ypos);
-// }
-//
-// void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-// {
-//     // if (*viewer_mode == ViewerMode::Edit)
-//     //     camera.update_pov(yoffset);
-// }
-
 class GlfwManager
 {
 public:

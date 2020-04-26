@@ -65,7 +65,7 @@ private:
     glm::mat4 room_model;
 
     void make_opengl_objects();
-    void configure_buffers();
+    void init_buffers();
     bool make_jpeg_texture(fs::path texture_path);
     bool make_png_texture(fs::path texture_path);
 };
@@ -95,13 +95,13 @@ bool OpenglManager::init()
 {
     // Generate array and buffer objects.
     make_opengl_objects();
-    configure_buffers();
+    init_buffers();
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
     // Shader.
     shader = Shader(vertex_shader_path, fragment_shader_path);
-    shader.configure();
+    shader.init();
 
     // Textures.
     glGenTextures(2, textures.data());
@@ -256,7 +256,7 @@ void OpenglManager::make_opengl_objects()
     glGenBuffers(1, &ebo);
 }
 
-void OpenglManager::configure_buffers()
+void OpenglManager::init_buffers()
 {
     // Bind VBO to the vertex buffer object, GL_ARRAY_BUFFER. Buffer
     // operations on GL_ARRAY_BUFFER then apply to VBO.
