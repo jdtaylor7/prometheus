@@ -39,30 +39,59 @@ private:
     /*
      * State.
      */
-    std::shared_ptr<ViewerMode> viewer_mode = std::make_shared<ViewerMode>(ViewerMode::Telemetry);
-
-    std::shared_ptr<DroneData> drone_data = std::make_shared<DroneData>(INITIAL_DRONE_DATA);
-    std::shared_ptr<CameraData> camera_data = std::make_shared<CameraData>(INITIAL_CAMERA_DATA);
+    std::unique_ptr<ViewerMode> viewer_mode;
+    std::unique_ptr<DroneData> drone_data;
+    std::unique_ptr<CameraData> camera_data;
 
     /*
      * Data managers.
      */
-    std::shared_ptr<GlfwManager> glfw_manager;
-    std::shared_ptr<ImguiManager> imgui_manager;
-    std::shared_ptr<OpenglManager> opengl_manager;
+    std::unique_ptr<ResourceManager> resource_manager;
+    std::unique_ptr<GlfwManager> glfw_manager;
+    std::unique_ptr<ImguiManager> imgui_manager;
+    std::unique_ptr<OpenglManager> opengl_manager;
 };
-
 
 bool DroneViewer::init()
 {
-    glfw_manager = std::make_shared<GlfwManager>(SCREEN_WIDTH, SCREEN_HEIGHT, viewer_mode, drone_data);
-    if (!glfw_manager->init()) { return false; }
+    /*
+     * Initialize state.
+     */
+    viewer_mode = std::make_unique<ViewerMode>(ViewerMode::Telemetry);
+    drone_data = std::make_unique<DroneData>(INITIAL_DRONE_DATA);
+    camera_data = std::make_unique<CameraData>(INITIAL_CAMERA_DATA);
 
-    imgui_manager = std::make_shared<ImguiManager>(glfw_manager->get_window(), GLSL_VERSION, SCREEN_WIDTH, SCREEN_HEIGHT, viewer_mode, drone_data, camera_data);
-    if (!imgui_manager->init()) { return false; }
+    /*
+     * Initialize data managers.
+     */
+    resource_manager = std::make_unique<ResourceManager>();
 
-    opengl_manager = std::make_shared<OpenglManager>(SCREEN_WIDTH, SCREEN_HEIGHT, drone_data, camera_data);
-    if (!opengl_manager->init()) { return false; }
+    glfw_manager = std::make_unique<GlfwManager>(
+        SCREEN_WIDTH,
+        SCREEN_HEIGHT,
+        resource_manager.get(),
+        viewer_mode.get(),
+        drone_data.get());
+    if (!glfw_manager->init()) return false;
+
+    imgui_manager = std::make_unique<ImguiManager>(
+        glfw_manager->get_window(),
+        GLSL_VERSION,
+        SCREEN_WIDTH,
+        SCREEN_HEIGHT,
+        resource_manager.get(),
+        viewer_mode.get(),
+        drone_data.get(),
+        camera_data.get());
+    if (!imgui_manager->init()) return false;
+
+    opengl_manager = std::make_unique<OpenglManager>(
+        SCREEN_WIDTH,
+        SCREEN_HEIGHT,
+        resource_manager.get(),
+        drone_data.get(),
+        camera_data.get());
+    if (!opengl_manager->init()) return false;
 
     return true;
 }

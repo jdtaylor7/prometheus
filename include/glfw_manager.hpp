@@ -13,12 +13,14 @@
 class GlfwManager
 {
 public:
-    GlfwManager(std::size_t width,
-                std::size_t height,
-                std::shared_ptr<ViewerMode> viewer_mode_,
-                std::shared_ptr<DroneData> drone_data_) :
-    screen_width(width),
-    screen_height(height),
+    GlfwManager(std::size_t width_,
+                std::size_t height_,
+                ResourceManager* resource_manager_,
+                ViewerMode* viewer_mode_,
+                DroneData* drone_data_) :
+    screen_width(width_),
+    screen_height(height_),
+    rm(resource_manager_),
     viewer_mode(viewer_mode_),
     drone_data(drone_data_)
     {}
@@ -42,8 +44,10 @@ private:
     GLFWwindow* window;
     bool window_creation_failed = false;
 
-    std::shared_ptr<DroneData> drone_data;
-    std::shared_ptr<ViewerMode> viewer_mode;
+    ResourceManager* rm;
+
+    DroneData* drone_data;
+    ViewerMode* viewer_mode;
 
     /*
      * Callback functions.
@@ -127,9 +131,17 @@ void GlfwManager::process_input()
     // }
 
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+    {
+        // if (!rm) std::cout << "GlfwManager::process_input: rm is null\n";
+        std::lock_guard<std::mutex> g(rm->viewer_mode_mutex);
         *viewer_mode = ViewerMode::Telemetry;
+    }
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+    {
+        // if (!rm) std::cout << "GlfwManager::process_input: rm is null\n";
+        std::lock_guard<std::mutex> g(rm->viewer_mode_mutex);
         *viewer_mode = ViewerMode::Edit;
+    }
 
     // TODO Testing.
     if (*viewer_mode == ViewerMode::Edit)

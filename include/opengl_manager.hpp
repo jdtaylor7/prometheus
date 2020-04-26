@@ -22,8 +22,9 @@ class OpenglManager
 public:
     OpenglManager(std::size_t screen_width_,
                   std::size_t screen_height_,
-                  std::shared_ptr<DroneData> drone_data_,
-                  std::shared_ptr<CameraData> camera_data_);
+                  ResourceManager* resource_manager_,
+                  DroneData* drone_data_,
+                  CameraData* camera_data_);
     ~OpenglManager();
 
     bool init();
@@ -47,8 +48,8 @@ private:
     static constexpr float drone_size = 0.2f;
 
     glm::vec3 room_pos{};
-    std::shared_ptr<DroneData> drone_data;
-    std::shared_ptr<CameraData> camera_data;
+    DroneData* drone_data;
+    CameraData* camera_data;
 
     unsigned int vao;
     unsigned int vbo;
@@ -59,7 +60,7 @@ private:
     std::array<unsigned int, 2> textures{};
     std::size_t next_texture = 0;
 
-    ResourceManager resource_manager{};
+    ResourceManager* resource_manager;
     std::unique_ptr<Camera> camera;
 
     glm::mat4 room_model;
@@ -71,11 +72,13 @@ private:
 };
 
 OpenglManager::OpenglManager(std::size_t screen_width_,
-                             std::size_t screen_height,
-                             std::shared_ptr<DroneData> drone_data_,
-                             std::shared_ptr<CameraData> camera_data_) :
+                             std::size_t screen_height_,
+                             ResourceManager* resource_manager_,
+                             DroneData* drone_data_,
+                             CameraData* camera_data_) :
         screen_width(screen_width_),
-        screen_height(screen_height),
+        screen_height(screen_height_),
+        resource_manager(resource_manager_),
         drone_data(drone_data_),
         camera_data(camera_data_)
 {

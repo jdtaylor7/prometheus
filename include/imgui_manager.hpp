@@ -43,9 +43,10 @@ public:
                  const std::string& glsl_version,
                  std::size_t screen_width_,
                  std::size_t screen_height_,
-                 std::shared_ptr<ViewerMode> viewer_mode_,
-                 std::shared_ptr<DroneData> drone_data_,
-                 std::shared_ptr<CameraData> camera_data_);
+                 ResourceManager* resource_manager_,
+                 ViewerMode* viewer_mode_,
+                 DroneData* drone_data_,
+                 CameraData* camera_data_);
     ~ImguiManager();
 
     bool init();
@@ -68,7 +69,9 @@ private:
 
     ImGuiIO io;
 
-    std::shared_ptr<ViewerMode> viewer_mode;
+    ResourceManager* rm;
+
+    ViewerMode* viewer_mode;
 
     bool show_demo_window = false;
     const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
@@ -83,8 +86,8 @@ private:
     ImguiWindowSettings camera;
     ImguiWindowSettings queue;
 
-    std::shared_ptr<DroneData> drone_data;
-    std::shared_ptr<CameraData> camera_data;
+    DroneData* drone_data;
+    CameraData* camera_data;
 
     unsigned int producer_n = 0;
     unsigned int consumer_n = 0;
@@ -96,9 +99,10 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
                            const std::string& glsl_version_,
                            std::size_t screen_width_,
                            std::size_t screen_height_,
-                           std::shared_ptr<ViewerMode> viewer_mode_,
-                           std::shared_ptr<DroneData> drone_data_,
-                           std::shared_ptr<CameraData> camera_data_) :
+                           ResourceManager* resource_manager_,
+                           ViewerMode* viewer_mode_,
+                           DroneData* drone_data_,
+                           CameraData* camera_data_) :
     window(window_),
     glsl_version(glsl_version_),
     fps(93.0, 32.0),
@@ -108,6 +112,7 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
     drone(121.0, 167.0),
     camera(121.0, 167.0),
     queue(145.0, 65.0),
+    rm(resource_manager_),
     viewer_mode(viewer_mode_),
     drone_data(drone_data_),
     camera_data(camera_data_)
@@ -192,10 +197,14 @@ void ImguiManager::process_frame()
 
         if (ImGui::RadioButton("Telemetry (t)", &e, 0))
         {
+            // if (!rm) std::cout << "ImguiManager::process_frame: rm is null\n";
+            std::lock_guard<std::mutex> g(rm->viewer_mode_mutex);
             *viewer_mode = ViewerMode::Telemetry;
         }
         if (ImGui::RadioButton("Edit scene (e)", &e, 1))
         {
+            // if (!rm) std::cout << "ImguiManager::process_frame: rm is null\n";
+            std::lock_guard<std::mutex> g(rm->viewer_mode_mutex);
             *viewer_mode = ViewerMode::Edit;
         }
 

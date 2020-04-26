@@ -13,12 +13,12 @@
 class Camera
 {
 public:
-    Camera(ResourceManager& rm_,
+    Camera(ResourceManager* rm_,
            std::size_t screen_width,
            std::size_t screen_height,
            float horizontal_boundary_,
            float top_boundary_,
-           std::shared_ptr<CameraData> camera_data_) :
+           CameraData* camera_data_) :
         rm(rm_),
         lastx(screen_width / 2),
         lasty(screen_height / 2),
@@ -38,9 +38,9 @@ public:
     // void update_pov(double yoffset);
     // void update_frames();
 private:
-    ResourceManager& rm;
+    ResourceManager* rm;
 
-    std::shared_ptr<CameraData> camera_data;
+    CameraData* camera_data;
     glm::vec3 front;
     const glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -111,7 +111,7 @@ float Camera::get_fov() const
 // {
 //     float camera_speed = 2.5f * delta_time;
 //
-//     std::lock_guard<std::mutex> g(rm.camera_data_mutex);
+//     std::lock_guard<std::mutex> g(rm->camera_data_mutex);
 //
 //     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 //     {
@@ -137,7 +137,7 @@ float Camera::get_fov() const
 //
 // void Camera::update_angle(double xpos, double ypos)
 // {
-//     std::lock_guard<std::mutex> g(rm.camera_data_mutex);
+//     std::lock_guard<std::mutex> g(rm->camera_data_mutex);
 //
 //     if (first_mouse)
 //     {
@@ -171,7 +171,7 @@ float Camera::get_fov() const
 //
 // void Camera::update_pov(double yoffset)
 // {
-//     std::lock_guard<std::mutex> g(rm.camera_data_mutex);
+//     std::lock_guard<std::mutex> g(rm->camera_data_mutex);
 //
 //     fov -= yoffset;
 //
@@ -186,7 +186,7 @@ float Camera::get_fov() const
 //  */
 // void Camera::update_frames()
 // {
-//     std::lock_guard<std::mutex> g(rm.camera_data_mutex);
+//     std::lock_guard<std::mutex> g(rm->camera_data_mutex);
 //
 //     float current_frame = glfwGetTime();
 //     delta_time = current_frame - last_frame;
