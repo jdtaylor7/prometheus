@@ -46,7 +46,7 @@ public:
                  ResourceManager* resource_manager_,
                  ViewerMode* viewer_mode_,
                  DroneData* drone_data_,
-                 CameraData* camera_data_);
+                 Camera* camera_);
     ~ImguiManager();
 
     bool init();
@@ -78,16 +78,16 @@ private:
 
     static constexpr float WINDOW_BUF = 20.0f;
 
-    ImguiWindowSettings fps;
-    ImguiWindowSettings mode;
-    ImguiWindowSettings controls_t;
-    ImguiWindowSettings controls_e;
-    ImguiWindowSettings drone;
-    ImguiWindowSettings camera;
-    ImguiWindowSettings queue;
+    ImguiWindowSettings fps_win;
+    ImguiWindowSettings mode_win;
+    ImguiWindowSettings controls_t_win;
+    ImguiWindowSettings controls_e_win;
+    ImguiWindowSettings drone_win;
+    ImguiWindowSettings camera_win;
+    ImguiWindowSettings queue_win;
 
     DroneData* drone_data;
-    CameraData* camera_data;
+    Camera* camera;
 
     unsigned int producer_n = 0;
     unsigned int consumer_n = 0;
@@ -102,31 +102,33 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
                            ResourceManager* resource_manager_,
                            ViewerMode* viewer_mode_,
                            DroneData* drone_data_,
-                           CameraData* camera_data_) :
+                           Camera* camera_) :
     window(window_),
     glsl_version(glsl_version_),
-    fps(93.0, 32.0),
-    mode(165.0, 80.0),
-    controls_t(165.0, 82.0),
-    controls_e(228.0, 82.0),
-    drone(121.0, 167.0),
-    camera(121.0, 167.0),
-    queue(145.0, 65.0),
+    fps_win(93.0, 32.0),
+    mode_win(165.0, 80.0),
+    controls_t_win(165.0, 82.0),
+    controls_e_win(228.0, 82.0),
+    drone_win(121.0, 167.0),
+    camera_win(121.0, 167.0),
+    queue_win(145.0, 65.0),
     rm(resource_manager_),
     viewer_mode(viewer_mode_),
     drone_data(drone_data_),
-    camera_data(camera_data_)
+    camera(camera_)
 {
     screen_width = screen_width_;
     screen_height = screen_height_;
 
-    fps.set_pos(WINDOW_BUF, WINDOW_BUF);
-    mode.set_pos(screen_width - WINDOW_BUF - mode.width, WINDOW_BUF);
-    controls_t.set_pos(screen_width - WINDOW_BUF - controls_t.width, mode.bottom() + WINDOW_BUF);
-    controls_e.set_pos(screen_width - WINDOW_BUF - controls_e.width, mode.bottom() + WINDOW_BUF);
-    drone.set_pos(WINDOW_BUF, fps.bottom() + WINDOW_BUF);
-    camera.set_pos(WINDOW_BUF, drone.bottom() + WINDOW_BUF);
-    queue.set_pos(WINDOW_BUF, camera.bottom() + WINDOW_BUF);
+    fps_win.set_pos(WINDOW_BUF, WINDOW_BUF);
+    mode_win.set_pos(screen_width - WINDOW_BUF - mode_win.width, WINDOW_BUF);
+    controls_t_win.set_pos(screen_width - WINDOW_BUF - controls_t_win.width,
+        mode_win.bottom() + WINDOW_BUF);
+    controls_e_win.set_pos(screen_width - WINDOW_BUF - controls_e_win.width,
+        mode_win.bottom() + WINDOW_BUF);
+    drone_win.set_pos(WINDOW_BUF, fps_win.bottom() + WINDOW_BUF);
+    camera_win.set_pos(WINDOW_BUF, drone_win.bottom() + WINDOW_BUF);
+    queue_win.set_pos(WINDOW_BUF, camera_win.bottom() + WINDOW_BUF);
 }
 
 bool ImguiManager::init()
@@ -169,17 +171,19 @@ void ImguiManager::process_frame()
     }
 
     // FPS window.
-    ImGui::SetNextWindowSize(ImVec2(fps.width, fps.height), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(fps.xpos, fps.ypos), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(fps_win.width, fps_win.height), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(fps_win.xpos, fps_win.ypos), ImGuiCond_Always);
     {
-        ImGui::Begin("FPS", NULL, imgui_window_flags | ImGuiWindowFlags_NoTitleBar);
+        ImGui::Begin("FPS",
+            NULL,
+            imgui_window_flags | ImGuiWindowFlags_NoTitleBar);
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
         ImGui::End();
     }
 
     // Mode window.
-    ImGui::SetNextWindowSize(ImVec2(mode.width, mode.height), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(mode.xpos, mode.ypos), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(mode_win.width, mode_win.height), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(mode_win.xpos, mode_win.ypos), ImGuiCond_Always);
     {
         ImGui::Begin("Application Mode", NULL, imgui_window_flags);
 
@@ -197,13 +201,11 @@ void ImguiManager::process_frame()
 
         if (ImGui::RadioButton("Telemetry (t)", &e, 0))
         {
-            // if (!rm) std::cout << "ImguiManager::process_frame: rm is null\n";
             std::lock_guard<std::mutex> g(rm->viewer_mode_mutex);
             *viewer_mode = ViewerMode::Telemetry;
         }
         if (ImGui::RadioButton("Edit scene (e)", &e, 1))
         {
-            // if (!rm) std::cout << "ImguiManager::process_frame: rm is null\n";
             std::lock_guard<std::mutex> g(rm->viewer_mode_mutex);
             *viewer_mode = ViewerMode::Edit;
         }
@@ -217,8 +219,12 @@ void ImguiManager::process_frame()
         switch (*viewer_mode)
         {
         case ViewerMode::Telemetry:
-            ImGui::SetNextWindowSize(ImVec2(controls_t.width, controls_t.height), ImGuiCond_Always);
-            ImGui::SetNextWindowPos(ImVec2(controls_t.xpos, controls_t.ypos), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(
+                ImVec2(controls_t_win.width, controls_t_win.height),
+                ImGuiCond_Always);
+            ImGui::SetNextWindowPos(
+                ImVec2(controls_t_win.xpos, controls_t_win.ypos),
+                ImGuiCond_Always);
             ImGui::Begin("Telemetry Controls", NULL, imgui_window_flags);
 
             ImGui::BulletText("Start/Stop (space)");
@@ -228,8 +234,12 @@ void ImguiManager::process_frame()
             ImGui::End();
             break;
         case ViewerMode::Edit:
-            ImGui::SetNextWindowSize(ImVec2(controls_e.width, controls_e.height), ImGuiCond_Always);
-            ImGui::SetNextWindowPos(ImVec2(controls_e.xpos, controls_e.ypos), ImGuiCond_Always);
+            ImGui::SetNextWindowSize(
+                ImVec2(controls_e_win.width, controls_e_win.height),
+                ImGuiCond_Always);
+            ImGui::SetNextWindowPos(
+                ImVec2(controls_e_win.xpos, controls_e_win.ypos),
+                ImGuiCond_Always);
             ImGui::Begin("Edit Controls", NULL, imgui_window_flags);
 
             ImGui::BulletText("Camera control (1, default)");
@@ -242,8 +252,9 @@ void ImguiManager::process_frame()
     }
 
     // Drone data window.
-    ImGui::SetNextWindowSize(ImVec2(drone.width, drone.height), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(drone.xpos, drone.ypos), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(drone_win.width, drone_win.height),
+        ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(drone_win.xpos, drone_win.ypos), ImGuiCond_Always);
     {
         ImGui::Begin("Drone Data", NULL, imgui_window_flags);
 
@@ -261,27 +272,30 @@ void ImguiManager::process_frame()
     }
 
     // Camera data window.
-    ImGui::SetNextWindowSize(ImVec2(camera.width, camera.height), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(camera.xpos, camera.ypos), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(camera_win.width, camera_win.height),
+        ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(camera_win.xpos, camera_win.ypos),
+        ImGuiCond_Always);
     {
         ImGui::Begin("Camera Data", NULL, imgui_window_flags);
 
         ImGui::Text("Camera Position");
-        ImGui::BulletText("x: %.3f", camera_data->position.x);
-        ImGui::BulletText("y: %.3f", camera_data->position.y);
-        ImGui::BulletText("z: %.3f", camera_data->position.z);
+        ImGui::BulletText("x: %.3f", camera->get_position().x);
+        ImGui::BulletText("y: %.3f", camera->get_position().y);
+        ImGui::BulletText("z: %.3f", camera->get_position().z);
 
         ImGui::Text("Target Position");
-        ImGui::BulletText("x: %.3f", camera_data->target.x);
-        ImGui::BulletText("y: %.3f", camera_data->target.y);
-        ImGui::BulletText("z: %.3f", camera_data->target.z);
+        ImGui::BulletText("x: %.3f", camera->get_target().x);
+        ImGui::BulletText("y: %.3f", camera->get_target().y);
+        ImGui::BulletText("z: %.3f", camera->get_target().z);
 
         ImGui::End();
     }
 
     // Data queue window.
-    ImGui::SetNextWindowSize(ImVec2(queue.width, queue.height), ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(queue.xpos, queue.ypos), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(queue_win.width, queue_win.height),
+        ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(queue_win.xpos, queue_win.ypos), ImGuiCond_Always);
     {
         ImGui::Begin("Data Queue Elements", NULL, imgui_window_flags);
 
@@ -313,13 +327,15 @@ void ImguiManager::update_screen_dimensions(std::size_t width,
 
 void ImguiManager::update_window_settings()
 {
-    fps.set_pos(WINDOW_BUF, WINDOW_BUF);
-    mode.set_pos(screen_width - mode.width - WINDOW_BUF, WINDOW_BUF);
-    controls_t.set_pos(screen_width - controls_t.width, mode.bottom() + WINDOW_BUF);
-    controls_e.set_pos(screen_width - controls_e.width, mode.bottom() + WINDOW_BUF);
-    drone.set_pos(WINDOW_BUF, fps.bottom() + WINDOW_BUF);
-    camera.set_pos(WINDOW_BUF, drone.bottom() + WINDOW_BUF);
-    queue.set_pos(WINDOW_BUF, camera.bottom() + WINDOW_BUF);
+    fps_win.set_pos(WINDOW_BUF, WINDOW_BUF);
+    mode_win.set_pos(screen_width - mode_win.width - WINDOW_BUF, WINDOW_BUF);
+    controls_t_win.set_pos(screen_width - controls_t_win.width,
+        mode_win.bottom() + WINDOW_BUF);
+    controls_e_win.set_pos(screen_width - controls_e_win.width,
+        mode_win.bottom() + WINDOW_BUF);
+    drone_win.set_pos(WINDOW_BUF, fps_win.bottom() + WINDOW_BUF);
+    camera_win.set_pos(WINDOW_BUF, drone_win.bottom() + WINDOW_BUF);
+    queue_win.set_pos(WINDOW_BUF, camera_win.bottom() + WINDOW_BUF);
 }
 
 void ImguiManager::update_queue_data(unsigned int p, unsigned int c)

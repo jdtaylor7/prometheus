@@ -17,19 +17,20 @@ public:
                 std::size_t height_,
                 ResourceManager* resource_manager_,
                 ViewerMode* viewer_mode_,
-                DroneData* drone_data_) :
+                DroneData* drone_data_,
+                Camera* camera_) :
     screen_width(width_),
     screen_height(height_),
     rm(resource_manager_),
     viewer_mode(viewer_mode_),
-    drone_data(drone_data_)
+    drone_data(drone_data_),
+    camera(camera_)
     {}
 
     ~GlfwManager();
 
     bool init();
 
-    bool did_window_creation_fail() const;
     bool load_glad_loader();
     bool should_window_close() const;
 
@@ -42,11 +43,11 @@ private:
     std::size_t screen_width;
     std::size_t screen_height;
     GLFWwindow* window;
-    bool window_creation_failed = false;
 
     ResourceManager* rm;
 
     DroneData* drone_data;
+    Camera* camera;
     ViewerMode* viewer_mode;
 
     /*
@@ -100,11 +101,6 @@ GlfwManager::~GlfwManager()
     glfwTerminate();
 }
 
-bool GlfwManager::did_window_creation_fail() const
-{
-    return window_creation_failed;
-}
-
 bool GlfwManager::load_glad_loader()
 {
     return gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
@@ -125,20 +121,13 @@ void GlfwManager::process_input()
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    // if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
-    // {
-    //     printer.print_camera_details();
-    // }
-
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
     {
-        // if (!rm) std::cout << "GlfwManager::process_input: rm is null\n";
         std::lock_guard<std::mutex> g(rm->viewer_mode_mutex);
         *viewer_mode = ViewerMode::Telemetry;
     }
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
-        // if (!rm) std::cout << "GlfwManager::process_input: rm is null\n";
         std::lock_guard<std::mutex> g(rm->viewer_mode_mutex);
         *viewer_mode = ViewerMode::Edit;
     }

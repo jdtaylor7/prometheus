@@ -13,22 +13,39 @@
 class Camera
 {
 public:
+    // Camera(ResourceManager* rm_,
+    //        std::size_t screen_width,
+    //        std::size_t screen_height,
+    //        float horizontal_boundary_,
+    //        float top_boundary_,
+    //        CameraData* camera_data_) :
+    //     rm(rm_),
+    //     lastx(screen_width / 2),
+    //     lasty(screen_height / 2),
+    //     horizontal_boundary(horizontal_boundary_ - 0.2f),
+    //     top_boundary(top_boundary_ - 0.2f),
+    //     camera_data(camera_data_),
+    //     front(camera_data_->target - camera_data_->position)
+    //     {}
     Camera(ResourceManager* rm_,
            std::size_t screen_width,
            std::size_t screen_height,
            float horizontal_boundary_,
            float top_boundary_,
-           CameraData* camera_data_) :
+           glm::vec3 position_,
+           glm::vec3 target_) :
         rm(rm_),
         lastx(screen_width / 2),
         lasty(screen_height / 2),
         horizontal_boundary(horizontal_boundary_ - 0.2f),
         top_boundary(top_boundary_ - 0.2f),
-        camera_data(camera_data_),
-        front(camera_data_->target - camera_data_->position)
+        position(position_),
+        target(target_),
+        front(target_ - position_)
         {}
 
-    glm::vec3 get_pos() const;
+    glm::vec3 get_position() const;
+    glm::vec3 get_target() const;
     glm::vec3 get_front() const;
     glm::vec3 get_up() const;
     float get_fov() const;
@@ -38,37 +55,57 @@ public:
     // void update_pov(double yoffset);
     // void update_frames();
 private:
+    /*
+     * Data managers.
+     */
     ResourceManager* rm;
+    // CameraData* camera_data;
 
-    CameraData* camera_data;
-    glm::vec3 front;
+    /*
+     * Constants.
+     */
     const glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    const float mouse_sensitivity = 0.05f;
+    const float bottom_boundary = 0.2f;
 
+    /*
+     * Internal state.
+     */
     float delta_time = 0.0f;
     float last_frame = 0.0f;
+
+    bool first_mouse = true;
+
+    float horizontal_boundary;
+    float top_boundary;
 
     float lastx;
     float lasty;
 
-    const float mouse_sensitivity = 0.05f;
+    /*
+     * Output state.
+     */
+    float fov = 45.0f;
 
     float yaw = -90.0f;
     float pitch = 0.0f;
 
-    bool first_mouse = true;
-
-    float fov = 45.0f;
-
-    float horizontal_boundary;
-    float top_boundary;
-    const float bottom_boundary = 0.2f;
+    glm::vec3 position;
+    glm::vec3 target;
+    glm::vec3 front;
 
     // inline void constrain_to_boundary();
 };
 
-glm::vec3 Camera::get_pos() const
+glm::vec3 Camera::get_position() const
 {
-    return camera_data->position;
+    // return camera_data->position;
+    return position;
+}
+
+glm::vec3 Camera::get_target() const
+{
+    return target;
 }
 
 glm::vec3 Camera::get_front() const
