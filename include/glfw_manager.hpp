@@ -1,12 +1,14 @@
 #ifndef GLFW_MANAGER_HPP
 #define GLFW_MANAGER_HPP
 
+#include <functional>
 #include <memory>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+#include "callbacks.hpp"
 #include "shared.hpp"
 #include "viewer_mode.hpp"
 
@@ -53,9 +55,9 @@ private:
     /*
      * Callback functions.
      */
-    static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-    static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-    static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+    void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+    void cursor_callback(GLFWwindow* window, double xpos, double ypos);
+    void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 };
 
 bool GlfwManager::init()
@@ -78,11 +80,23 @@ bool GlfwManager::init()
         return false;
     }
 
+    using namespace std::placeholders;
+
+    // Prepare wrapper function objects for passing as callbacks. Solution based
+    // off this Stackoverflow post: https://stackoverflow.com/a/19809787. Cannot
+    // use other solutions like creating a lambda, creating a std::function
+    // object, and making the member function static all do not suffice. This
+    // post explains the problem in even more depth:
+    // https://stackoverflow.com/a/402385.
+    FramebufferCallback<void(GLFWwindow*, int, int)>::func = std::bind(&GlfwManager::framebuffer_size_callback, this, _1, _2, _3);
+    CursorCallback<void(GLFWwindow*, double, double)>::func = std::bind(&GlfwManager::cursor_callback, this, _1, _2, _3);
+    ScrollCallback<void(GLFWwindow*, double, double)>::func = std::bind(&GlfwManager::scroll_callback, this, _1, _2, _3);
+
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetFramebufferSizeCallback(window, static_cast<void(*)(GLFWwindow*, int, int)>(FramebufferCallback<void(GLFWwindow*, int, int)>::callback));
+    glfwSetCursorPosCallback(window, static_cast<void(*)(GLFWwindow*, double, double)>(CursorCallback<void(GLFWwindow*, double, double)>::callback));
+    glfwSetScrollCallback(window, static_cast<void(*)(GLFWwindow*, double, double)>(ScrollCallback<void(GLFWwindow*, double, double)>::callback));
 
     /*
      * Load OpenGL function pointers.
@@ -140,9 +154,9 @@ void GlfwManager::process_input()
 
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
             drone_data->position.y -= 0.003f;
-    }
 
-    // camera.update_pos(window);
+        camera->update_position(window);
+    }
 }
 
 void GlfwManager::swap_buffers()
@@ -163,16 +177,16 @@ void GlfwManager::framebuffer_size_callback(GLFWwindow* window, int width, int h
     glViewport(0, 0, width, height);
 }
 
-void GlfwManager::mouse_callback(GLFWwindow* window, double xpos, double ypos)
+void GlfwManager::cursor_callback(GLFWwindow* window, double xpos, double ypos)
 {
-    // if (*viewer_mode == ViewerMode::Edit)
-    //     camera.update_angle(xpos, ypos);
+    if (*viewer_mode == ViewerMode::Edit)
+        camera->update_angle(xpos, ypos);
 }
 
 void GlfwManager::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    // if (*viewer_mode == ViewerMode::Edit)
-    //     camera.update_pov(yoffset);
+    if (*viewer_mode == ViewerMode::Edit)
+        camera->update_pov(yoffset);
 }
 
 #endif /* GLFW_MANAGER_HPP */

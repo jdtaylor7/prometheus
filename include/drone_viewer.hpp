@@ -131,6 +131,7 @@ void DroneViewer::process_frame()
     /*
      * Render. Order between imgui_manager and opengl_manager is important.
      */
+    camera->process_frame();
     imgui_manager->process_frame();
     imgui_manager->render();
     opengl_manager->process_frame();
