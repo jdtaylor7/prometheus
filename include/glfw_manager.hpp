@@ -146,14 +146,42 @@ void GlfwManager::process_input()
         *viewer_mode = ViewerMode::Edit;
     }
 
-    // TODO Testing.
+    if (*viewer_mode == ViewerMode::Telemetry)
+    {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+
     if (*viewer_mode == ViewerMode::Edit)
     {
+        // TODO Testing.
         if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+        {
+            std::lock_guard<std::mutex> g(rm->drone_data_mutex);
             drone_data->position.y += 0.003f;
+        }
 
+        // TODO Testing.
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+        {
+            std::lock_guard<std::mutex> g(rm->drone_data_mutex);
             drone_data->position.y -= 0.003f;
+        }
+
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+        {
+            {
+                std::lock_guard<std::mutex> g(rm->drone_data_mutex);
+                *drone_data = INITIAL_DRONE_DATA;
+            }
+
+            {
+                std::lock_guard<std::mutex> g(rm->camera_data_mutex);
+                camera->set_position(INITIAL_CAMERA_POSITION);
+                camera->set_target_and_front(INITIAL_CAMERA_TARGET);
+            }
+        }
 
         camera->update_position(window);
     }

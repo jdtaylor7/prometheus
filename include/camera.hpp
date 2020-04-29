@@ -13,7 +13,6 @@
 class Camera
 {
 public:
-//     {}
     Camera(ResourceManager* rm_,
            std::size_t screen_width,
            std::size_t screen_height,
@@ -31,11 +30,16 @@ public:
         front(target_ - position_)
         {}
 
+    friend std::ostream& operator<<(std::ostream&, const Camera&);
+
     glm::vec3 get_position() const;
     glm::vec3 get_target() const;
     glm::vec3 get_front() const;
     glm::vec3 get_up() const;
     float get_fov() const;
+
+    void set_position(glm::vec3);
+    void set_target_and_front(glm::vec3);
 
     void update_position(GLFWwindow* window);
     void update_angle(double xpos, double ypos);
@@ -83,6 +87,19 @@ private:
     inline void constrain_to_boundary();
 };
 
+std::ostream& operator<<(std::ostream& os, const Camera& cam)
+{
+    os << "camera.position.x = " << cam.position.x << '\n';
+    os << "camera.position.y = " << cam.position.y << '\n';
+    os << "camera.position.z = " << cam.position.z << '\n';
+
+    os << "camera.target.x = " << cam.target.x << '\n';
+    os << "camera.target.y = " << cam.target.y << '\n';
+    os << "camera.target.z = " << cam.target.z << '\n';
+
+    return os;
+}
+
 glm::vec3 Camera::get_position() const
 {
     return position;
@@ -106,6 +123,17 @@ glm::vec3 Camera::get_up() const
 float Camera::get_fov() const
 {
     return fov;
+}
+
+void Camera::set_position(glm::vec3 pos)
+{
+    position = pos;
+}
+
+void Camera::set_target_and_front(glm::vec3 tar)
+{
+    target = tar;
+    front = target - position;
 }
 
 /*
@@ -155,6 +183,16 @@ void Camera::update_position(GLFWwindow* window)
         position += glm::normalize(glm::cross(front, up)) * camera_speed;
         constrain_to_boundary();
     }
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+        position += camera_speed * up;
+        constrain_to_boundary();
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    {
+        position -= camera_speed * up;
+        constrain_to_boundary();
+    }
 }
 
 void Camera::update_angle(double xpos, double ypos)
@@ -189,6 +227,7 @@ void Camera::update_angle(double xpos, double ypos)
     direction.y = sin(glm::radians(pitch));
     direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     front = glm::normalize(direction);
+    target = position - front;
 }
 
 void Camera::update_pov(double yoffset)
