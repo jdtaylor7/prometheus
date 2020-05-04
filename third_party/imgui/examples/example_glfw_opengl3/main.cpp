@@ -85,7 +85,7 @@ int main(int, char**)
     bool err = glewInit() != GLEW_OK;
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
     // bool err = gladLoadGL() == 0;
-    bool err = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+    bool err = !gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLBINDING2)
     bool err = false;
     glbinding::Binding::initialize();
