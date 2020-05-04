@@ -52,6 +52,12 @@ public:
      */
     bool push_wait_for(const T&);
     std::shared_ptr<T> pop_wait_for();
+
+    /*
+     * If buffer not full, pushes normally. If buffer is full, clears space by
+     * popping, then pushes.
+     */
+    void force_push(const T&);
 private:
     std::queue<T> q;
 
@@ -202,6 +208,19 @@ std::shared_ptr<T> BoundedBuffer<T>::pop_wait_for()
 
     q_has_space.notify_one();
     return rv;
+}
+
+template <typename T>
+void BoundedBuffer<T>::force_push(const T& e)
+{
+    std::unique_lock<std::mutex> lk(m);
+    if (q.size() == cap)
+    {
+        q.pop();
+    }
+    q.push(e);
+
+    q_has_element.notify_one();
 }
 
 #endif /* BOUNDED_BUFFER_HPP */
