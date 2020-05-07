@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 
 #include "camera.hpp"
+#include "com_port.hpp"
 #include "glfw_manager.hpp"
 #include "imgui_manager.hpp"
 #include "opengl_manager.hpp"
@@ -28,6 +29,10 @@ private:
     /*
      * Constants.
      */
+    static constexpr std::size_t TELEMETRY_PACKET_LEN = 10;
+    static constexpr char TELEMETRY_START_SYMBOL = 'i';
+    static constexpr char TELEMETRY_STOP_SYMBOL = '\n';
+
     static constexpr std::size_t SCREEN_WIDTH = 1600;
     static constexpr std::size_t SCREEN_HEIGHT = 1200;
 
@@ -48,6 +53,11 @@ private:
     std::unique_ptr<ResourceManager> resource_manager;
 
     /*
+     * Communications interfaces.
+     */
+    std::unique_ptr<ComPort> com_port;
+
+    /*
      * Data managers.
      */
     std::unique_ptr<GlfwManager> glfw_manager;
@@ -63,11 +73,33 @@ bool DroneViewer::init()
     resource_manager = std::make_unique<ResourceManager>();
 
     /*
+     * Initialize communications interfaces.
+     */
+    // Postpone calling the actual ComPort::connect ComPort::init methods.
+    // Those will occur through the application.
+    com_port = std::make_unique<ComPort>(
+        TELEMETRY_PACKET_LEN,
+        TELEMETRY_START_SYMBOL,
+        TELEMETRY_STOP_SYMBOL
+    );
+    // TODO remove
+    if (!com_port->auto_connect())
+    {
+        std::cout << "com_port failed to auto-connect\n";
+        return -1;
+    }
+    if (!com_port->init())
+    {
+        std::cout << "com_port init failed\n";
+        return -1;
+    }
+    com_port->start();
+
+    /*
      * Initialize state.
      */
     viewer_mode = std::make_unique<ViewerMode>(ViewerMode::Telemetry);
     drone_data = std::make_unique<DroneData>(INITIAL_DRONE_DATA);
-    // camera_data = std::make_unique<CameraData>(INITIAL_CAMERA_DATA);
     camera = std::make_unique<Camera>(
         resource_manager.get(),
         SCREEN_WIDTH,
@@ -119,6 +151,17 @@ bool DroneViewer::is_running() const
 
 void DroneViewer::process_frame()
 {
+    // TODO remove
+    auto packet = std::make_shared<std::string>();
+    if (com_port->is_reading())
+    {
+        packet = com_port->get_latest_packet();
+        if (packet)
+        {
+            std::cout << "packet: " << *packet << '\n';
+        }
+    }
+
     /*
      * Process input.
      */

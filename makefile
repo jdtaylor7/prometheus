@@ -12,7 +12,7 @@ LINKOPTS = -L$(gl)/lib -L$(glfw)/build/lib -lGL -lglfw3 -Wl,-Bstatic -lm -lrt -W
 includes = -I$(gl) -I$(glad)/include -I$(glfw)/include -I$(stb) -I$(glm) -Iinclude
 includes += -I$(imgui) -I$(imgui)/examples
 CXXFLAGS += -DIMGUI_IMPL_OPENGL_LOADER_GLAD
-IMGUI_OBJS = imgui_impl_glfw.o imgui_impl_opengl3.o imgui_demo.o imgui_widgets.o imgui_draw.o imgui.o
+IMGUI_OBJS = imgui_impl_glfw.o imgui_impl_opengl3.o imgui_demo.o imgui_widgets.o imgui_draw.o imgui.o com_port.o
 
 all: main
 
@@ -40,6 +40,9 @@ imgui_draw.o: $(imgui)/imgui_draw.cpp
 imgui.o: glad.o $(imgui)/imgui.cpp
 	clang++ -c $(CXXFLAGS) $(includes) $^
 
+com_port.o: src/com_port.cpp
+	clang++ -c $(CXXFLAGS) $(includes) $^
+
 main: glad.o stb_image.o $(IMGUI_OBJS) src/main.cpp
 	clang++ $(CXXFLAGS) $(includes)	$^ -o main.exe $(LINKOPTS)
 
@@ -50,4 +53,4 @@ clean:
 	rm -vf *.o *.exe *.gch *.exe.stackdump
 
 clean_main:
-	rm -vf *.exe *.gch *.exe.stackdump
+	rm -vf *.exe *.gch *.exe.stackdump imgui.imi
