@@ -174,15 +174,17 @@ std::shared_ptr<std::string> ComPort::get_latest_packet()
 {
     char tmp{};
     std::shared_ptr<char> result{};
-    std::string packet{};
 
-    // Find the beginning of a new packet.
+    // If necessary, start building new packet.
     result = buffer->try_pop();
-    while (result)
+    if (build_new_packet)
     {
-        if (*result == packet_start_symbol)
-            break;
-        result = buffer->try_pop();
+        while (result)
+        {
+            if (*result == packet_start_symbol)
+                break;
+            result = buffer->try_pop();
+        }
     }
 
     // Extract the rest of the packet.
@@ -190,17 +192,31 @@ std::shared_ptr<std::string> ComPort::get_latest_packet()
     {
         if (*result == packet_stop_symbol)
             break;
-        packet += *result;
+        latest_packet += *result;
         result = buffer->try_pop();
     }
 
-    if (packet.empty())
+    // Complete packet not built yet.
+    if (latest_packet.size() < packet_len)
+    {
+        build_new_packet = false;
         return nullptr;
+    }
 
-    if (packet[0] != packet_start_symbol || packet.size() != packet_len)
-        return nullptr;
+    // Finished building packet.
+    if ((latest_packet.size() == packet_len) &&
+        (latest_packet[0] == packet_start_symbol))
+    {
+        std::string rv = latest_packet;
+        latest_packet.clear();
+        build_new_packet = true;
+        return std::make_shared<std::string>(rv);
+    }
 
-    return std::make_shared<std::string>(packet);
+    // Packet is complete but corrupted, restart.
+    latest_packet.clear();
+    build_new_packet = true;
+    return nullptr;
 }
 
 void ComPort::invalidate_handle(HANDLE& handle)

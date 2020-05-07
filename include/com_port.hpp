@@ -70,6 +70,9 @@ private:
     const char packet_start_symbol;
     const char packet_stop_symbol;
     std::shared_ptr<BoundedBuffer<char>> buffer = std::make_shared<BoundedBuffer<char>>((packet_len * 2) - 1);
+
+    bool build_new_packet = true;
+    std::string latest_packet{};
 public:
     PortState running_state = PortState::Stopped;
     std::mutex running_state_m;
