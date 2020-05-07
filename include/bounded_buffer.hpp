@@ -31,6 +31,8 @@ public:
     T front() const;
     T back() const;
 
+    void clear();
+
     /*
      * Attempts to execute action immediately. Push fails and returns false if
      * the buffer is full. Pop fails and returns a nullptr if the buffer is
@@ -114,6 +116,14 @@ T BoundedBuffer<T>::back() const
 {
     std::lock_guard<std::mutex> g(m);
     return q.back();
+}
+
+template <typename T>
+void BoundedBuffer<T>::clear()
+{
+    std::lock_guard<std::mutex> g(m);
+    while (!q.empty())
+        q.pop();
 }
 
 template <typename T>
