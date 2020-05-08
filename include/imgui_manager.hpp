@@ -1,9 +1,10 @@
 #ifndef IMGUI_MANAGER_HPP
 #define IMGUI_MANAGER_HPP
 
-#include <string>
+#include <iostream>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <type_traits>
 
 #include <glad/glad.h>
@@ -13,6 +14,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
+#include "com_port.hpp"
 #include "resource_manager.hpp"
 #include "shared.hpp"
 #include "viewer_mode.hpp"
@@ -46,7 +48,9 @@ public:
                  ResourceManager* resource_manager_,
                  ViewerMode* viewer_mode_,
                  DroneData* drone_data_,
-                 Camera* camera_);
+                 Camera* camera_,
+                 bool show_demo_window_,
+                 ComPort* com_port_);
     ~ImguiManager();
 
     bool init();
@@ -73,7 +77,7 @@ private:
 
     ViewerMode* viewer_mode;
 
-    bool show_demo_window = false;
+    bool show_demo_window;
     const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     static constexpr float WINDOW_BUF = 20.0f;
@@ -84,10 +88,11 @@ private:
     ImguiWindowSettings controls_e_win;
     ImguiWindowSettings drone_win;
     ImguiWindowSettings camera_win;
-    ImguiWindowSettings queue_win;
 
     DroneData* drone_data;
     Camera* camera;
+
+    ComPort* com_port;
 
     unsigned int producer_n = 0;
     unsigned int consumer_n = 0;
@@ -102,20 +107,23 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
                            ResourceManager* resource_manager_,
                            ViewerMode* viewer_mode_,
                            DroneData* drone_data_,
-                           Camera* camera_) :
+                           Camera* camera_,
+                           bool show_demo_window_,
+                           ComPort* com_port_) :
     window(window_),
     glsl_version(glsl_version_),
     fps_win(93.0, 32.0),
     mode_win(165.0, 80.0),
-    controls_t_win(165.0, 82.0),
+    controls_t_win(290.0, 200.0),
     controls_e_win(228.0, 82.0),
     drone_win(130.0, 167.0),
     camera_win(121.0, 167.0),
-    queue_win(145.0, 65.0),
     rm(resource_manager_),
     viewer_mode(viewer_mode_),
     drone_data(drone_data_),
-    camera(camera_)
+    camera(camera_),
+    show_demo_window(show_demo_window_),
+    com_port(com_port_)
 {
     screen_width = screen_width_;
     screen_height = screen_height_;
@@ -128,7 +136,6 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
         mode_win.bottom() + WINDOW_BUF);
     drone_win.set_pos(WINDOW_BUF, fps_win.bottom() + WINDOW_BUF);
     camera_win.set_pos(WINDOW_BUF, drone_win.bottom() + WINDOW_BUF);
-    queue_win.set_pos(WINDOW_BUF, camera_win.bottom() + WINDOW_BUF);
 }
 
 bool ImguiManager::init()
@@ -219,6 +226,7 @@ void ImguiManager::process_frame()
         switch (*viewer_mode)
         {
         case ViewerMode::Telemetry:
+        {
             ImGui::SetNextWindowSize(
                 ImVec2(controls_t_win.width, controls_t_win.height),
                 ImGuiCond_Always);
@@ -227,13 +235,48 @@ void ImguiManager::process_frame()
                 ImGuiCond_Always);
             ImGui::Begin("Telemetry Controls", NULL, imgui_window_flags);
 
-            ImGui::BulletText("Start/Stop (space)");
-            ImGui::BulletText("Pause (p)");
-            ImGui::BulletText("Reset (r)");
+            static int selected_port_idx = 0;
+            std::vector<unsigned int> available_ports = com_port->get_available_ports();
+            std::vector<const char*> port_list;
+            for (auto& i : available_ports)
+            {
+                port_list.push_back(("COM" + std::to_string(i)).c_str());
+            }
+
+            ImGui::BulletText("Scan for COM ports (s)");
+            ImGui::BulletText("Connect to COM port (c)");
+            ImGui::BulletText("Start/Stop reading data (spacebar)");
+
+            ImGui::Separator();
+
+            ImGui::Text("Available COM ports:");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(65);
+            ImGui::Combo("",
+                         &selected_port_idx,
+                         port_list.data(),
+                         port_list.size());
+
+            ImGui::Text("Current COM port status: ");
+            ImGui::SameLine();
+            if (!com_port->is_connected())
+            {
+                ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Disconnected");
+            }
+            else if (com_port->is_connected() && !com_port->is_reading())
+            {
+                ImGui::TextColored(ImVec4(0.1f, 0.1f, 1.0f, 1.0f), "COM%u ready", com_port->get_connected_port());
+            }
+            else if (com_port->is_connected() && com_port->is_reading())
+            {
+                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Reading COM%u", com_port->get_connected_port());
+            }
 
             ImGui::End();
             break;
+        }
         case ViewerMode::Edit:
+        {
             ImGui::SetNextWindowSize(
                 ImVec2(controls_e_win.width, controls_e_win.height),
                 ImGuiCond_Always);
@@ -248,6 +291,7 @@ void ImguiManager::process_frame()
 
             ImGui::End();
             break;
+        }
         }
     }
 
@@ -291,19 +335,6 @@ void ImguiManager::process_frame()
 
         ImGui::End();
     }
-
-    // Data queue window.
-    ImGui::SetNextWindowSize(ImVec2(queue_win.width, queue_win.height),
-        ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(queue_win.xpos, queue_win.ypos), ImGuiCond_Always);
-    {
-        ImGui::Begin("Data Queue Elements", NULL, imgui_window_flags);
-
-        ImGui::Text("Producer: %u", producer_n);
-        ImGui::Text("Consumer: %u", consumer_n);
-
-        ImGui::End();
-    }
 }
 
 void ImguiManager::render()
@@ -335,7 +366,6 @@ void ImguiManager::update_window_settings()
         mode_win.bottom() + WINDOW_BUF);
     drone_win.set_pos(WINDOW_BUF, fps_win.bottom() + WINDOW_BUF);
     camera_win.set_pos(WINDOW_BUF, drone_win.bottom() + WINDOW_BUF);
-    queue_win.set_pos(WINDOW_BUF, camera_win.bottom() + WINDOW_BUF);
 }
 
 void ImguiManager::update_queue_data(unsigned int p, unsigned int c)

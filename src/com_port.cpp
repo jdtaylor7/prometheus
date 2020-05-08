@@ -2,6 +2,12 @@
 
 bool ComPort::init()
 {
+    if (!connected)
+    {
+        std::cout << "Cannot initialize port without a connection.\n";
+        return false;
+    }
+
     /*
      * Set COM mask. Register event for receive buffer getting data.
      */
@@ -48,11 +54,24 @@ bool ComPort::init()
         return false;
     }
 
+    initialized = true;
     return true;
 }
 
-void ComPort::start()
+bool ComPort::start()
 {
+    if (!connected)
+    {
+        std::cout << "Cannot start port without a connection.\n";
+        return false;
+    }
+
+    if (!initialized)
+    {
+        std::cout << "Must initialize port before starting it.\n";
+        return false;
+    }
+
     {
         std::lock_guard<std::mutex> g(running_state_m);
         running_state = PortState::Running;
@@ -81,6 +100,8 @@ void ComPort::start()
 
     CloseHandle(thread_started);
     invalidate_handle(thread_started);
+
+    return true;
 }
 
 void ComPort::stop()
@@ -119,6 +140,7 @@ std::vector<unsigned int> ComPort::find_ports()
         CloseHandle(handle);
     }
 
+    available_ports = found_ports;
     return found_ports;
 }
 
@@ -138,6 +160,8 @@ bool ComPort::connect(unsigned int port)
     if (is_valid())
     {
         std::cout << "Successfully opened COM" << port << '\n';
+        connected = true;
+        connected_port = port;
         return true;
     }
     return false;
@@ -163,11 +187,18 @@ bool ComPort::auto_connect()
         if (is_valid())
         {
             std::cout << "Successfully opened COM" << i << '\n';
+            connected = true;
+            connected_port = i;
             return true;
         }
     }
     std::cout << "Could not find an available COM port. Aborting.\n";
     return false;
+}
+
+void ComPort::disconnect()
+{
+
 }
 
 std::shared_ptr<std::string> ComPort::get_latest_packet()
@@ -246,6 +277,7 @@ unsigned ComPort::async_receive(void* params)
     {
         if (!WaitCommEvent(com_ptr->handle, &event_mask, &ov))
         {
+            std::cout << "GetLastError() = " << GetLastError() << '\n';
             assert(GetLastError() == ERROR_IO_PENDING);
         }
 

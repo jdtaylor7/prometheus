@@ -25,8 +25,8 @@ public:
     bool init();
     bool is_running() const;
 
-    void process_telemetry();
-    void process_frame();
+    bool process_telemetry();
+    bool process_frame();
 private:
     /*
      * Constants.
@@ -41,6 +41,8 @@ private:
 
     static constexpr std::size_t SCREEN_WIDTH = 1600;
     static constexpr std::size_t SCREEN_HEIGHT = 1200;
+
+    static constexpr bool SHOW_DEMO_WINDOW = false;
 
     static constexpr float ROOM_SIZE = 10.0f;
 
@@ -83,6 +85,9 @@ bool DroneViewer::init()
      * Initialize communications interfaces.
      */
     telemetry_format = std::make_unique<TelemetryFormat>(
+        TELEMETRY_PACKET_LEN,
+        TELEMETRY_START_SYMBOL,
+        TELEMETRY_STOP_SYMBOL,
         TELEMETRY_FLOAT_CONVERSION_FACTOR,
         TELEMETRY_DATA_SIZE,
         TELEMETRY_ACCEL_OFFSETS,
@@ -96,17 +101,31 @@ bool DroneViewer::init()
         TELEMETRY_STOP_SYMBOL
     );
     // TODO remove
-    if (!com_port->auto_connect())
+    // if (!com_port->auto_connect())
+    // {
+    //     std::cout << "com_port failed to auto-connect\n";
+    //     return -1;
+    // }
+    // if (!com_port->init())
+    // {
+    //     std::cout << "com_port init failed\n";
+    //     return -1;
+    // }
+    // com_port->start();
+
+    // TODO uncomment
+    // It's fine if this fails. It can be controlled via the UI.
+    if (!com_port)
+        std::cout << "com_port is null\n";
+    std::vector<unsigned int> available_ports = com_port->find_ports();
+    if (!available_ports.empty())
     {
-        std::cout << "com_port failed to auto-connect\n";
-        return -1;
+        com_port->connect(available_ports[0]);
+        com_port->init();
     }
-    if (!com_port->init())
-    {
-        std::cout << "com_port init failed\n";
-        return -1;
-    }
-    com_port->start();
+
+    // // TODO remove
+    // std::vector<unsigned int> available_ports{};
 
     /*
      * Initialize state.
@@ -131,7 +150,8 @@ bool DroneViewer::init()
         resource_manager.get(),
         viewer_mode.get(),
         drone_data.get(),
-        camera.get());
+        camera.get(),
+        com_port.get());
     if (!glfw_manager->init()) return false;
 
     imgui_manager = std::make_unique<ImguiManager>(
@@ -142,7 +162,9 @@ bool DroneViewer::init()
         resource_manager.get(),
         viewer_mode.get(),
         drone_data.get(),
-        camera.get());
+        camera.get(),
+        SHOW_DEMO_WINDOW,
+        com_port.get());
     if (!imgui_manager->init()) return false;
 
     opengl_manager = std::make_unique<OpenglManager>(
@@ -162,10 +184,8 @@ bool DroneViewer::is_running() const
     return !glfw_manager->should_window_close();
 }
 
-
-void DroneViewer::process_telemetry()
+bool DroneViewer::process_telemetry()
 {
-    // TODO remove
     auto packet_str = std::make_shared<std::string>();
     if (com_port->is_reading())
     {
@@ -175,26 +195,31 @@ void DroneViewer::process_telemetry()
             std::cout << "packet_str: " << *packet_str << '\n';
         }
     }
+    else
+    {
+        return true;
+    }
 
     auto telemetry_data = std::make_shared<TelemetryData>(*telemetry_format);
     if (packet_str)
     {
-        telemetry_data->extract_packet_data(*packet_str);
+        if (!telemetry_data->extract_packet_data(*packet_str)) return false;
         {
             std::lock_guard<std::mutex> g(resource_manager->drone_data_mutex);
             *drone_data = telemetry_data->get_drone_data();
         }
     }
+    return true;
 }
 
-void DroneViewer::process_frame()
+bool DroneViewer::process_frame()
 {
     /*
      * Process input.
      */
     glfw_manager->process_input();
     if (*viewer_mode == ViewerMode::Telemetry)
-        process_telemetry();
+        if (!process_telemetry()) return false;
 
     /*
      * Render. Order between imgui_manager and opengl_manager is important.
@@ -210,6 +235,8 @@ void DroneViewer::process_frame()
      */
     glfw_manager->swap_buffers();
     glfw_manager->poll_events();
+
+    return true;
 }
 
 #endif /* DRONE_VIEWER_HPP */

@@ -55,18 +55,27 @@ std::ostream& operator<<(std::ostream& os, const DroneData& data)
 
 struct TelemetryFormat
 {
-    TelemetryFormat(std::size_t conversion_factor_,
-                    std::size_t data_size_,
+    TelemetryFormat(std::size_t packet_len_,
+                    char start_symbol_,
+                    char stop_symbol_,
+                    std::size_t conversion_factor_,
+                    std::size_t element_size_,
                     std::vector<std::size_t> accel_offsets_,
                     std::vector<std::size_t> rot_rate_offsets_) :
+        packet_len(packet_len_),
+        start_symbol(start_symbol_),
+        stop_symbol(stop_symbol_),
         conversion_factor(conversion_factor_),
-        data_size(data_size_),
+        element_size(element_size_),
         accel_offsets(accel_offsets_),
         rot_rate_offsets(rot_rate_offsets_)
     {}
 
-    std::size_t conversion_factor;
-    std::size_t data_size;
+    const std::size_t packet_len;
+    const char start_symbol;
+    const char stop_symbol;
+    const std::size_t conversion_factor;
+    const std::size_t element_size;
     const std::vector<std::size_t> accel_offsets{};
     const std::vector<std::size_t> rot_rate_offsets{};
 };
@@ -82,13 +91,19 @@ public:
 
     bool extract_packet_data(const std::string& packet)
     {
-        accel.x = std::stof(packet.substr(fmt.accel_offsets[0], fmt.data_size)) / fmt.conversion_factor;
-        accel.y = std::stof(packet.substr(fmt.accel_offsets[1], fmt.data_size)) / fmt.conversion_factor;
-        accel.z = std::stof(packet.substr(fmt.accel_offsets[2], fmt.data_size)) / fmt.conversion_factor;
+        if (packet.size() != fmt.packet_len)
+        {
+            std::cout << "Packet incorrect length. Aborting.\n";
+            return false;
+        }
 
-        rot_rate.x = std::stof(packet.substr(fmt.rot_rate_offsets[0], fmt.data_size)) / fmt.conversion_factor;
-        rot_rate.y = std::stof(packet.substr(fmt.rot_rate_offsets[1], fmt.data_size)) / fmt.conversion_factor;
-        rot_rate.z = std::stof(packet.substr(fmt.rot_rate_offsets[2], fmt.data_size)) / fmt.conversion_factor;
+        accel.x = std::stof(packet.substr(fmt.accel_offsets[0], fmt.element_size)) / fmt.conversion_factor;
+        accel.y = std::stof(packet.substr(fmt.accel_offsets[1], fmt.element_size)) / fmt.conversion_factor;
+        accel.z = std::stof(packet.substr(fmt.accel_offsets[2], fmt.element_size)) / fmt.conversion_factor;
+
+        rot_rate.x = std::stof(packet.substr(fmt.rot_rate_offsets[0], fmt.element_size)) / fmt.conversion_factor;
+        rot_rate.y = std::stof(packet.substr(fmt.rot_rate_offsets[1], fmt.element_size)) / fmt.conversion_factor;
+        rot_rate.z = std::stof(packet.substr(fmt.rot_rate_offsets[2], fmt.element_size)) / fmt.conversion_factor;
 
         return true;
     }

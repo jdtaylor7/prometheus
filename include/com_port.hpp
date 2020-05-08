@@ -41,14 +41,18 @@ public:
 
     bool init();
 
-    void start();
+    bool start();
     void stop();
 
     std::vector<unsigned int> find_ports();
     bool connect(unsigned int);
     bool auto_connect();
+    void disconnect();
 
     bool is_valid() const { return !(handle == INVALID_HANDLE_VALUE); }
+    bool is_connected() const { return connected; }
+    unsigned int get_connected_port() const { return connected_port; }
+    std::vector<unsigned int> get_available_ports() const { return available_ports; }
     bool is_reading() const { return running_state == PortState::Running; }
 
     std::shared_ptr<std::string> get_latest_packet();
@@ -65,11 +69,16 @@ private:
     HANDLE thread_started;
     HANDLE thread_term;
     std::thread thread_handle;
+    bool initialized = false;
+    bool connected = false;
+    unsigned int connected_port = 0;
+    std::vector<unsigned int> available_ports{};
 
     const std::size_t packet_len;
     const char packet_start_symbol;
     const char packet_stop_symbol;
-    std::shared_ptr<BoundedBuffer<char>> buffer = std::make_shared<BoundedBuffer<char>>((packet_len * 2) - 1);
+    std::shared_ptr<BoundedBuffer<char>> buffer =
+        std::make_shared<BoundedBuffer<char>>((packet_len * 2) - 1);
 
     bool build_new_packet = true;
     std::string latest_packet{};

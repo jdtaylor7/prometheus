@@ -20,13 +20,15 @@ public:
                 ResourceManager* resource_manager_,
                 ViewerMode* viewer_mode_,
                 DroneData* drone_data_,
-                Camera* camera_) :
+                Camera* camera_,
+                ComPort* com_port_) :
     screen_width(width_),
     screen_height(height_),
     rm(resource_manager_),
     viewer_mode(viewer_mode_),
     drone_data(drone_data_),
-    camera(camera_)
+    camera(camera_),
+    com_port(com_port_)
     {}
 
     ~GlfwManager();
@@ -51,6 +53,7 @@ private:
     DroneData* drone_data;
     Camera* camera;
     ViewerMode* viewer_mode;
+    ComPort* com_port;
 
     /*
      * Callback functions.
@@ -149,6 +152,28 @@ void GlfwManager::process_input()
     if (*viewer_mode == ViewerMode::Telemetry)
     {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
+        if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        {
+            com_port->find_ports();
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+        {
+            if (!com_port->get_available_ports().empty())
+            {
+                com_port->connect(com_port->get_available_ports()[0]);
+                com_port->init();
+            }
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        {
+            if (com_port->is_reading())
+                com_port->stop();
+            else
+                com_port->start();
+        }
     }
 
     if (*viewer_mode == ViewerMode::Edit)
