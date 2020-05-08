@@ -10,6 +10,7 @@
 
 #include "callbacks.hpp"
 #include "shared.hpp"
+#include "timer_manager.hpp"
 #include "viewer_mode.hpp"
 
 class GlfwManager
@@ -55,6 +56,9 @@ private:
     ViewerMode* viewer_mode;
     ComPort* com_port;
 
+    // Timers.
+    std::unique_ptr<TimerManager> timer_manager;
+
     /*
      * Callback functions.
      */
@@ -96,7 +100,6 @@ bool GlfwManager::init()
     ScrollCallback<void(GLFWwindow*, double, double)>::func = std::bind(&GlfwManager::scroll_callback, this, _1, _2, _3);
 
     glfwMakeContextCurrent(window);
-    // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetFramebufferSizeCallback(window, static_cast<void(*)(GLFWwindow*, int, int)>(FramebufferCallback<void(GLFWwindow*, int, int)>::callback));
     glfwSetCursorPosCallback(window, static_cast<void(*)(GLFWwindow*, double, double)>(CursorCallback<void(GLFWwindow*, double, double)>::callback));
     glfwSetScrollCallback(window, static_cast<void(*)(GLFWwindow*, double, double)>(ScrollCallback<void(GLFWwindow*, double, double)>::callback));
@@ -109,6 +112,17 @@ bool GlfwManager::init()
         std::cout << "Failed to initialize GLAD\n";
         return false;
     }
+
+    /*
+     * Set up timers.
+     */
+    timer_manager = std::make_unique<TimerManager>();
+
+    using namespace std::chrono_literals;
+    timer_manager->register_timer(TimerName::ComScanTimer, 200ms);
+    timer_manager->register_timer(TimerName::ComConnectTimer, 200ms);
+    timer_manager->register_timer(TimerName::ComReadTimer, 200ms);
+    // timer_manager->register_timer(TimerName::Hi, 200ms);
 
     return true;
 }
@@ -155,24 +169,36 @@ void GlfwManager::process_input()
 
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         {
-            com_port->find_ports();
+            if (timer_manager->is_finished(TimerName::ComScanTimer))
+            {
+                com_port->find_ports();
+                timer_manager->start_timer(TimerName::ComScanTimer);
+            }
         }
 
         if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
         {
-            if (!com_port->get_available_ports().empty())
+            if (timer_manager->is_finished(TimerName::ComConnectTimer))
             {
-                com_port->connect(com_port->get_available_ports()[0]);
-                com_port->init();
+                if (!com_port->get_available_ports().empty())
+                {
+                    com_port->connect(com_port->get_available_ports()[0]);
+                    com_port->init();
+                }
+                timer_manager->start_timer(TimerName::ComConnectTimer);
             }
         }
 
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {
-            if (com_port->is_reading())
-                com_port->stop();
-            else
-                com_port->start();
+            if (timer_manager->is_finished(TimerName::ComReadTimer))
+            {
+                if (com_port->is_reading())
+                    com_port->stop();
+                else
+                    com_port->start();
+                timer_manager->start_timer(TimerName::ComReadTimer);
+            }
         }
     }
 

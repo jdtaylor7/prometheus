@@ -2,6 +2,11 @@
 
 bool ComPort::init()
 {
+    if (initialized)
+    {
+        std::cout << "Port has already been initialized.\n";
+        return false;
+    }
     if (!connected)
     {
         std::cout << "Cannot initialize port without a connection.\n";
@@ -60,12 +65,16 @@ bool ComPort::init()
 
 bool ComPort::start()
 {
+    if (is_reading())
+    {
+        std::cout << "Port already started.\n";
+        return false;
+    }
     if (!connected)
     {
         std::cout << "Cannot start port without a connection.\n";
         return false;
     }
-
     if (!initialized)
     {
         std::cout << "Must initialize port before starting it.\n";
@@ -146,6 +155,11 @@ std::vector<unsigned int> ComPort::find_ports()
 
 bool ComPort::connect(unsigned int port)
 {
+    if (connected)
+    {
+        std::cout << "Port is already connected\n";
+        return false;
+    }
     std::string prefix = "\\\\.\\COM";
     std::string com_port_str = prefix + std::to_string(port);
 

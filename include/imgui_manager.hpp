@@ -114,7 +114,7 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
     glsl_version(glsl_version_),
     fps_win(93.0, 32.0),
     mode_win(165.0, 80.0),
-    controls_t_win(290.0, 200.0),
+    controls_t_win(290.0, 130.0),
     controls_e_win(228.0, 82.0),
     drone_win(130.0, 167.0),
     camera_win(121.0, 167.0),
@@ -265,7 +265,7 @@ void ImguiManager::process_frame()
             }
             else if (com_port->is_connected() && !com_port->is_reading())
             {
-                ImGui::TextColored(ImVec4(0.1f, 0.1f, 1.0f, 1.0f), "COM%u ready", com_port->get_connected_port());
+                ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.1f, 1.0f), "COM%u ready", com_port->get_connected_port());
             }
             else if (com_port->is_connected() && com_port->is_reading())
             {
