@@ -43,6 +43,7 @@ private:
     static constexpr std::size_t SCREEN_HEIGHT = 1200;
 
     static constexpr bool SHOW_DEMO_WINDOW = false;
+    static constexpr bool SHOW_IMPLOT_DEMO_WINDOW = true;
 
     static constexpr float ROOM_SIZE = 10.0f;
 
@@ -164,6 +165,7 @@ bool DroneViewer::init()
         drone_data.get(),
         camera.get(),
         SHOW_DEMO_WINDOW,
+        SHOW_IMPLOT_DEMO_WINDOW,
         com_port.get());
     if (!imgui_manager->init()) return false;
 

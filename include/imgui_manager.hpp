@@ -13,6 +13,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "implot.h"
 
 #include "com_port.hpp"
 #include "resource_manager.hpp"
@@ -50,6 +51,7 @@ public:
                  DroneData* drone_data_,
                  Camera* camera_,
                  bool show_demo_window_,
+                 bool show_implot_demo_window_,
                  ComPort* com_port_);
     ~ImguiManager();
 
@@ -78,6 +80,7 @@ private:
     ViewerMode* viewer_mode;
 
     bool show_demo_window;
+    bool show_implot_demo_window;
     const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     static constexpr float WINDOW_BUF = 20.0f;
@@ -109,6 +112,7 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
                            DroneData* drone_data_,
                            Camera* camera_,
                            bool show_demo_window_,
+                           bool show_implot_demo_window_,
                            ComPort* com_port_) :
     window(window_),
     glsl_version(glsl_version_),
@@ -122,6 +126,7 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
     viewer_mode(viewer_mode_),
     drone_data(drone_data_),
     camera(camera_),
+    show_implot_demo_window(show_implot_demo_window_),
     show_demo_window(show_demo_window_),
     com_port(com_port_)
 {
@@ -175,6 +180,11 @@ void ImguiManager::process_frame()
     if (show_demo_window)
     {
         ImGui::ShowDemoWindow(&show_demo_window);
+    }
+
+    if (show_implot_demo_window)
+    {
+        ImGui::ShowImPlotDemoWindow(&show_implot_demo_window);
     }
 
     // FPS window.

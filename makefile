@@ -5,14 +5,15 @@ stb = third_party/stb_image
 glm = third_party/glm-0.9.9.8
 
 imgui = third_party/imgui
+implot = third_party/implot
 
 CFLAGS = -O2
 CXXFLAGS = -std=c++17 -O2
 LINKOPTS = -L$(gl)/lib -L$(glfw)/build/lib -lGL -lglfw3 -Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11
-includes = -I$(gl) -I$(glad)/include -I$(glfw)/include -I$(stb) -I$(glm) -Iinclude
+includes = -I$(gl) -I$(glad)/include -I$(glfw)/include -I$(stb) -I$(glm) -I$(implot) -Iinclude
 includes += -I$(imgui) -I$(imgui)/examples
 CXXFLAGS += -DIMGUI_IMPL_OPENGL_LOADER_GLAD
-IMGUI_OBJS = imgui_impl_glfw.o imgui_impl_opengl3.o imgui_demo.o imgui_widgets.o imgui_draw.o imgui.o com_port.o
+IMGUI_OBJS = imgui_impl_glfw.o imgui_impl_opengl3.o imgui_demo.o imgui_widgets.o imgui_draw.o imgui.o implot.o implot_demo.o com_port.o
 
 all: main
 
@@ -38,6 +39,12 @@ imgui_draw.o: $(imgui)/imgui_draw.cpp
 	clang++ -c $(CXXFLAGS) $(includes) $^
 
 imgui.o: glad.o $(imgui)/imgui.cpp
+	clang++ -c $(CXXFLAGS) $(includes) $^
+
+implot.o: imgui.o $(implot)/implot.cpp
+	clang++ -c $(CXXFLAGS) $(includes) $^
+
+implot_demo.o: $(implot)/implot_demo.cpp
 	clang++ -c $(CXXFLAGS) $(includes) $^
 
 com_port.o: src/com_port.cpp

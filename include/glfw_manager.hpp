@@ -122,7 +122,6 @@ bool GlfwManager::init()
     timer_manager->register_timer(TimerName::ComScanTimer, 200ms);
     timer_manager->register_timer(TimerName::ComConnectTimer, 200ms);
     timer_manager->register_timer(TimerName::ComReadTimer, 200ms);
-    // timer_manager->register_timer(TimerName::Hi, 200ms);
 
     return true;
 }
