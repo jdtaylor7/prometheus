@@ -20,6 +20,27 @@
 #include "shared.hpp"
 #include "viewer_mode.hpp"
 
+struct ScrollingData {
+    int MaxSize = 1000;
+    int Offset  = 0;
+    ImVector<ImVec2> Data;
+    ScrollingData() { Data.reserve(MaxSize); }
+    void AddPoint(float x, float y) {
+        if (Data.size() < MaxSize)
+            Data.push_back(ImVec2(x,y));
+        else {
+            Data[Offset] = ImVec2(x,y);
+            Offset =  (Offset + 1) % MaxSize;
+        }
+    }
+    void Erase() {
+        if (Data.size() > 0) {
+            Data.shrink(0);
+            Offset  = 0;
+        }
+    }
+};
+
 struct ImguiWindowSettings
 {
     ImguiWindowSettings(float width_, float height_) :
@@ -50,9 +71,10 @@ public:
                  ViewerMode* viewer_mode_,
                  DroneData* drone_data_,
                  Camera* camera_,
+                 ComPort* com_port_,
                  bool show_demo_window_,
                  bool show_implot_demo_window_,
-                 ComPort* com_port_);
+                 bool show_camera_data_window_);
     ~ImguiManager();
 
     bool init();
@@ -81,6 +103,7 @@ private:
 
     bool show_demo_window;
     bool show_implot_demo_window;
+    bool show_camera_data_window;
     const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     static constexpr float WINDOW_BUF = 20.0f;
@@ -111,24 +134,26 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
                            ViewerMode* viewer_mode_,
                            DroneData* drone_data_,
                            Camera* camera_,
+                           ComPort* com_port_,
                            bool show_demo_window_,
                            bool show_implot_demo_window_,
-                           ComPort* com_port_) :
+                           bool show_camera_data_window_) :
     window(window_),
     glsl_version(glsl_version_),
     fps_win(93.0, 32.0),
     mode_win(165.0, 80.0),
     controls_t_win(290.0, 130.0),
     controls_e_win(228.0, 82.0),
-    drone_win(130.0, 167.0),
+    drone_win(300.0, 480.0),
     camera_win(121.0, 167.0),
     rm(resource_manager_),
     viewer_mode(viewer_mode_),
     drone_data(drone_data_),
     camera(camera_),
+    com_port(com_port_),
     show_implot_demo_window(show_implot_demo_window_),
     show_demo_window(show_demo_window_),
-    com_port(com_port_)
+    show_camera_data_window(show_camera_data_window_)
 {
     screen_width = screen_width_;
     screen_height = screen_height_;
@@ -317,33 +342,69 @@ void ImguiManager::process_frame()
         ImGui::BulletText("y:     %.3f", drone_data->position.y);
         ImGui::BulletText("z:     %.3f", drone_data->position.z);
 
+        static ScrollingData sdata1;
+        static ScrollingData sdata2;
+        static ScrollingData sdata3;
+        static float t = 0;
+        t += ImGui::GetIO().DeltaTime;
+        sdata1.AddPoint(t, drone_data->position.x * 0.3f);
+        sdata2.AddPoint(t, drone_data->position.y * 0.3f);
+        sdata3.AddPoint(t, drone_data->position.z * 0.3f);
+        ImGui::SetNextPlotRangeX(t - 10, t, ImGuiCond_Always);
+        static int rt_axis = ImAxisFlags_Default & ~ImAxisFlags_TickLabels;
+        if (ImGui::BeginPlot("##Drone Position Data", NULL, NULL, {-1, 150}, ImPlotFlags_Default, rt_axis, rt_axis))
+        {
+            ImGui::Plot("X Position", &sdata1.Data[0].x, &sdata1.Data[0].y, sdata1.Data.size(), sdata1.Offset, 2 * sizeof(float));
+            ImGui::Plot("Y Position", &sdata2.Data[0].x, &sdata2.Data[0].y, sdata2.Data.size(), sdata2.Offset, 2 * sizeof(float));
+            ImGui::Plot("Z Position", &sdata3.Data[0].x, &sdata3.Data[0].y, sdata3.Data.size(), sdata3.Offset, 2 * sizeof(float));
+            ImGui::EndPlot();
+        }
+
         ImGui::Text("Orientation");
         ImGui::BulletText("Roll:  %.3f", drone_data->orientation.x);
         ImGui::BulletText("Pitch: %.3f", drone_data->orientation.y);
         ImGui::BulletText("Yaw:   %.3f", drone_data->orientation.z);
 
+        static ScrollingData sdata4;
+        static ScrollingData sdata5;
+        static ScrollingData sdata6;
+        sdata4.AddPoint(t, drone_data->orientation.x * 0.5f);
+        sdata5.AddPoint(t, drone_data->orientation.y * 0.5f);
+        sdata6.AddPoint(t, drone_data->orientation.z * 0.5f);
+        ImGui::SetNextPlotRangeX(t - 10, t, ImGuiCond_Always);
+        if (ImGui::BeginPlot("##Drone Orientation Data", NULL, NULL, {-1, 150}, ImPlotFlags_Default, rt_axis, rt_axis))
+        {
+            ImGui::Plot("X Orientation", &sdata4.Data[0].x, &sdata4.Data[0].y, sdata4.Data.size(), sdata4.Offset, 2 * sizeof(float));
+            ImGui::Plot("Y Orientation", &sdata5.Data[0].x, &sdata5.Data[0].y, sdata5.Data.size(), sdata5.Offset, 2 * sizeof(float));
+            ImGui::Plot("Z Orientation", &sdata6.Data[0].x, &sdata6.Data[0].y, sdata6.Data.size(), sdata6.Offset, 2 * sizeof(float));
+            ImGui::EndPlot();
+        }
+
         ImGui::End();
     }
 
     // Camera data window.
-    ImGui::SetNextWindowSize(ImVec2(camera_win.width, camera_win.height),
-        ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2(camera_win.xpos, camera_win.ypos),
-        ImGuiCond_Always);
+    if (show_camera_data_window)
     {
-        ImGui::Begin("Camera Data", NULL, imgui_window_flags);
+        ImGui::SetNextWindowSize(ImVec2(camera_win.width, camera_win.height),
+            ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2(camera_win.xpos, camera_win.ypos),
+            ImGuiCond_Always);
+        {
+            ImGui::Begin("Camera Data", NULL, imgui_window_flags);
 
-        ImGui::Text("Camera Position");
-        ImGui::BulletText("x: %.3f", camera->get_position().x);
-        ImGui::BulletText("y: %.3f", camera->get_position().y);
-        ImGui::BulletText("z: %.3f", camera->get_position().z);
+            ImGui::Text("Camera Position");
+            ImGui::BulletText("x: %.3f", camera->get_position().x);
+            ImGui::BulletText("y: %.3f", camera->get_position().y);
+            ImGui::BulletText("z: %.3f", camera->get_position().z);
 
-        ImGui::Text("Target Position");
-        ImGui::BulletText("x: %.3f", camera->get_target().x);
-        ImGui::BulletText("y: %.3f", camera->get_target().y);
-        ImGui::BulletText("z: %.3f", camera->get_target().z);
+            ImGui::Text("Target Position");
+            ImGui::BulletText("x: %.3f", camera->get_target().x);
+            ImGui::BulletText("y: %.3f", camera->get_target().y);
+            ImGui::BulletText("z: %.3f", camera->get_target().z);
 
-        ImGui::End();
+            ImGui::End();
+        }
     }
 }
 

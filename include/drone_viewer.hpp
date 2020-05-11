@@ -43,7 +43,8 @@ private:
     static constexpr std::size_t SCREEN_HEIGHT = 1200;
 
     static constexpr bool SHOW_DEMO_WINDOW = false;
-    static constexpr bool SHOW_IMPLOT_DEMO_WINDOW = true;
+    static constexpr bool SHOW_IMPLOT_DEMO_WINDOW = false;
+    static constexpr bool SHOW_CAMERA_DATA_WINDOW = false;
 
     static constexpr float ROOM_SIZE = 10.0f;
 
@@ -101,20 +102,6 @@ bool DroneViewer::init()
         TELEMETRY_START_SYMBOL,
         TELEMETRY_STOP_SYMBOL
     );
-    // TODO remove
-    // if (!com_port->auto_connect())
-    // {
-    //     std::cout << "com_port failed to auto-connect\n";
-    //     return -1;
-    // }
-    // if (!com_port->init())
-    // {
-    //     std::cout << "com_port init failed\n";
-    //     return -1;
-    // }
-    // com_port->start();
-
-    // TODO uncomment
     // It's fine if this fails. It can be controlled via the UI.
     if (!com_port)
         std::cout << "com_port is null\n";
@@ -124,9 +111,6 @@ bool DroneViewer::init()
         com_port->connect(available_ports[0]);
         com_port->init();
     }
-
-    // // TODO remove
-    // std::vector<unsigned int> available_ports{};
 
     /*
      * Initialize state.
@@ -164,9 +148,10 @@ bool DroneViewer::init()
         viewer_mode.get(),
         drone_data.get(),
         camera.get(),
+        com_port.get(),
         SHOW_DEMO_WINDOW,
         SHOW_IMPLOT_DEMO_WINDOW,
-        com_port.get());
+        SHOW_CAMERA_DATA_WINDOW);
     if (!imgui_manager->init()) return false;
 
     opengl_manager = std::make_unique<OpenglManager>(
