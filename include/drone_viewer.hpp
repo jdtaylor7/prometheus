@@ -16,6 +16,7 @@
 #include "resource_manager.hpp"
 #include "shader.hpp"
 #include "shared.hpp"
+#include "telemetry_manager.hpp"
 #include "vertex_data.hpp"
 #include "viewer_mode.hpp"
 
@@ -35,7 +36,7 @@ private:
     static constexpr char TELEMETRY_START_SYMBOL = '|';
     static constexpr char TELEMETRY_STOP_SYMBOL = '\n';
     static constexpr std::size_t TELEMETRY_FLOAT_CONVERSION_FACTOR = 1000;
-    static constexpr std::size_t TELEMETRY_DATA_SIZE = 5;
+    static constexpr std::size_t TELEMETRY_FLOAT_FORMAT_LEN = 5;
     const std::vector<std::size_t> TELEMETRY_ACCEL_OFFSETS = {1, 7, 13};
     const std::vector<std::size_t> TELEMETRY_ROT_RATE_OFFSETS = {19, 25, 31};
 
@@ -65,7 +66,6 @@ private:
     /*
      * Communications interfaces.
      */
-    std::unique_ptr<TelemetryFormat> telemetry_format;
     std::unique_ptr<ComPort> com_port;
 
     /*
@@ -74,6 +74,7 @@ private:
     std::unique_ptr<GlfwManager> glfw_manager;
     std::unique_ptr<ImguiManager> imgui_manager;
     std::unique_ptr<OpenglManager> opengl_manager;
+    std::unique_ptr<TelemetryManager> telemetry_manager;
 };
 
 bool DroneViewer::init()
@@ -86,17 +87,6 @@ bool DroneViewer::init()
     /*
      * Initialize communications interfaces.
      */
-    telemetry_format = std::make_unique<TelemetryFormat>(
-        TELEMETRY_PACKET_LEN,
-        TELEMETRY_START_SYMBOL,
-        TELEMETRY_STOP_SYMBOL,
-        TELEMETRY_FLOAT_CONVERSION_FACTOR,
-        TELEMETRY_DATA_SIZE,
-        TELEMETRY_ACCEL_OFFSETS,
-        TELEMETRY_ROT_RATE_OFFSETS
-    );
-    // Postpone calling the actual ComPort::connect ComPort::init methods.
-    // Those will occur through the application.
     com_port = std::make_unique<ComPort>(
         TELEMETRY_PACKET_LEN,
         TELEMETRY_START_SYMBOL,
@@ -163,40 +153,25 @@ bool DroneViewer::init()
         camera.get());
     if (!opengl_manager->init()) return false;
 
+    telemetry_manager = std::make_unique<TelemetryManager>(
+        TELEMETRY_PACKET_LEN,
+        TELEMETRY_START_SYMBOL,
+        TELEMETRY_STOP_SYMBOL,
+        TELEMETRY_FLOAT_CONVERSION_FACTOR,
+        TELEMETRY_FLOAT_FORMAT_LEN,
+        TELEMETRY_ACCEL_OFFSETS,
+        TELEMETRY_ROT_RATE_OFFSETS,
+        com_port.get(),
+        drone_data.get(),
+        resource_manager.get());
+    if (!telemetry_manager->init()) return false;
+
     return true;
 }
 
 bool DroneViewer::is_running() const
 {
     return !glfw_manager->should_window_close();
-}
-
-bool DroneViewer::process_telemetry()
-{
-    auto packet_str = std::make_shared<std::string>();
-    if (com_port->is_reading())
-    {
-        packet_str = com_port->get_latest_packet();
-        if (packet_str)
-        {
-            std::cout << "packet_str: " << *packet_str << '\n';
-        }
-    }
-    else
-    {
-        return true;
-    }
-
-    auto telemetry_data = std::make_shared<TelemetryData>(*telemetry_format);
-    if (packet_str)
-    {
-        if (!telemetry_data->extract_packet_data(*packet_str)) return false;
-        {
-            std::lock_guard<std::mutex> g(resource_manager->drone_data_mutex);
-            *drone_data = telemetry_data->get_drone_data();
-        }
-    }
-    return true;
 }
 
 bool DroneViewer::process_frame()
@@ -206,7 +181,8 @@ bool DroneViewer::process_frame()
      */
     glfw_manager->process_input();
     if (*viewer_mode == ViewerMode::Telemetry)
-        if (!process_telemetry()) return false;
+        // if (!process_telemetry()) return false;
+        if (!telemetry_manager->process_telemetry()) return false;
 
     /*
      * Render. Order between imgui_manager and opengl_manager is important.

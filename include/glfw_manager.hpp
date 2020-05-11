@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 
 #include "callbacks.hpp"
+#include "com_port.hpp"
 #include "shared.hpp"
 #include "timer_manager.hpp"
 #include "viewer_mode.hpp"
