@@ -2,6 +2,7 @@
 #define TELEMETRY_MANAGER_HPP
 
 #include <memory>
+#include <vector>
 
 #include "com_port.hpp"
 #include "resource_manager.hpp"
@@ -69,7 +70,7 @@ public:
 
     // TODO change this to convert accel->pos and rot_rate->rot, not just pass
     // the values through.
-    DroneData get_drone_data() const
+    DroneData get_raw_drone_data() const
     {
         return DroneData(accel, rot_rate);
     }
@@ -121,6 +122,7 @@ public:
 
     bool init();
 
+    DroneData filter_data();
     bool process_telemetry();
 private:
     const std::size_t packet_len;
@@ -135,6 +137,9 @@ private:
     ComPort* com_port;
     DroneData* drone_data;
     ResourceManager* resource_manager;
+
+    static constexpr std::size_t RAW_DATA_BUF_MAXLEN = 64;
+    std::vector<DroneData> raw_data_buf;
 };
 
 bool TelemetryManager::init()
@@ -153,6 +158,20 @@ bool TelemetryManager::init()
     );
 
     return true;
+}
+
+/*
+ * Implement simple moving average filter.
+ */
+DroneData TelemetryManager::filter_data()
+{
+    DroneData sum{};
+
+    for (auto& e : raw_data_buf)
+        sum += e;
+
+    return DroneData{sum.position / (float)raw_data_buf.size(),
+                     sum.orientation / (float)raw_data_buf.size()};
 }
 
 bool TelemetryManager::process_telemetry()
@@ -176,13 +195,17 @@ bool TelemetryManager::process_telemetry()
     {
         if (!telemetry_data->extract_packet_data(*packet_str)) return false;
         {
-            std::lock_guard<std::mutex> g(resource_manager->drone_data_mutex);
-            *drone_data = telemetry_data->get_drone_data();
+            if (raw_data_buf.size() >= RAW_DATA_BUF_MAXLEN)
+                raw_data_buf.erase(raw_data_buf.begin());
+            raw_data_buf.push_back(telemetry_data->get_raw_drone_data());
         }
     }
 
     // Filter input.
-    // filter(&drone_data);
+    {
+        std::lock_guard<std::mutex> g(resource_manager->drone_data_mutex);
+        *drone_data = filter_data();
+    }
 
     return true;
 }

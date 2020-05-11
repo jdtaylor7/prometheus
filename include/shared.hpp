@@ -12,6 +12,7 @@ struct TelemetryData;
  */
 struct DroneData
 {
+    DroneData() : position{}, orientation{} {}
     DroneData(glm::vec3 p, glm::vec3 o) : position(p), orientation(o) {}
 
     DroneData(const DroneData& rhs) :
@@ -32,6 +33,12 @@ struct DroneData
     DroneData& operator=(const TelemetryData&);
 
     friend std::ostream& operator<<(std::ostream&, const DroneData&);
+
+    void operator+=(const DroneData& rhs)
+    {
+        this->position += rhs.position;
+        this->orientation += rhs.orientation;
+    }
 
     glm::vec3 position{};
     glm::vec3 orientation{};
