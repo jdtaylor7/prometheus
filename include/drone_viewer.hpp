@@ -26,7 +26,6 @@ public:
     bool init();
     bool is_running() const;
 
-    bool process_telemetry();
     bool process_frame();
 private:
     /*
@@ -45,7 +44,7 @@ private:
 
     static constexpr bool SHOW_DEMO_WINDOW = false;
     static constexpr bool SHOW_IMPLOT_DEMO_WINDOW = false;
-    static constexpr bool SHOW_CAMERA_DATA_WINDOW = false;
+    static constexpr bool SHOW_CAMERA_DATA_WINDOW = true;
 
     static constexpr float ROOM_SIZE = 10.0f;
 
@@ -113,8 +112,8 @@ bool DroneViewer::init()
         SCREEN_HEIGHT,
         ROOM_SIZE / 2,
         ROOM_SIZE,
-        INITIAL_CAMERA_POSITION,
-        INITIAL_CAMERA_TARGET);
+        CAMERA_POSITION_HEADON,
+        CAMERA_TARGET_HEADON);
 
     /*
      * Initialize data managers.
@@ -181,7 +180,6 @@ bool DroneViewer::process_frame()
      */
     glfw_manager->process_input();
     if (*viewer_mode == ViewerMode::Telemetry)
-        // if (!process_telemetry()) return false;
         if (!telemetry_manager->process_telemetry()) return false;
 
     /*

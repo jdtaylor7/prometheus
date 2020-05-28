@@ -1,6 +1,7 @@
 #ifndef TELEMETRY_MANAGER_HPP
 #define TELEMETRY_MANAGER_HPP
 
+#include <cmath>
 #include <memory>
 #include <vector>
 
@@ -138,8 +139,9 @@ private:
     DroneData* drone_data;
     ResourceManager* resource_manager;
 
-    static constexpr std::size_t RAW_DATA_BUF_MAXLEN = 64;
+    static constexpr std::size_t RAW_DATA_BUF_MAXLEN = 32;
     std::vector<DroneData> raw_data_buf;
+    // float integration_sum = 0.0f;  // TODO
 };
 
 bool TelemetryManager::init()
@@ -206,6 +208,18 @@ bool TelemetryManager::process_telemetry()
         std::lock_guard<std::mutex> g(resource_manager->drone_data_mutex);
         *drone_data = filter_data();
     }
+
+    // // Integrate. TODO just store integrated value in z value for now.
+    // {
+    //     if (!std::isnan(drone_data->position.x))
+    //         integration_sum += drone_data->position.x * 0.01;
+    //     std::lock_guard<std::mutex> g(resource_manager->drone_data_mutex);
+    //     drone_data->position.z = integration_sum;
+    //
+    //     std::cout << "drone.x = " << drone_data->position.x << '\n';
+    //     std::cout << "integration_sum = " << integration_sum << '\n';
+    //     std::cout << "drone.z = " << drone_data->position.z << '\n';
+    // }
 
     return true;
 }

@@ -229,10 +229,19 @@ void GlfwManager::process_input()
 
             {
                 std::lock_guard<std::mutex> g(rm->camera_data_mutex);
-                camera->set_position(INITIAL_CAMERA_POSITION);
-                camera->set_target_and_front(INITIAL_CAMERA_TARGET);
+                camera->set_position(CAMERA_POSITION_HEADON);
+                camera->set_target_and_front(CAMERA_TARGET_HEADON);
             }
         }
+        // TODO
+        // if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+        // {
+        //     {
+        //         std::lock_guard<std::mutex> g(rm->camera_data_mutex);
+        //         camera->set_position(CAMERA_POSITION_OVERHEAD);
+        //         camera->set_target_and_front(CAMERA_TARGET_OVERHEAD);
+        //     }
+        // }
 
         camera->update_position(window);
     }

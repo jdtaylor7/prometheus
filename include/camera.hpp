@@ -10,6 +10,12 @@
 #include "resource_manager.hpp"
 #include "shared.hpp"
 
+enum class CameraSpeedSetting
+{
+    Normal,
+    Fast,
+};
+
 class Camera
 {
 public:
@@ -38,6 +44,7 @@ public:
     glm::vec3 get_up() const;
     float get_fov() const;
 
+    void set_speed_modifier(CameraSpeedSetting);
     void set_position(glm::vec3);
     void set_target_and_front(glm::vec3);
 
@@ -63,6 +70,10 @@ private:
      */
     float delta_time = 0.0f;
     float last_frame = 0.0f;
+
+    static constexpr float CAMERA_SPEED_NORMAL = 2.5f;
+    static constexpr float CAMERA_SPEED_FAST = 5.0f;
+    float camera_speed_modifier = CAMERA_SPEED_NORMAL;
 
     bool first_mouse = true;
 
@@ -125,6 +136,23 @@ float Camera::get_fov() const
     return fov;
 }
 
+void Camera::set_speed_modifier(CameraSpeedSetting setting)
+{
+    switch (setting)
+    {
+        case (CameraSpeedSetting::Normal):
+        {
+            camera_speed_modifier = CAMERA_SPEED_NORMAL;
+            break;
+        }
+        case (CameraSpeedSetting::Fast):
+        {
+            camera_speed_modifier = CAMERA_SPEED_FAST;
+            break;
+        }
+    }
+}
+
 void Camera::set_position(glm::vec3 pos)
 {
     position = pos;
@@ -159,7 +187,7 @@ inline void Camera::constrain_to_boundary()
 
 void Camera::update_position(GLFWwindow* window)
 {
-    float camera_speed = 2.5f * delta_time;
+    float camera_speed = camera_speed_modifier * delta_time;
 
     std::lock_guard<std::mutex> g(rm->camera_data_mutex);
 
@@ -188,10 +216,18 @@ void Camera::update_position(GLFWwindow* window)
         position += camera_speed * up;
         constrain_to_boundary();
     }
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
     {
         position -= camera_speed * up;
         constrain_to_boundary();
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    {
+        set_speed_modifier(CameraSpeedSetting::Fast);
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+    {
+        set_speed_modifier(CameraSpeedSetting::Normal);
     }
 }
 
