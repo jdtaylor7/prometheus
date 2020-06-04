@@ -53,9 +53,6 @@ com_port.o: src/com_port.cpp
 main: glad.o stb_image.o $(IMGUI_OBJS) src/main.cpp
 	clang++ $(CXXFLAGS) $(includes)	$^ -o main.exe $(LINKOPTS)
 
-triangle: glad.o $(IMGUI_OBJS) src/triangle.cpp
-	clang++ $(CXXFLAGS) $(includes) $^ -o triangle.exe $(LINKOPTS)
-
 clean:
 	rm -vf *.o *.exe *.gch *.exe.stackdump
 

@@ -1,4 +1,6 @@
 bazel-*
+build
+
 *.o
 *.exe
 *.o.tmp
