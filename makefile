@@ -2,11 +2,11 @@
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Linux)
 	CFLAGS += -D LINUX
-	LINKOPTS += -L$(glfw)/lib/linux/static
+	LINKOPTS += -L$(glfw)/lib/linux
 else
 	# TODO update this with cygwin
 	CFLAGS += -D CYGWIN
-	LINKOPTS += -L$(glfw)/lib/cygwin/static
+	LINKOPTS += -L$(glfw)/lib/cygwin
 endif
 
 # Detect architecture for Linux.
@@ -31,7 +31,7 @@ CC = clang
 CXX = clang++
 CFLAGS += -O2
 CXXFLAGS = $(CFLAGS) -std=c++17
-LINKOTPS += -L$(gl)/lib -lGL -lglfw3 -Wl,-Bstatic -lrt -Wl,-Bdynamic -lm -ldl -lX11 -lpthread
+LINKOPTS += -L$(gl)/lib -lGL -lglfw3 -Wl,-Bstatic -lrt -Wl,-Bdynamic -lm -ldl -lX11 -lpthread
 includes = -I$(gl) -I$(glad)/include -I$(glfw)/include -I$(stb) -I$(glm) -I$(implot) -Iinclude
 includes += -I$(imgui) -I$(imgui)/examples
 CXXFLAGS += -DIMGUI_IMPL_OPENGL_LOADER_GLAD
@@ -73,7 +73,7 @@ com_port.o: src/com_port.cpp
 	$(CXX) -c $(CXXFLAGS) $(includes) $^
 
 main: glad.o stb_image.o $(IMGUI_OBJS) src/main.cpp
-	$(CXX) $(CXXFLAGS) $(includes)	$^ -o main.exe $(LINKOPTS)
+	$(CXX) $(CXXFLAGS) $(includes) $^ -o main $(LINKOPTS)
 
 clean:
 	rm -vf *.o *.exe *.gch *.exe.stackdump
