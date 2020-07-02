@@ -29,7 +29,7 @@ include_directories(
 
 # Add compiler/linker options.
 set(CXXOPTS "-O2")
-set(LINKOPTS "${LINKOPTS} -Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11")
+set(LINKOPTS "${LINKOPTS} -Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11 -lpthread")
 set(LINKOPTS "${LINKOPTS} -DIMGUI_IMPL_OPENGL_LOADER_GLAD")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXOPTS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LINKOPTS}")

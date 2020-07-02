@@ -1,3 +1,23 @@
+# Detect Linux.
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S), Linux)
+	CFLAGS += -D LINUX
+	LINKOPTS += -L$(glfw)/lib/linux/static
+else
+	# TODO update this with cygwin
+	CFLAGS += -D CYGWIN
+	LINKOPTS += -L$(glfw)/lib/cygwin/static
+endif
+
+# Detect architecture for Linux.
+UNAME_M := $(shell uname -m)
+ifeq ($(UNAME_M), x86_64)
+	CFLAGS += -D AMD64
+endif
+ifneq ($(filter %86, $(UNAME_M)),)
+	CFLAGS += -D IA32
+endif
+
 gl = third_party/GL
 glad = third_party/glad
 glfw = third_party/glfw-3.3.2
@@ -7,9 +27,11 @@ glm = third_party/glm-0.9.9.8
 imgui = third_party/imgui
 implot = third_party/implot
 
-CFLAGS = -O2
-CXXFLAGS = -std=c++17 -O2
-LINKOPTS = -L$(gl)/lib -L$(glfw)/build/lib -lGL -lglfw3 -Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11
+CC = clang
+CXX = clang++
+CFLAGS += -O2
+CXXFLAGS = $(CFLAGS) -std=c++17
+LINKOTPS += -L$(gl)/lib -lGL -lglfw3 -Wl,-Bstatic -lrt -Wl,-Bdynamic -lm -ldl -lX11 -lpthread
 includes = -I$(gl) -I$(glad)/include -I$(glfw)/include -I$(stb) -I$(glm) -I$(implot) -Iinclude
 includes += -I$(imgui) -I$(imgui)/examples
 CXXFLAGS += -DIMGUI_IMPL_OPENGL_LOADER_GLAD
@@ -18,40 +40,40 @@ IMGUI_OBJS = imgui_impl_glfw.o imgui_impl_opengl3.o imgui_demo.o imgui_widgets.o
 all: main
 
 glad.o: $(glad)/src/glad.c
-	clang -c $(CFLAGS) $(includes) $^
+	$(CC) -c $(CFLAGS) $(includes) $^
 
 stb_image.o: $(stb)/stb_image.c
-	clang -c $(CFLAGS) $(includes) $^
+	$(CC) -c $(CFLAGS) $(includes) $^
 
 imgui_impl_glfw.o: $(imgui)/examples/imgui_impl_glfw.cpp
-	clang++ -c $(CXXFLAGS) $(includes) $^ $(LINKOPTS)
+	$(CXX) -c $(CXXFLAGS) $(includes) $^ $(LINKOPTS)
 
 imgui_impl_opengl3.o: $(imgui)/examples/imgui_impl_opengl3.cpp
-	clang++ -c $(CXXFLAGS) $(includes) $^ $(LINKOPTS)
+	$(CXX) -c $(CXXFLAGS) $(includes) $^ $(LINKOPTS)
 
 imgui_demo.o: $(imgui)/imgui_demo.cpp
-	clang++ -c $(CXXFLAGS) $(includes) $^
+	$(CXX) -c $(CXXFLAGS) $(includes) $^
 
 imgui_widgets.o: $(imgui)/imgui_widgets.cpp
-	clang++ -c $(CXXFLAGS) $(includes) $^
+	$(CXX) -c $(CXXFLAGS) $(includes) $^
 
 imgui_draw.o: $(imgui)/imgui_draw.cpp
-	clang++ -c $(CXXFLAGS) $(includes) $^
+	$(CXX) -c $(CXXFLAGS) $(includes) $^
 
 imgui.o: glad.o $(imgui)/imgui.cpp
-	clang++ -c $(CXXFLAGS) $(includes) $^
+	$(CXX) -c $(CXXFLAGS) $(includes) $^
 
 implot.o: imgui.o $(implot)/implot.cpp
-	clang++ -c $(CXXFLAGS) $(includes) $^
+	$(CXX) -c $(CXXFLAGS) $(includes) $^
 
 implot_demo.o: $(implot)/implot_demo.cpp
-	clang++ -c $(CXXFLAGS) $(includes) $^
+	$(CXX) -c $(CXXFLAGS) $(includes) $^
 
 com_port.o: src/com_port.cpp
-	clang++ -c $(CXXFLAGS) $(includes) $^
+	$(CXX) -c $(CXXFLAGS) $(includes) $^
 
 main: glad.o stb_image.o $(IMGUI_OBJS) src/main.cpp
-	clang++ $(CXXFLAGS) $(includes)	$^ -o main.exe $(LINKOPTS)
+	$(CXX) $(CXXFLAGS) $(includes)	$^ -o main.exe $(LINKOPTS)
 
 clean:
 	rm -vf *.o *.exe *.gch *.exe.stackdump

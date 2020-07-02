@@ -9,8 +9,8 @@
 #include <thread>
 #include <vector>
 
-#include <Process.h>
-#include <windows.h>
+// #include <Process.h>
+// #include <windows.h>
 
 #include "bounded_buffer.hpp"
 
@@ -31,7 +31,7 @@ public:
         packet_stop_symbol(packet_stop_symbol)
     {}
 
-    ~ComPort() { CloseHandle(handle); }
+    // ~ComPort() { CloseHandle(handle); }
 
     ComPort(const ComPort&) = delete;
     ComPort& operator=(const ComPort&) = delete;
@@ -49,7 +49,8 @@ public:
     bool auto_connect();
     void disconnect();
 
-    bool is_valid() const { return !(handle == INVALID_HANDLE_VALUE); }
+    // bool is_valid() const { return !(handle == INVALID_HANDLE_VALUE); }
+    bool is_valid() const { return true; }
     bool is_connected() const { return connected; }
     unsigned int get_connected_port() const { return connected_port; }
     std::vector<unsigned int> get_available_ports() const { return available_ports; }
@@ -58,16 +59,16 @@ public:
     std::shared_ptr<std::string> get_latest_packet();
     std::size_t get_buffer_size() const { return buffer->size(); };
     void clear_buffer() { buffer->clear(); };
-    void invalidate_handle(HANDLE&);
+    // void invalidate_handle(HANDLE&);
 
     static unsigned async_receive(void*);
 private:
     const std::size_t COM_BEG = 2;
     const std::size_t COM_END = 10;
 
-    HANDLE handle;
-    HANDLE thread_started;
-    HANDLE thread_term;
+    // HANDLE handle;
+    // HANDLE thread_started;
+    // HANDLE thread_term;
     std::thread thread_handle;
     bool initialized = false;
     bool connected = false;
