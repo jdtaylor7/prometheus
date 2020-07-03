@@ -9,8 +9,14 @@
 #include <thread>
 #include <vector>
 
-// #include <Process.h>
-// #include <windows.h>
+#ifdef CYGWIN
+#include <Process.h>
+#include <windows.h>
+#endif
+
+#ifdef LINUX
+#include <libusb.h>
+#endif
 
 #include "bounded_buffer.hpp"
 

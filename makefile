@@ -3,6 +3,7 @@ UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Linux)
 	CFLAGS += -D LINUX
 	LINKOPTS += -L$(glfw)/lib/linux
+	INCLUDES += -I/usr/include/libusb-1.0
 endif
 ifeq ($(filter %CYGWIN, $(UNAME_S)),)
 	CFLAGS += -D CYGWIN
@@ -33,7 +34,7 @@ CFLAGS += -O2
 CXXFLAGS = $(CFLAGS) -std=c++17
 LINKOPTS += -L$(gl)/lib -lGL -lglfw3 -Wl,-Bstatic -lrt \
 -Wl,-Bdynamic -lm -ldl -lX11 -lpthread
-INCLUDES = -I$(gl) -I$(glad)/include -I$(glfw)/include -I$(stb) -I$(glm) \
+INCLUDES += -I$(gl) -I$(glad)/include -I$(glfw)/include -I$(stb) -I$(glm) \
 -I$(implot) -Iinclude -I$(imgui) -I$(imgui)/examples -Iinclude/data \
 -Iinclude/managers -Iinclude/misc
 CXXFLAGS += -DIMGUI_IMPL_OPENGL_LOADER_GLAD
