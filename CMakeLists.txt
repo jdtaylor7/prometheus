@@ -24,7 +24,9 @@ include_directories(
     "${PROJECT_SOURCE_DIR}/third_party/imgui"
     "${PROJECT_SOURCE_DIR}/third_party/imgui/examples"
     "${PROJECT_SOURCE_DIR}/third_party/implot"
-    "${PROJECT_SOURCE_DIR}/include"
+    "${PROJECT_SOURCE_DIR}/include/data"
+    "${PROJECT_SOURCE_DIR}/include/managers"
+    "${PROJECT_SOURCE_DIR}/include/misc"
 )
 
 # Add compiler/linker options.
