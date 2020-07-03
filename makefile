@@ -3,8 +3,8 @@ UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Linux)
 	CFLAGS += -D LINUX
 	LINKOPTS += -L$(glfw)/lib/linux
-else
-	# TODO update this with cygwin
+endif
+ifeq ($(filter %CYGWIN, $(UNAME_S)),)
 	CFLAGS += -D CYGWIN
 	LINKOPTS += -L$(glfw)/lib/cygwin
 endif
