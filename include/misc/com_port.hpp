@@ -12,9 +12,7 @@
 #ifdef CYGWIN
 #include <Process.h>
 #include <windows.h>
-#endif
-
-#ifdef LINUX
+#elif LINUX
 #include <libusb.h>
 #endif
 
@@ -37,7 +35,7 @@ public:
         packet_stop_symbol(packet_stop_symbol)
     {}
 
-    // ~ComPort() { CloseHandle(handle); }
+    ~ComPort();
 
     ComPort(const ComPort&) = delete;
     ComPort& operator=(const ComPort&) = delete;
@@ -55,8 +53,7 @@ public:
     bool auto_connect();
     void disconnect();
 
-    // bool is_valid() const { return !(handle == INVALID_HANDLE_VALUE); }
-    bool is_valid() const { return true; }
+    bool is_valid() const;
     bool is_connected() const { return connected; }
     unsigned int get_connected_port() const { return connected_port; }
     std::vector<unsigned int> get_available_ports() const { return available_ports; }
@@ -65,16 +62,25 @@ public:
     std::shared_ptr<std::string> get_latest_packet();
     std::size_t get_buffer_size() const { return buffer->size(); };
     void clear_buffer() { buffer->clear(); };
-    // void invalidate_handle(HANDLE&);
+
+#ifdef CYGWIN
+    void invalidate_handle(HANDLE&);
+#elif LINUX
+    void invalidate_handle();
+#endif
 
     static unsigned async_receive(void*);
 private:
+#ifdef CYGWIN
+    HANDLE handle;
+    HANDLE thread_started;
+    HANDLE thread_term;
+#elif LINUX
+#endif
+
     const std::size_t COM_BEG = 2;
     const std::size_t COM_END = 10;
 
-    // HANDLE handle;
-    // HANDLE thread_started;
-    // HANDLE thread_term;
     std::thread thread_handle;
     bool initialized = false;
     bool connected = false;

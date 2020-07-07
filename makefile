@@ -5,10 +5,10 @@ ifeq ($(UNAME_S), Linux)
 	LINKOPTS += -L$(glfw)/lib/linux
 	INCLUDES += -I/usr/include/libusb-1.0
 endif
-ifeq ($(filter %CYGWIN, $(UNAME_S)),)
-	CFLAGS += -D CYGWIN
-	LINKOPTS += -L$(glfw)/lib/cygwin
-endif
+# ifeq ($(filter %CYGWIN, $(UNAME_S)),)
+# 	CFLAGS += -D CYGWIN
+# 	LINKOPTS += -L$(glfw)/lib/cygwin
+# endif
 
 # Detect architecture for Linux.
 UNAME_M := $(shell uname -m)

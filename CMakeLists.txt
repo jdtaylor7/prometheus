@@ -13,6 +13,15 @@ find_package(OpenGL REQUIRED)
 set(CMAKE_PREFIX_PATH /usr/lib/glfw)
 find_package(glfw3 3.3 REQUIRED)
 
+# Detect OS.
+string(COMPARE EQUAL "${CMAKE_SYSTEM_NAME}" "Linux" is_linux)
+if(is_linux)
+    set(CXXOPTS "${CXXOPTS} -D LINUX")
+	include_directories(/usr/include/libusb-1.0)
+elseif(CYGWIN)
+    set(CXXOPTS "${CXXOPTS} -D CYGWIN")
+endif()
+
 # Add include directories
 include_directories(
     "${PROJECT_BINARY_DIR}"
@@ -30,9 +39,9 @@ include_directories(
 )
 
 # Add compiler/linker options.
-set(CXXOPTS "-O2")
+set(CXXOPTS "${CXXOPTS} -O2")
 set(LINKOPTS "${LINKOPTS} -lGL -lglfw -lGLEW -Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11 -lpthread")
-set(LINKOPTS "${LINKOPTS} -DIMGUI_IMPL_OPENGL_LOADER_GLAD")
+set(LINKOPTS "${LINKOPTS} -D IMGUI_IMPL_OPENGL_LOADER_GLAD")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXOPTS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LINKOPTS}")
 message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")

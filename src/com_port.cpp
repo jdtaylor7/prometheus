@@ -1,5 +1,14 @@
 #include "com_port.hpp"
 
+ComPort::~ComPort()
+{
+#ifdef CYGWIN
+    CloseHandle(handle);
+#elif LINUX
+    // TODO put something here.
+#endif
+}
+
 bool ComPort::init()
 {
     if (initialized)
@@ -215,6 +224,15 @@ void ComPort::disconnect()
 
 }
 
+bool ComPort::is_valid() const
+{
+#ifdef CYGWIN
+    return !(handle == INVALID_HANDLE_VALUE);
+#elif LINUX
+    return true;  // TODO fix
+#endif
+}
+
 std::shared_ptr<std::string> ComPort::get_latest_packet()
 {
     char tmp{};
@@ -264,10 +282,17 @@ std::shared_ptr<std::string> ComPort::get_latest_packet()
     return nullptr;
 }
 
-// void ComPort::invalidate_handle(HANDLE& handle)
-// {
-//     handle = INVALID_HANDLE_VALUE;
-// }
+#ifdef CYGWIN
+void ComPort::invalidate_handle(HANDLE& handle)
+{
+    handle = INVALID_HANDLE_VALUE;
+}
+#elif LINUX
+void ComPort::invalidate_handle()
+{
+    // TODO: fill in.
+}
+#endif
 
 unsigned ComPort::async_receive(void* params)
 {
@@ -283,7 +308,7 @@ unsigned ComPort::async_receive(void* params)
     //                         NULL);  // no name
     // HANDLE handles[2];
     // handles[0] = com_ptr->thread_term;
-    // 
+    //
     // DWORD wait_rv;
     // SetEvent(com_ptr->thread_started);
     //
