@@ -42,9 +42,8 @@ include_directories(
 )
 
 # Add compiler/linker options.
-set(CXXOPTS "${CXXOPTS} -O2")
-set(LINKOPTS "${LINKOPTS} -lGL -lglfw -lGLEW -Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11 -lpthread")
-set(LINKOPTS "${LINKOPTS} -D IMGUI_IMPL_OPENGL_LOADER_GLAD")
+set(CXXOPTS "${CXXOPTS} -DIMGUI_IMPL_OPENGL_LOADER_GLAD")
+set(LINKOPTS "${LINKOPTS} -lGL -lglfw -Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11 -lpthread")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXOPTS}")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LINKOPTS}")
 message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
@@ -74,6 +73,7 @@ target_link_libraries(main
     glad
     stb_image
     glfw
+    "${OPENGL_LIBRARIES}"
     imgui_impl_glfw
     imgui_impl_opengl3
     imgui_demo
