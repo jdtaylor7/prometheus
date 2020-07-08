@@ -22,51 +22,56 @@ bool ComPort::init()
         return false;
     }
 
-    // /*
-    //  * Set COM mask. Register event for receive buffer getting data.
-    //  */
-    // if (!SetCommMask(handle, EV_RXCHAR))
-    // {
-    //     std::cout << "Error setting COM mask: " << GetLastError() << '\n';
-    //     return false;
-    // }
-    //
-    // /*
-    //  * Set com port paramaters.
-    //  */
-    // DCB dcb = {0};
-    // dcb.DCBlength = sizeof(DCB);
-    //
-    // if (!GetCommState(handle, &dcb))
-    // {
-    //     std::cout << "Error getting comm state: " << GetLastError() << '\n';
-    //     return false;
-    // }
-    //
-    // dcb.BaudRate = 9600;
-    // dcb.ByteSize = 8;
-    // dcb.Parity = NOPARITY;
-    // dcb.StopBits = ONESTOPBIT;
-    //
-    // if (!SetCommState(handle, &dcb))
-    // {
-    //     std::cout << "Error setting comm state: " << GetLastError() << '\n';
-    //     return false;
-    // }
-    //
-    // /*
-    //  * Set timeouts.
-    //  */
-    // COMMTIMEOUTS com_timeouts;
-    // com_timeouts.ReadIntervalTimeout = MAXDWORD;
-    // com_timeouts.ReadTotalTimeoutMultiplier = 0;
-    // com_timeouts.ReadTotalTimeoutConstant = 0;
-    //
-    // if (!SetCommTimeouts(handle, &com_timeouts))
-    // {
-    //     std::cout << "Error settings timeouts: " << GetLastError() << '\n';
-    //     return false;
-    // }
+#ifdef CYGWIN
+    /*
+     * Set COM mask. Register event for receive buffer getting data.
+     */
+    if (!SetCommMask(handle, EV_RXCHAR))
+    {
+        std::cout << "Error setting COM mask: " << GetLastError() << '\n';
+        return false;
+    }
+
+    /*
+     * Set com port paramaters.
+     */
+    DCB dcb = {0};
+    dcb.DCBlength = sizeof(DCB);
+
+    if (!GetCommState(handle, &dcb))
+    {
+        std::cout << "Error getting comm state: " << GetLastError() << '\n';
+        return false;
+    }
+
+    dcb.BaudRate = 9600;
+    dcb.ByteSize = 8;
+    dcb.Parity = NOPARITY;
+    dcb.StopBits = ONESTOPBIT;
+
+    if (!SetCommState(handle, &dcb))
+    {
+        std::cout << "Error setting comm state: " << GetLastError() << '\n';
+        return false;
+    }
+
+    /*
+     * Set timeouts.
+     */
+    COMMTIMEOUTS com_timeouts;
+    com_timeouts.ReadIntervalTimeout = MAXDWORD;
+    com_timeouts.ReadTotalTimeoutMultiplier = 0;
+    com_timeouts.ReadTotalTimeoutConstant = 0;
+
+    if (!SetCommTimeouts(handle, &com_timeouts))
+    {
+        std::cout << "Error settings timeouts: " << GetLastError() << '\n';
+        return false;
+    }
+#elif LINUX
+    if (libusb_init(NULL) != 0)
+        return false;
+#endif
 
     initialized = true;
     return true;
@@ -97,6 +102,7 @@ bool ComPort::start()
 
     clear_buffer();
 
+#ifdef CYGWIN
     // /*
     //  * Create thread.
     //  */
@@ -118,23 +124,29 @@ bool ComPort::start()
     //
     // CloseHandle(thread_started);
     // invalidate_handle(thread_started);
+#elif LINUX
+#endif
 
     return true;
 }
 
 void ComPort::stop()
 {
+#ifdef CYGWIN
     // {
     //     std::lock_guard<std::mutex> g(running_state_m);
     //     running_state = PortState::Stopped;
     // }
     // SetEvent(thread_term);
+#elif LINUX
+#endif
 }
 
 std::vector<unsigned int> ComPort::find_ports()
 {
     std::vector<unsigned int> found_ports{};
 
+#ifdef CYGWIN
     std::string prefix = "\\\\.\\COM";
 
     // for (std::size_t i = COM_BEG; i < COM_END; i++)
@@ -157,6 +169,8 @@ std::vector<unsigned int> ComPort::find_ports()
     //     }
     //     CloseHandle(handle);
     // }
+#elif LINUX
+#endif
 
     available_ports = found_ports;
     return found_ports;
@@ -172,6 +186,7 @@ bool ComPort::connect(unsigned int port)
     std::string prefix = "\\\\.\\COM";
     std::string com_port_str = prefix + std::to_string(port);
 
+#ifdef CYGWIN
     // handle = CreateFile(com_port_str.c_str(),  // filename
     //                     GENERIC_READ,          // access method
     //                     0,                     // cannot share
@@ -179,6 +194,8 @@ bool ComPort::connect(unsigned int port)
     //                     OPEN_EXISTING,         // file action, value for serial ports
     //                     0,                     // FILE_FLAG_OVERLAPPED TODO change
     //                     NULL);                 // ignored
+#elif LINUX
+#endif
 
     if (is_valid())
     {
@@ -199,6 +216,7 @@ bool ComPort::auto_connect()
         std::string com_port_str = prefix + std::to_string(i);
 
         std::cout << "Attempting to open COM" << i << "...\n";
+#ifdef CYGWIN
         // handle = CreateFile(com_port_str.c_str(),  // filename
         //                     GENERIC_READ,          // access method
         //                     0,                     // cannot share
@@ -206,6 +224,8 @@ bool ComPort::auto_connect()
         //                     OPEN_EXISTING,         // file action, value for serial ports
         //                     0,                     // FILE_FLAG_OVERLAPPED TODO change
         //                     NULL);                 // ignored
+#elif LINUX
+#endif
 
         if (is_valid())
         {

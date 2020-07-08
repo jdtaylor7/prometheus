@@ -13,7 +13,7 @@
 #include <Process.h>
 #include <windows.h>
 #elif LINUX
-#include <libusb.h>
+#include "libusb.h"
 #endif
 
 #include "bounded_buffer.hpp"
