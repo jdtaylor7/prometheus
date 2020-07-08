@@ -1,4 +1,4 @@
-[![Version][version-badge]][version-url]
+[![Version][version-badge]](version-url)
 [![MIT License][license-badge]](LICENSE.md)
 
 # Drone Viewer
