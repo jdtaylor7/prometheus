@@ -1,12 +1,12 @@
 # Detect Linux.
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Linux)
-	CFLAGS += -D LINUX
+	CFLAGS += -D OS_LINUX
 	LINKOPTS += -L$(glfw)/lib/linux
 	INCLUDES += -I/usr/include/libusb-1.0
 endif
 # ifeq ($(filter %CYGWIN, $(UNAME_S)),)
-# 	CFLAGS += -D CYGWIN
+# 	CFLAGS += -D OS_CYGWIN
 # 	LINKOPTS += -L$(glfw)/lib/cygwin
 # endif
 
@@ -37,7 +37,7 @@ LINKOPTS += -L$(gl)/lib -lGL -lglfw3 -Wl,-Bstatic -lrt \
 INCLUDES += -I$(gl) -I$(glad)/include -I$(glfw)/include -I$(stb) -I$(glm) \
 -I$(implot) -Iinclude -I$(imgui) -I$(imgui)/examples -Iinclude/data \
 -Iinclude/managers -Iinclude/misc
-CXXFLAGS += -DIMGUI_IMPL_OPENGL_LOADER_GLAD
+CXXFLAGS += -D IMGUI_IMPL_OPENGL_LOADER_GLAD
 IMGUI_OBJS = imgui_impl_glfw.o imgui_impl_opengl3.o imgui_demo.o \
 imgui_widgets.o imgui_draw.o imgui.o implot.o implot_demo.o com_port.o
 

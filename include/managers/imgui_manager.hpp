@@ -275,16 +275,28 @@ void ImguiManager::process_frame()
             std::vector<const char*> port_list;
             for (auto& i : available_ports)
             {
+#ifdef OS_CYGWIN
                 port_list.push_back(("COM" + std::to_string(i)).c_str());
+#elif OS_LINUX
+#endif
             }
 
+#ifdef OS_CYGWIN
             ImGui::BulletText("Scan for COM ports (s)");
             ImGui::BulletText("Connect to COM port (c)");
+#elif OS_LINUX
+            ImGui::BulletText("Scan for devices (s)");
+            ImGui::BulletText("Connect to devices (c)");
+#endif
             ImGui::BulletText("Start/Stop reading data (spacebar)");
 
             ImGui::Separator();
 
+#ifdef OS_CYGWIN
             ImGui::Text("Available COM ports:");
+#elif OS_LINUX
+            ImGui::Text("Available devices:");
+#endif
             ImGui::SameLine();
             ImGui::SetNextItemWidth(65);
             ImGui::Combo("",
@@ -292,7 +304,10 @@ void ImguiManager::process_frame()
                          port_list.data(),
                          port_list.size());
 
+#ifdef OS_CYGWIN
             ImGui::Text("Current COM port status: ");
+#elif OS_LINUX
+#endif
             ImGui::SameLine();
             if (!com_port->is_connected())
             {
@@ -300,11 +315,17 @@ void ImguiManager::process_frame()
             }
             else if (com_port->is_connected() && !com_port->is_reading())
             {
+#ifdef OS_CYGWIN
                 ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.1f, 1.0f), "COM%u ready", com_port->get_connected_port());
+#elif OS_LINUX
+#endif
             }
             else if (com_port->is_connected() && com_port->is_reading())
             {
+#ifdef OS_CYGWIN
                 ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Reading COM%u", com_port->get_connected_port());
+#elif OS_LINUX
+#endif
             }
 
             ImGui::End();

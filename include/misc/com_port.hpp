@@ -9,10 +9,10 @@
 #include <thread>
 #include <vector>
 
-#ifdef CYGWIN
+#ifdef OS_CYGWIN
 #include <Process.h>
 #include <windows.h>
-#elif LINUX
+#elif OS_LINUX
 #include "libusb.h"
 #endif
 
@@ -29,11 +29,7 @@ class ComPort
 public:
     ComPort(std::size_t packet_len_,
             char packet_start_symbol_,
-            char packet_stop_symbol) :
-        packet_len(packet_len_),
-        packet_start_symbol(packet_start_symbol_),
-        packet_stop_symbol(packet_stop_symbol)
-    {}
+            char packet_stop_symbol);
 
     ~ComPort();
 
@@ -63,19 +59,19 @@ public:
     std::size_t get_buffer_size() const { return buffer->size(); };
     void clear_buffer() { buffer->clear(); };
 
-#ifdef CYGWIN
+#ifdef OS_CYGWIN
     void invalidate_handle(HANDLE&);
-#elif LINUX
+#elif OS_LINUX
     void invalidate_handle();
 #endif
 
     static unsigned async_receive(void*);
 private:
-#ifdef CYGWIN
+#ifdef OS_CYGWIN
     HANDLE handle;
     HANDLE thread_started;
     HANDLE thread_term;
-#elif LINUX
+#elif OS_LINUX
 #endif
 
     const std::size_t COM_BEG = 2;

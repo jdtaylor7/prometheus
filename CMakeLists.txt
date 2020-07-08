@@ -19,10 +19,10 @@ find_package(glfw3 3.3 REQUIRED)
 # Detect OS.
 string(COMPARE EQUAL "${CMAKE_SYSTEM_NAME}" "Linux" is_linux)
 if(is_linux)
-    set(CXXOPTS "${CXXOPTS} -D LINUX")
+    set(CXXOPTS "${CXXOPTS} -D OS_LINUX")
 	include_directories(/usr/include/libusb-1.0)
 elseif(CYGWIN)
-    set(CXXOPTS "${CXXOPTS} -D CYGWIN")
+    set(CXXOPTS "${CXXOPTS} -D OS_CYGWIN")
 endif()
 
 # Add include directories

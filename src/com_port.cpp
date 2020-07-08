@@ -1,28 +1,41 @@
 #include "com_port.hpp"
 
+ComPort::ComPort(std::size_t packet_len_,
+        char packet_start_symbol_,
+        char packet_stop_symbol) :
+    packet_len(packet_len_),
+    packet_start_symbol(packet_start_symbol_),
+    packet_stop_symbol(packet_stop_symbol)
+{
+#ifdef OS_LINUX
+    libusb_init(NULL);
+#endif
+}
+
 ComPort::~ComPort()
 {
-#ifdef CYGWIN
+#ifdef OS_CYGWIN
     CloseHandle(handle);
-#elif LINUX
-    // TODO put something here.
+#elif OS_LINUX
+    // TODO
 #endif
 }
 
 bool ComPort::init()
 {
-    if (initialized)
-    {
-        std::cout << "Port has already been initialized.\n";
-        return false;
-    }
     if (!connected)
     {
         std::cout << "Cannot initialize port without a connection.\n";
         return false;
     }
 
-#ifdef CYGWIN
+    if (initialized)
+    {
+        std::cout << "Port has already been initialized.\n";
+        return false;
+    }
+
+#ifdef OS_CYGWIN
     /*
      * Set COM mask. Register event for receive buffer getting data.
      */
@@ -68,9 +81,6 @@ bool ComPort::init()
         std::cout << "Error settings timeouts: " << GetLastError() << '\n';
         return false;
     }
-#elif LINUX
-    if (libusb_init(NULL) != 0)
-        return false;
 #endif
 
     initialized = true;
@@ -102,7 +112,7 @@ bool ComPort::start()
 
     clear_buffer();
 
-#ifdef CYGWIN
+#ifdef OS_CYGWIN
     // /*
     //  * Create thread.
     //  */
@@ -124,7 +134,7 @@ bool ComPort::start()
     //
     // CloseHandle(thread_started);
     // invalidate_handle(thread_started);
-#elif LINUX
+#elif OS_LINUX
 #endif
 
     return true;
@@ -132,44 +142,103 @@ bool ComPort::start()
 
 void ComPort::stop()
 {
-#ifdef CYGWIN
+#ifdef OS_CYGWIN
     // {
     //     std::lock_guard<std::mutex> g(running_state_m);
     //     running_state = PortState::Stopped;
     // }
     // SetEvent(thread_term);
-#elif LINUX
+#elif OS_LINUX
 #endif
 }
+
+#include <stdio.h>
 
 std::vector<unsigned int> ComPort::find_ports()
 {
     std::vector<unsigned int> found_ports{};
 
-#ifdef CYGWIN
+#ifdef OS_CYGWIN
     std::string prefix = "\\\\.\\COM";
 
-    // for (std::size_t i = COM_BEG; i < COM_END; i++)
-    // {
-    //     std::string com_port_str = prefix + std::to_string(i);
-    //
-    //     std::cout << "Checking COM" << i << "...\n";
-    //     handle = CreateFile(com_port_str.c_str(),  // filename
-    //                         GENERIC_READ,          // access method
-    //                         0,                     // cannot share
-    //                         NULL,                  // no security attributes
-    //                         OPEN_EXISTING,         // file action, value for serial ports
-    //                         0,                     // FILE_FLAG_OVERLAPPED TODO change
-    //                         NULL);                 // ignored
-    //
-    //     if (is_valid())
-    //     {
-    //         std::cout << "COM" << i << " available\n";
-    //         found_ports.push_back(i);
-    //     }
-    //     CloseHandle(handle);
-    // }
-#elif LINUX
+    for (std::size_t i = COM_BEG; i < COM_END; i++)
+    {
+        std::string com_port_str = prefix + std::to_string(i);
+
+        std::cout << "Checking COM" << i << "...\n";
+        handle = CreateFile(com_port_str.c_str(),  // filename
+                            GENERIC_READ,          // access method
+                            0,                     // cannot share
+                            NULL,                  // no security attributes
+                            OPEN_EXISTING,         // file action, value for serial ports
+                            0,                     // FILE_FLAG_OVERLAPPED TODO change
+                            NULL);                 // ignored
+
+        if (is_valid())
+        {
+            std::cout << "COM" << i << " available\n";
+            found_ports.push_back(i);
+        }
+        CloseHandle(handle);
+    }
+#elif OS_LINUX
+    libusb_device** libusb_devs;
+    std::size_t dev_count;
+
+    dev_count = libusb_get_device_list(NULL, &libusb_devs);
+    if (dev_count < 0)
+    {
+        return std::vector<unsigned int>{};
+    }
+
+    libusb_device* libusb_dev;
+    int i = 0;
+    int j = 0;
+    std::uint8_t path[8];
+    std::uint8_t summary[100];
+
+    while ((libusb_dev = libusb_devs[i++]) != NULL)
+    {
+        struct libusb_device_descriptor desc;
+        int r = libusb_get_device_descriptor(libusb_dev, &desc);
+        if (r < 0)
+        {
+            std::cout << "couldn't get device descriptor\n";
+        }
+
+        printf("%04x:%04x (bus %d, device %d)",
+               desc.idVendor,
+               desc.idProduct,
+               libusb_get_bus_number(libusb_dev),
+               libusb_get_device_address(libusb_dev));
+
+        // r = libusb_get_port_numbers(libusb_dev, path, sizeof(path));
+        // if (r > 0)
+        // {
+        //     printf(" path: %d", path[0]);
+        //     for (j = 1; j < r; j++)
+        //         printf(".%d", path[j]);
+        // }
+
+        libusb_device_handle* libusb_handle;
+        int status = libusb_open(libusb_dev, &libusb_handle);
+        if (status < 0)
+            std::cout << "libusb_open failed\n";
+
+        r = libusb_get_string_descriptor_ascii(libusb_handle, desc.idProduct, summary, sizeof(summary));
+        libusb_close(libusb_handle);
+        if (r > 0)
+        {
+            printf(" summary: %d", summary[0]);
+            for (j = 1; j < r; j++)
+                printf(".%d", summary[j]);
+        }
+
+        printf("\n");
+    }
+    printf("\n");
+
+    libusb_free_device_list(libusb_devs, 1);
 #endif
 
     available_ports = found_ports;
@@ -186,7 +255,7 @@ bool ComPort::connect(unsigned int port)
     std::string prefix = "\\\\.\\COM";
     std::string com_port_str = prefix + std::to_string(port);
 
-#ifdef CYGWIN
+#ifdef OS_CYGWIN
     // handle = CreateFile(com_port_str.c_str(),  // filename
     //                     GENERIC_READ,          // access method
     //                     0,                     // cannot share
@@ -194,7 +263,7 @@ bool ComPort::connect(unsigned int port)
     //                     OPEN_EXISTING,         // file action, value for serial ports
     //                     0,                     // FILE_FLAG_OVERLAPPED TODO change
     //                     NULL);                 // ignored
-#elif LINUX
+#elif OS_LINUX
 #endif
 
     if (is_valid())
@@ -216,7 +285,7 @@ bool ComPort::auto_connect()
         std::string com_port_str = prefix + std::to_string(i);
 
         std::cout << "Attempting to open COM" << i << "...\n";
-#ifdef CYGWIN
+#ifdef OS_CYGWIN
         // handle = CreateFile(com_port_str.c_str(),  // filename
         //                     GENERIC_READ,          // access method
         //                     0,                     // cannot share
@@ -224,7 +293,7 @@ bool ComPort::auto_connect()
         //                     OPEN_EXISTING,         // file action, value for serial ports
         //                     0,                     // FILE_FLAG_OVERLAPPED TODO change
         //                     NULL);                 // ignored
-#elif LINUX
+#elif OS_LINUX
 #endif
 
         if (is_valid())
@@ -246,9 +315,9 @@ void ComPort::disconnect()
 
 bool ComPort::is_valid() const
 {
-#ifdef CYGWIN
+#ifdef OS_CYGWIN
     return !(handle == INVALID_HANDLE_VALUE);
-#elif LINUX
+#elif OS_LINUX
     return true;  // TODO fix
 #endif
 }
@@ -302,12 +371,12 @@ std::shared_ptr<std::string> ComPort::get_latest_packet()
     return nullptr;
 }
 
-#ifdef CYGWIN
+#ifdef OS_CYGWIN
 void ComPort::invalidate_handle(HANDLE& handle)
 {
     handle = INVALID_HANDLE_VALUE;
 }
-#elif LINUX
+#elif OS_LINUX
 void ComPort::invalidate_handle()
 {
     // TODO: fill in.
