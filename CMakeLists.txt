@@ -83,4 +83,5 @@ target_link_libraries(main
     implot
     implot_demo
     com_port
+    usb-1.0
 )
