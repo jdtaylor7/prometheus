@@ -1,9 +1,14 @@
+# Build directories.
 bazel-*
 /build
 
+# Build files.
 *.o
 *.exe
 *.o.tmp
 *.exe.stackdump
 imgui.ini
 main
+
+# Sourcetrail files.
+*.srctrl*

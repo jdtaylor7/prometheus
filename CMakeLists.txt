@@ -7,6 +7,9 @@ project(DroneViewer)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# Create compilation database for Sourcetrail.
+set(CMAKE_EXPORT_COMPILE_COMMANDS True)
+
 # Add packages.
 find_package(OpenGL REQUIRED)
 
