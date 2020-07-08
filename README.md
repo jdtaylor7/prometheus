@@ -31,6 +31,6 @@ The viewer can be run either with Linux or Cygwin, both with X11.
 
 `startxwin ./main`
 
-[version-badge]: https://img.shields.io/github/release/jdtaylor7/drone_viewer.svg
+[version-badge]: https://img.shields.io/github/release/jdtaylor7/drone_viewer/all.svg
 [version-url]: https://github.com/jdtaylor7/drone_viewer/releases
 [license-badge]: https://img.shields.io/badge/license-MIT-007EC7.svg
