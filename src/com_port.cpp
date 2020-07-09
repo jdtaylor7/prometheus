@@ -192,6 +192,7 @@ std::vector<unsigned int> ComPort::find_ports()
     }
 
     libusb_device* libusb_dev;
+    libusb_device_handle* libusb_handle;
     int i = 0;
     int j = 0;
     std::uint8_t path[8];
@@ -206,35 +207,36 @@ std::vector<unsigned int> ComPort::find_ports()
             std::cout << "couldn't get device descriptor\n";
         }
 
-        printf("%04x:%04x (bus %d, device %d)",
+        printf("%04x:%04x (bus %d, device %d) ",
                desc.idVendor,
                desc.idProduct,
                libusb_get_bus_number(libusb_dev),
                libusb_get_device_address(libusb_dev));
 
-        // r = libusb_get_port_numbers(libusb_dev, path, sizeof(path));
-        // if (r > 0)
-        // {
-        //     printf(" path: %d", path[0]);
-        //     for (j = 1; j < r; j++)
-        //         printf(".%d", path[j]);
-        // }
-
-        libusb_device_handle* libusb_handle;
         int status = libusb_open(libusb_dev, &libusb_handle);
         if (status < 0)
-            std::cout << "libusb_open failed\n";
-
-        r = libusb_get_string_descriptor_ascii(libusb_handle, desc.idProduct, summary, sizeof(summary));
-        libusb_close(libusb_handle);
-        if (r > 0)
         {
-            printf(" summary: %d", summary[0]);
-            for (j = 1; j < r; j++)
-                printf(".%d", summary[j]);
+            std::cout << "libusb_open failed with " << status << std::endl;
         }
+        else
+        {
+            r = libusb_get_string_descriptor_ascii(libusb_handle, desc.iManufacturer, summary, sizeof(summary));
+            if (r > 0)
+            {
+                for (j = 0; j < r; j++)
+                    printf("%c", summary[j]);
+            }
+            printf(" | ");
+            r = libusb_get_string_descriptor_ascii(libusb_handle, desc.iProduct, summary, sizeof(summary));
+            if (r > 0)
+            {
+                for (j = 0; j < r; j++)
+                    printf("%c", summary[j]);
+            }
 
-        printf("\n");
+            libusb_close(libusb_handle);
+            printf("\n");
+        }
     }
     printf("\n");
 
