@@ -15,15 +15,16 @@ The viewer is built with cmake:
 
 ### Running
 
-The viewer can be run either with Linux or Cygwin, both with X11:
+The viewer can be run either with Linux or Cygwin, both with X11. Run the
+following commands from the `build` directory:
 
 ##### Linux (Arch/Manjaro)
 
-`./build/main`
+`./main`
 
 ##### Cygwin
 
-`startxwin ./build/main`
+`startxwin ./main`
 
 [version-badge]: https://img.shields.io/github/release/jdtaylor7/drone_viewer/all.svg
 [version-url]: https://github.com/jdtaylor7/drone_viewer/releases/latest
