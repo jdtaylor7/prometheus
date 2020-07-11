@@ -67,13 +67,13 @@ public:
 
     static unsigned async_receive(void*);
 private:
+
 #ifdef OS_CYGWIN
     HANDLE handle;
     HANDLE thread_started;
     HANDLE thread_term;
 #elif OS_LINUX
 #endif
-
     const std::size_t COM_BEG = 2;
     const std::size_t COM_END = 10;
 

@@ -1,5 +1,8 @@
 #include "com_port.hpp"
 
+#include <array>
+#include <algorithm>
+
 ComPort::ComPort(std::size_t packet_len_,
         char packet_start_symbol_,
         char packet_stop_symbol) :
@@ -196,16 +199,15 @@ std::vector<unsigned int> ComPort::find_ports()
     int i = 0;
     int j = 0;
     std::uint8_t path[8];
-    std::uint8_t summary[100];
+    std::array<unsigned char, 128> summary;
 
     while ((libusb_dev = libusb_devs[i++]) != NULL)
     {
         struct libusb_device_descriptor desc;
+
         int r = libusb_get_device_descriptor(libusb_dev, &desc);
         if (r < 0)
-        {
             std::cout << "couldn't get device descriptor\n";
-        }
 
         printf("%04x:%04x (bus %d, device %d) ",
                desc.idVendor,
@@ -220,19 +222,16 @@ std::vector<unsigned int> ComPort::find_ports()
         }
         else
         {
-            r = libusb_get_string_descriptor_ascii(libusb_handle, desc.iManufacturer, summary, sizeof(summary));
-            if (r > 0)
-            {
-                for (j = 0; j < r; j++)
-                    printf("%c", summary[j]);
-            }
-            printf(" | ");
-            r = libusb_get_string_descriptor_ascii(libusb_handle, desc.iProduct, summary, sizeof(summary));
-            if (r > 0)
-            {
-                for (j = 0; j < r; j++)
-                    printf("%c", summary[j]);
-            }
+            summary.fill('\0');
+            r = libusb_get_string_descriptor_ascii(libusb_handle, desc.iManufacturer, summary.data(), summary.size());
+            std::string m_str;
+            m_str.assign(std::begin(summary), std::find(std::begin(summary), std::end(summary), static_cast<unsigned char>('\0')));
+            std::cout << m_str << " | ";
+            summary.fill('\0');
+            r = libusb_get_string_descriptor_ascii(libusb_handle, desc.iProduct, summary.data(), summary.size());
+            std::string p_str;
+            p_str.assign(std::begin(summary), std::find(std::begin(summary), std::end(summary), static_cast<unsigned char>('\0')));
+            std::cout << p_str;
 
             libusb_close(libusb_handle);
             printf("\n");
