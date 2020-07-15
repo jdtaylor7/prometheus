@@ -41,6 +41,7 @@ include_directories(
     "${PROJECT_SOURCE_DIR}/third_party/implot"
     "${PROJECT_SOURCE_DIR}/third_party/libserial/include"
     "${PROJECT_SOURCE_DIR}/include/data"
+    "${PROJECT_SOURCE_DIR}/include/drivers"
     "${PROJECT_SOURCE_DIR}/include/managers"
     "${PROJECT_SOURCE_DIR}/include/misc"
 )
@@ -67,10 +68,10 @@ add_library(imgui OBJECT third_party/imgui/imgui.cpp)
 add_library(implot OBJECT third_party/implot/implot.cpp)
 add_library(implot_demo OBJECT third_party/implot/implot_demo.cpp)
 
-add_library(com_port OBJECT src/com_port.cpp)
-add_library(linux_serial_port OBJECT src/linux_serial_port.cpp)
-add_library(windows_serial_port OBJECT src/windows_serial_port.cpp)
-add_library(serial_port OBJECT src/serial_port.cpp)
+add_library(com_port OBJECT src/drivers/com_port.cpp)
+add_library(linux_serial_port OBJECT src/drivers/linux_serial_port.cpp)
+add_library(windows_serial_port OBJECT src/drivers/windows_serial_port.cpp)
+add_library(serial_port OBJECT src/drivers/serial_port.cpp)
 
 # Add executables.
 add_executable(main src/main.cpp)
