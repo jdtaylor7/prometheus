@@ -182,8 +182,8 @@ void GlfwManager::process_input()
             {
                 if (!com_port->get_available_ports().empty())
                 {
-                    com_port->connect(com_port->get_available_ports()[0]);
-                    com_port->init();
+                    com_port->open(com_port->get_available_ports()[0]);
+                    com_port->config();
                 }
                 timer_manager->start_timer(TimerName::ComConnectTimer);
             }
@@ -194,9 +194,9 @@ void GlfwManager::process_input()
             if (timer_manager->is_finished(TimerName::ComReadTimer))
             {
                 if (com_port->is_reading())
-                    com_port->stop();
+                    com_port->stop_reading();
                 else
-                    com_port->start();
+                    com_port->start_reading();
                 timer_manager->start_timer(TimerName::ComReadTimer);
             }
         }

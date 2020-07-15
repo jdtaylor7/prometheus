@@ -31,14 +31,19 @@ struct LinuxSerialPortConfig
     LibSerial::StopBits sb;
 };
 
+/*
+ * Linux implementation of a serial port. Uses libserial library. Operates
+ * synchronously.
+ */
 class LinuxSerialPort
 {
 public:
     LinuxSerialPort(std::shared_ptr<BoundedBuffer<char>>);
+    ~LinuxSerialPort();
 
+    // Disallow copying and moving.
     LinuxSerialPort(const LinuxSerialPort&) = delete;
     LinuxSerialPort& operator=(const LinuxSerialPort&) = delete;
-
     LinuxSerialPort(LinuxSerialPort&&) = delete;
     LinuxSerialPort& operator=(LinuxSerialPort&&) = delete;
 
@@ -46,7 +51,7 @@ public:
     void config(const LinuxSerialPortConfig&);
 
     std::vector<std::string> find_ports() const;  // TODO implement
-    bool is_data_available();  // TODO necessary? also const?
+
     bool is_open() const;
     bool is_reading() const;
     std::string get_port_name() const;  // TODO implement
@@ -55,11 +60,11 @@ public:
     void stop_reading();
 private:
     LibSerial::SerialStream stream;
-    std::string serial_port;
+    std::string port_name{};
 
     std::shared_ptr<BoundedBuffer<char>> byte_buffer;
-    std::atomic<bool> port_open = false;
-    std::atomic<bool> keep_reading = false;
+    bool port_open = false;
+    std::atomic<bool> port_reading = false;
 };
 
 #endif /* OS_LINUX */

@@ -19,17 +19,17 @@ ComPort::~ComPort()
 #endif
 }
 
-bool ComPort::init()
+bool ComPort::config()
 {
-    if (!connected)
+    if (!port_open)
     {
-        std::cout << "Cannot initialize port without a connection.\n";
+        std::cout << "Cannot configure port before opening.\n";
         return false;
     }
 
-    if (initialized)
+    if (port_configured)
     {
-        std::cout << "Port has already been initialized.\n";
+        std::cout << "Port has already been configured.\n";
         return false;
     }
 
@@ -81,32 +81,29 @@ bool ComPort::init()
     }
 #endif
 
-    initialized = true;
+    port_configured = true;
     return true;
 }
 
-bool ComPort::start()
+bool ComPort::start_reading()
 {
     if (is_reading())
     {
-        std::cout << "Port already started.\n";
+        std::cout << "Already reading from port.\n";
         return false;
     }
-    if (!connected)
+    if (!port_open)
     {
-        std::cout << "Cannot start port without a connection.\n";
+        std::cout << "Cannot start reading from port before opening.\n";
         return false;
     }
-    if (!initialized)
+    if (!port_configured)
     {
-        std::cout << "Must initialize port before starting it.\n";
+        std::cout << "Must configure port before starting to read from it.\n";
         return false;
     }
 
-    {
-        std::lock_guard<std::mutex> g(running_state_m);
-        running_state = PortState::Running;
-    }
+    this->port_reading.store(true);
 
     this->buffer->clear();
 
@@ -137,27 +134,22 @@ bool ComPort::start()
     return true;
 }
 
-void ComPort::stop()
+void ComPort::stop_reading()
 {
 #ifdef OS_CYGWIN
-    {
-        std::lock_guard<std::mutex> g(running_state_m);
-        running_state = PortState::Stopped;
-    }
+    this->port_reading.store(false);
     SetEvent(thread_term);
 #endif
 }
 
-std::vector<unsigned int> ComPort::find_ports()
+std::vector<std::string> ComPort::find_ports()
 {
-    std::vector<unsigned int> found_ports{};
+    available_ports.clear();
 
 #ifdef OS_CYGWIN
-    std::string prefix = "\\\\.\\COM";
-
     for (std::size_t i = COM_BEG; i < COM_END; i++)
     {
-        std::string com_port_str = prefix + std::to_string(i);
+        std::string com_port_str = COM_PORT_PREFIX + std::to_string(i);
 
         std::cout << "Checking COM" << i << "...\n";
         handle = CreateFile(com_port_str.c_str(),  // filename
@@ -171,25 +163,22 @@ std::vector<unsigned int> ComPort::find_ports()
         if (handle != INVALID_HANDLE_VALUE)
         {
             std::cout << "COM" << i << " available\n";
-            found_ports.push_back(i);
+            available_ports.push_back(i);
         }
         CloseHandle(handle);
     }
 #endif
-
-    available_ports = found_ports;
-    return found_ports;
+    return available_ports;
 }
 
-bool ComPort::connect(unsigned int port)
+bool ComPort::open(const std::string& port)
 {
-    if (connected)
+    if (port_open)
     {
-        std::cout << "Port is already connected\n";
+        std::cout << "Port is already opened\n";
         return false;
     }
-    std::string prefix = "\\\\.\\COM";
-    std::string com_port_str = prefix + std::to_string(port);
+    std::string com_port_str = COM_PORT_PREFIX + port;
 
 #ifdef OS_CYGWIN
     handle = CreateFile(com_port_str.c_str(),  // filename
@@ -202,22 +191,20 @@ bool ComPort::connect(unsigned int port)
 
     if (handle != INVALID_HANDLE_VALUE)
     {
-        std::cout << "Successfully opened COM" << port << '\n';
-        connected = true;
-        connected_port = port;
+        std::cout << "Successfully opened " << com_port_str << '\n';
+        port_open = true;
+        port_name = com_port_str;
         return true;
     }
 #endif
     return false;
 }
 
-bool ComPort::auto_connect()
+bool ComPort::auto_open()
 {
-    std::string prefix = "\\\\.\\COM";
-
     for (std::size_t i = COM_BEG; i < COM_END; i++)
     {
-        std::string com_port_str = prefix + std::to_string(i);
+        std::string com_port_str = COM_PORT_PREFIX + std::to_string(i);
 
         std::cout << "Attempting to open COM" << i << "...\n";
 #ifdef OS_CYGWIN
@@ -231,9 +218,9 @@ bool ComPort::auto_connect()
 
         if (handle != INVALID_HANDLE_VALUE)
         {
-            std::cout << "Successfully opened COM" << i << '\n';
-            connected = true;
-            connected_port = i;
+            std::cout << "Successfully pened COM" << i << '\n';
+            port_open = true;
+            open_port = i;
             return true;
         }
 #endif
@@ -242,9 +229,8 @@ bool ComPort::auto_connect()
     return false;
 }
 
-void ComPort::disconnect()
+void ComPort::close()
 {
-
 }
 
 std::shared_ptr<std::string> ComPort::get_latest_packet()

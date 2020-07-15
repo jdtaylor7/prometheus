@@ -20,7 +20,9 @@ following commands from the `build` directory:
 
 ##### Linux (Arch/Manjaro)
 
-`./main`
+`sudo ./main`
+
+Root permission is currently required to access serial ports.
 
 ##### Cygwin
 

@@ -9,18 +9,23 @@ LinuxSerialPort::LinuxSerialPort(
 {
 }
 
-bool LinuxSerialPort::open(const std::string& port_name)
+LinuxSerialPort::~LinuxSerialPort()
+{
+}
+
+bool LinuxSerialPort::open(const std::string& port)
 {
     try
     {
-        stream.Open(port_name.c_str());
+        stream.Open(port.c_str());
     }
     catch (const LibSerial::OpenFailed&)
     {
-        std::cerr << "Failed to open serial port: " << port_name << '\n';
+        std::cerr << "Failed to open serial port: " << port << '\n';
         return false;
     }
-    this->port_open.store(true);
+    port_open = true;
+    port_name = port;
     return true;
 }
 
@@ -38,19 +43,14 @@ std::vector<std::string> LinuxSerialPort::find_ports() const
     return std::vector<std::string>{};
 }
 
-bool LinuxSerialPort::is_data_available()
-{
-    return stream.IsDataAvailable();
-}
-
 bool LinuxSerialPort::is_open() const
 {
-    return port_open.load();
+    return port_open;
 }
 
 bool LinuxSerialPort::is_reading() const
 {
-    return keep_reading.load();
+    return port_reading.load();
 }
 
 std::string LinuxSerialPort::get_port_name() const
@@ -60,12 +60,12 @@ std::string LinuxSerialPort::get_port_name() const
 
 void LinuxSerialPort::start_reading()
 {
-    keep_reading.store(true);
+    port_reading.store(true);
 
     std::thread t1([&](){
-        while (keep_reading.load())
+        while (port_reading.load())
         {
-            if (is_data_available())
+            if (stream.IsDataAvailable())
             {
                 using namespace std::chrono_literals;
 
@@ -82,7 +82,7 @@ void LinuxSerialPort::start_reading()
 
 void LinuxSerialPort::stop_reading()
 {
-    keep_reading.store(false);
+    port_reading.store(false);
 }
 
 #endif /* OS_LINUX */

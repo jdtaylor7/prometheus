@@ -271,12 +271,12 @@ void ImguiManager::process_frame()
             ImGui::Begin("Telemetry Controls", NULL, imgui_window_flags);
 
             static int selected_port_idx = 0;
-            std::vector<unsigned int> available_ports = com_port->get_available_ports();
+            std::vector<std::string> available_ports = com_port->get_available_ports();
             std::vector<const char*> port_list;
-            for (auto& i : available_ports)
+            for (auto& s : available_ports)
             {
 #ifdef OS_CYGWIN
-                port_list.push_back(("COM" + std::to_string(i)).c_str());
+                port_list.push_back(s.c_str());
 #elif OS_LINUX
 #endif
             }
@@ -309,21 +309,21 @@ void ImguiManager::process_frame()
 #elif OS_LINUX
 #endif
             ImGui::SameLine();
-            if (!com_port->is_connected())
+            if (!com_port->is_open())
             {
                 ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Disconnected");
             }
-            else if (com_port->is_connected() && !com_port->is_reading())
+            else if (com_port->is_open() && !com_port->is_reading())
             {
 #ifdef OS_CYGWIN
-                ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.1f, 1.0f), "COM%u ready", com_port->get_connected_port());
+                ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.1f, 1.0f), "%s ready", com_port->get_port_name().c_str());  // TODO fix?
 #elif OS_LINUX
 #endif
             }
-            else if (com_port->is_connected() && com_port->is_reading())
+            else if (com_port->is_open() && com_port->is_reading())
             {
 #ifdef OS_CYGWIN
-                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Reading COM%u", com_port->get_connected_port());
+                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Reading %s", com_port->get_port_name().c_str());  // TODO fix?
 #elif OS_LINUX
 #endif
             }

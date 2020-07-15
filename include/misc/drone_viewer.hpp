@@ -91,14 +91,18 @@ bool DroneViewer::init()
         TELEMETRY_START_SYMBOL,
         TELEMETRY_STOP_SYMBOL
     );
-    // It's fine if this fails. It can be controlled via the UI later.
+
+    /*
+     * Attempt to automatically find a usable port on startup. It's fine if this
+     * fails, as it can be controlled via the UI.
+     */
     if (!com_port)
         std::cout << "com_port is null\n";
-    std::vector<unsigned int> available_ports = com_port->find_ports();
+    std::vector<std::string> available_ports = com_port->find_ports();
     if (!available_ports.empty())
     {
-        com_port->connect(available_ports[0]);
-        com_port->init();
+        com_port->open(available_ports[0]);
+        com_port->config();
     }
 
     /*
