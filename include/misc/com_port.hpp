@@ -12,8 +12,6 @@
 #ifdef OS_CYGWIN
 #include <Process.h>
 #include <windows.h>
-#elif OS_LINUX
-#include "libusb.h"
 #endif
 
 #include "bounded_buffer.hpp"
@@ -49,7 +47,6 @@ public:
     bool auto_connect();
     void disconnect();
 
-    bool is_valid() const;
     bool is_connected() const { return connected; }
     unsigned int get_connected_port() const { return connected_port; }
     std::vector<unsigned int> get_available_ports() const { return available_ports; }
@@ -72,7 +69,6 @@ private:
     HANDLE handle;
     HANDLE thread_started;
     HANDLE thread_term;
-#elif OS_LINUX
 #endif
     const std::size_t COM_BEG = 2;
     const std::size_t COM_END = 10;

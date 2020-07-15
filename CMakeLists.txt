@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION "3.14")
+cmake_minimum_required(VERSION 3.14)
 
 # Set project name.
 project(DroneViewer VERSION 0.1.0)
@@ -15,6 +15,9 @@ find_package(OpenGL REQUIRED)
 
 set(CMAKE_PREFIX_PATH /usr/lib/glfw)
 find_package(glfw3 3.3 REQUIRED)
+
+# Find libraries.
+find_library(LIBSERIAL_LIB serial "${PROJECT_SOURCE_DIR}/third_party/libserial/lib")
 
 # Detect OS.
 string(COMPARE EQUAL "${CMAKE_SYSTEM_NAME}" "Linux" is_linux)
@@ -36,6 +39,7 @@ include_directories(
     "${PROJECT_SOURCE_DIR}/third_party/imgui"
     "${PROJECT_SOURCE_DIR}/third_party/imgui/examples"
     "${PROJECT_SOURCE_DIR}/third_party/implot"
+    "${PROJECT_SOURCE_DIR}/third_party/libserial/include"
     "${PROJECT_SOURCE_DIR}/include/data"
     "${PROJECT_SOURCE_DIR}/include/managers"
     "${PROJECT_SOURCE_DIR}/include/misc"
@@ -64,6 +68,9 @@ add_library(implot OBJECT third_party/implot/implot.cpp)
 add_library(implot_demo OBJECT third_party/implot/implot_demo.cpp)
 
 add_library(com_port OBJECT src/com_port.cpp)
+add_library(linux_serial_port OBJECT src/linux_serial_port.cpp)
+add_library(windows_serial_port OBJECT src/windows_serial_port.cpp)
+add_library(serial_port OBJECT src/serial_port.cpp)
 
 # Add executables.
 add_executable(main src/main.cpp)
@@ -82,6 +89,9 @@ target_link_libraries(main
     imgui
     implot
     implot_demo
+    "${LIBSERIAL_LIB}"
     com_port
-    usb-1.0
+    linux_serial_port
+    windows_serial_port
+    serial_port
 )
