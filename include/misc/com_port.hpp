@@ -54,13 +54,6 @@ public:
 
     std::shared_ptr<std::string> get_latest_packet();
     std::size_t get_buffer_size() const { return buffer->size(); };
-    void clear_buffer() { buffer->clear(); };
-
-#ifdef OS_CYGWIN
-    void invalidate_handle(HANDLE&);
-#elif OS_LINUX
-    void invalidate_handle();
-#endif
 
     static unsigned async_receive(void*);
 private:

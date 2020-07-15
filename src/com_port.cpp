@@ -108,7 +108,7 @@ bool ComPort::start()
         running_state = PortState::Running;
     }
 
-    clear_buffer();
+    this->buffer->clear();
 
 #ifdef OS_CYGWIN
     /*
@@ -131,7 +131,7 @@ bool ComPort::start()
     assert(wait_rv == WAIT_OBJECT_0);
 
     CloseHandle(thread_started);
-    invalidate_handle(thread_started);
+    handle = INVALID_HANDLE_VALUE;
 #endif
 
     return true;
@@ -295,18 +295,6 @@ std::shared_ptr<std::string> ComPort::get_latest_packet()
     build_new_packet = true;
     return nullptr;
 }
-
-#ifdef OS_CYGWIN
-void ComPort::invalidate_handle(HANDLE& handle)
-{
-    handle = INVALID_HANDLE_VALUE;
-}
-#elif OS_LINUX
-void ComPort::invalidate_handle()
-{
-    // TODO: fill in.
-}
-#endif
 
 unsigned ComPort::async_receive(void* params)
 {

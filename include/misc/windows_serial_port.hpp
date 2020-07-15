@@ -13,9 +13,7 @@
 class WindowsSerialPort
 {
 public:
-    WindowsSerialPort(std::size_t packet_len_,
-        char packet_start_symbol_,
-        char packet_stop_symbol_);
+    WindowsSerialPort();
 
     ~WindowsSerialPort();
 
@@ -28,6 +26,7 @@ public:
     std::vector<std::string> find_ports() const;
     bool is_open() const;
     bool is_reading() const;
+    std::string get_port_name() const;
 
     bool open(const std::string&);
     bool config();
