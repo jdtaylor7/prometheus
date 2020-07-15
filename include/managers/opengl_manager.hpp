@@ -36,7 +36,7 @@ private:
     std::size_t screen_height;
 
     const fs::path shader_dir = "src/shaders";
-    const fs::path texture_dir = "include/textures";
+    const fs::path texture_dir = "assets/textures";
 
     const fs::path vertex_shader_path = shader_dir / "shader.vs";
     const fs::path fragment_shader_path = shader_dir / "shader.fs";
