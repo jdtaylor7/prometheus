@@ -181,7 +181,8 @@ bool TelemetryManager::process_telemetry()
     auto packet_str = std::make_shared<std::string>();
     if (com_port->is_reading())
     {
-        packet_str = com_port->get_latest_packet();
+        packet_str = com_port->build_latest_packet();
+        // packet_str = build_latest_packet(raw_telem_buffer);  // TODO use this instead
         if (packet_str)
         {
             std::cout << "packet_str: " << *packet_str << '\n';

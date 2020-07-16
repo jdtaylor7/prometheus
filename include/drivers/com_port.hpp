@@ -49,10 +49,10 @@ public:
     std::vector<std::string> get_available_ports() const { return available_ports; }
     bool is_reading() const { return port_reading.load(); }
 
-    std::shared_ptr<std::string> get_latest_packet();
-    std::size_t get_buffer_size() const { return buffer->size(); };
+    std::shared_ptr<std::string> build_latest_packet();  // TODO remove
+    std::size_t get_buffer_size() const { return buffer->size(); };  // TODO remove?
 
-    static unsigned async_receive(void*);
+    static unsigned async_receive(void*);  // TODO make private
 private:
     const std::string COM_PORT_PREFIX = "\\\\.\\COM";
     const std::size_t COM_BEG = 2;
@@ -73,12 +73,14 @@ private:
 
     std::vector<std::string> available_ports{};
 
-    const std::size_t packet_len;
-    const char packet_start_symbol;
-    const char packet_stop_symbol;
+    // TODO pass this into the ComPort
     std::shared_ptr<BoundedBuffer<char>> buffer =
         std::make_shared<BoundedBuffer<char>>((packet_len * 2) - 1);
 
+    // TODO remove all of this
+    const std::size_t packet_len;
+    const char packet_start_symbol;
+    const char packet_stop_symbol;
     bool build_new_packet = true;
     std::string latest_packet{};
 };
