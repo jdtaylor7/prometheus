@@ -3,9 +3,9 @@
 #ifdef OS_LINUX
 
 LinuxSerialPort::LinuxSerialPort(
-        std::shared_ptr<BoundedBuffer<char>> byte_buffer_) :
+        std::shared_ptr<BoundedBuffer<char>> buffer_) :
     stream{},
-    byte_buffer{byte_buffer_}
+    buffer{buffer_}
 {
 }
 
@@ -13,11 +13,24 @@ LinuxSerialPort::~LinuxSerialPort()
 {
 }
 
+std::vector<std::string> LinuxSerialPort::find_ports() const
+{
+    return std::vector<std::string>{};
+}
+
 bool LinuxSerialPort::open(const std::string& port)
 {
+    if (port_open)
+    {
+        std::cout << "Port is already opened\n";
+        return false;
+    }
+
     try
     {
-        stream.Open(port.c_str());
+        // TODO reinstate when necessary
+        // stream.Open(port.c_str());
+        stream.Open("/dev/ttyACM0");
     }
     catch (const LibSerial::OpenFailed&)
     {
@@ -29,37 +42,46 @@ bool LinuxSerialPort::open(const std::string& port)
     return true;
 }
 
-void LinuxSerialPort::config(const LinuxSerialPortConfig& cfg)
+bool LinuxSerialPort::config(const LinuxSerialPortConfig& cfg)
 {
+    if (!port_open)
+    {
+        std::cout << "Canont configure port before opening.\n";
+        return false;
+    }
+    if (port_configured)
+    {
+        std::cout << "Port has already been configured.\n";
+        return false;
+    }
+
     stream.SetBaudRate(cfg.br);
     stream.SetCharacterSize(cfg.cs);
     stream.SetFlowControl(cfg.fc);
     stream.SetParity(cfg.py);
     stream.SetStopBits(cfg.sb);
+
+    return true;
 }
 
-std::vector<std::string> LinuxSerialPort::find_ports() const
+bool LinuxSerialPort::start_reading()
 {
-    return std::vector<std::string>{};
-}
+    if (is_reading())
+    {
+        std::cout << "Already reading from port.\n";
+        return false;
+    }
+    if (!port_open)
+    {
+        std::cout << "Cannot start reading from port before opening.\n";
+        return false;
+    }
+    if (!port_configured)
+    {
+        std::cout << "Must configure port before starting to read from it.\n";
+        return false;
+    }
 
-bool LinuxSerialPort::is_open() const
-{
-    return port_open;
-}
-
-bool LinuxSerialPort::is_reading() const
-{
-    return port_reading.load();
-}
-
-std::string LinuxSerialPort::get_port_name() const
-{
-    return std::string{};
-}
-
-void LinuxSerialPort::start_reading()
-{
     port_reading.store(true);
 
     std::thread t1([&](){
@@ -71,13 +93,15 @@ void LinuxSerialPort::start_reading()
 
                 char recv_byte;
                 stream.get(recv_byte);
-                byte_buffer->force_push(recv_byte);
+                buffer->force_push(recv_byte);
 
                 std::this_thread::sleep_for(1us);
             }
         }
     });
     t1.detach();
+
+    return true;
 }
 
 void LinuxSerialPort::stop_reading()

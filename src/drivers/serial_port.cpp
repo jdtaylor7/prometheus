@@ -28,6 +28,44 @@ std::vector<std::string> SerialPort::find_ports() const
 #endif
 }
 
+bool SerialPort::open(const std::string& port)
+{
+#ifdef OS_CYGWIN
+    return windows_port.open(port);
+#elif OS_LINUX
+    return linux_port.open(port);
+#endif
+}
+
+#ifdef OS_CYGWIN
+bool SerialPort::config()
+{
+    return windows_port.config();
+}
+#elif OS_LINUX
+bool SerialPort::config(const LinuxSerialPortConfig& cfg)
+{
+    return linux_port.config(cfg);
+}
+#endif
+
+bool SerialPort::start_reading()
+{
+#ifdef OS_CYGWIN
+    return windows_port.start_reading();
+#elif OS_LINUX
+    return linux_port.start_reading();
+#endif
+}
+
+void SerialPort::stop_reading()
+{
+#ifdef OS_CYGWIN
+    windows_port.stop_reading();
+#elif OS_LINUX
+    linux_port.stop_reading();
+#endif
+}
 bool SerialPort::is_open() const
 {
 #ifdef OS_CYGWIN
@@ -55,41 +93,11 @@ std::string SerialPort::get_port_name() const
 #endif
 }
 
-bool SerialPort::open(const std::string& port)
+std::vector<std::string> SerialPort::get_available_ports() const
 {
 #ifdef OS_CYGWIN
-    return windows_port.open(port);
+    return windows_port.get_available_ports();
 #elif OS_LINUX
-    return linux_port.open(port);
-#endif
-}
-
-#ifdef OS_CYGWIN
-bool SerialPort::config()
-{
-    return windows_port.config();
-}
-#elif OS_LINUX
-void SerialPort::config(const LinuxSerialPortConfig& cfg)
-{
-    return linux_port.config(cfg);
-}
-#endif
-
-void SerialPort::start_reading()
-{
-#ifdef OS_CYGWIN
-    windows_port.start_reading();
-#elif OS_LINUX
-    linux_port.start_reading();
-#endif
-}
-
-void SerialPort::stop_reading()
-{
-#ifdef OS_CYGWIN
-    windows_port.stop_reading();
-#elif OS_LINUX
-    linux_port.stop_reading();
+    return linux_port.get_available_ports();
 #endif
 }

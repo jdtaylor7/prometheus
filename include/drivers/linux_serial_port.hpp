@@ -47,24 +47,35 @@ public:
     LinuxSerialPort(LinuxSerialPort&&) = delete;
     LinuxSerialPort& operator=(LinuxSerialPort&&) = delete;
 
-    bool open(const std::string&);
-    void config(const LinuxSerialPortConfig&);
-
     std::vector<std::string> find_ports() const;  // TODO implement
 
-    bool is_open() const;
-    bool is_reading() const;
-    std::string get_port_name() const;  // TODO implement
+    bool open(const std::string&);
+    bool config(const LinuxSerialPortConfig&);
 
-    void start_reading();
+    bool start_reading();
     void stop_reading();
-private:
-    LibSerial::SerialStream stream;
-    std::string port_name{};
 
-    std::shared_ptr<BoundedBuffer<char>> byte_buffer;
+    bool is_open() const { return port_open; }
+    bool is_reading() const { return port_reading.load(); }
+    std::string get_port_name() const { return port_name; }
+    std::vector<std::string> get_available_ports() const { return available_ports; }
+private:
+    /*
+     * Linux-specific state.
+     */
+    LibSerial::SerialStream stream;
+
+    /*
+     * General serial port state.
+     */
+    std::shared_ptr<BoundedBuffer<char>> buffer;
+
     bool port_open = false;
+    bool port_configured = false;
     std::atomic<bool> port_reading = false;
+
+    std::string port_name{};  // TODO actually assign somewhere
+    std::vector<std::string> available_ports{};  // actually assign somewhere
 };
 
 #endif /* OS_LINUX */

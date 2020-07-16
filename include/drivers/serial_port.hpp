@@ -23,26 +23,29 @@ class SerialPort
     SerialPort(std::shared_ptr<BoundedBuffer<char>>);
     ~SerialPort();
 
+    // Disallow copying and moving.
     SerialPort(const SerialPort&) = delete;
     SerialPort operator=(const SerialPort&) = delete;
-
     SerialPort(SerialPort&&) = delete;
     SerialPort& operator=(SerialPort&&) = delete;
 
     std::vector<std::string> find_ports() const;
+
+    bool open(const std::string&);
+
+#ifdef OS_CYGWIN
+    bool config();
+#elif OS_LINUX
+    bool config(const LinuxSerialPortConfig&);
+#endif
+
+    bool start_reading();
+    void stop_reading();
+
     bool is_open() const;
     bool is_reading() const;
     std::string get_port_name() const;
-
-    bool open(const std::string&);
-#ifdef OS_CYGWIN
-    void config();
-#elif OS_LINUX
-    void config(const LinuxSerialPortConfig&);
-#endif
-
-    void start_reading();
-    void stop_reading();
+    std::vector<std::string> get_available_ports() const;
 
 private:
 #ifdef OS_CYGWIN

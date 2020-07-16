@@ -14,6 +14,97 @@ ComPort::~ComPort()
 #endif
 }
 
+std::vector<std::string> ComPort::find_ports()
+{
+    available_ports.clear();
+
+#ifdef OS_CYGWIN
+    for (std::size_t i = COM_BEG; i < COM_END; i++)
+    {
+        std::string com_port_str = COM_PORT_PREFIX + std::to_string(i);
+
+        std::cout << "Checking COM" << i << "...\n";
+        handle = CreateFile(com_port_str.c_str(),  // filename
+                            GENERIC_READ,          // access method
+                            0,                     // cannot share
+                            NULL,                  // no security attributes
+                            OPEN_EXISTING,         // file action, value for serial ports
+                            0,                     // FILE_FLAG_OVERLAPPED TODO change
+                            NULL);                 // ignored
+
+        if (handle != INVALID_HANDLE_VALUE)
+        {
+            std::cout << "COM" << i << " available\n";
+            available_ports.push_back(i);
+        }
+        CloseHandle(handle);
+    }
+#endif
+    return available_ports;
+}
+
+bool ComPort::open(const std::string& port)
+{
+    if (port_open)
+    {
+        std::cout << "Port is already opened\n";
+        return false;
+    }
+    std::string com_port_str = COM_PORT_PREFIX + port;
+
+#ifdef OS_CYGWIN
+    handle = CreateFile(com_port_str.c_str(),  // filename
+                        GENERIC_READ,          // access method
+                        0,                     // cannot share
+                        NULL,                  // no security attributes
+                        OPEN_EXISTING,         // file action, value for serial ports
+                        0,                     // FILE_FLAG_OVERLAPPED TODO change
+                        NULL);                 // ignored
+
+    if (handle != INVALID_HANDLE_VALUE)
+    {
+        std::cout << "Successfully opened " << com_port_str << '\n';
+        port_open = true;
+        port_name = com_port_str;
+        return true;
+    }
+#endif
+    return false;
+}
+
+void ComPort::close()
+{
+}
+
+bool ComPort::auto_open()
+{
+    for (std::size_t i = COM_BEG; i < COM_END; i++)
+    {
+        std::string com_port_str = COM_PORT_PREFIX + std::to_string(i);
+
+        std::cout << "Attempting to open COM" << i << "...\n";
+#ifdef OS_CYGWIN
+        handle = CreateFile(com_port_str.c_str(),  // filename
+                            GENERIC_READ,          // access method
+                            0,                     // cannot share
+                            NULL,                  // no security attributes
+                            OPEN_EXISTING,         // file action, value for serial ports
+                            0,                     // FILE_FLAG_OVERLAPPED TODO change
+                            NULL);                 // ignored
+
+        if (handle != INVALID_HANDLE_VALUE)
+        {
+            std::cout << "Successfully pened COM" << i << '\n';
+            port_open = true;
+            open_port = i;
+            return true;
+        }
+#endif
+    }
+    std::cout << "Could not find an available COM port. Aborting.\n";
+    return false;
+}
+
 bool ComPort::config()
 {
     if (!port_open)
@@ -21,7 +112,6 @@ bool ComPort::config()
         std::cout << "Cannot configure port before opening.\n";
         return false;
     }
-
     if (port_configured)
     {
         std::cout << "Port has already been configured.\n";
@@ -98,9 +188,8 @@ bool ComPort::start_reading()
         return false;
     }
 
-    this->port_reading.store(true);
-
-    this->buffer->clear();
+    port_reading.store(true);
+    buffer->clear();
 
 #ifdef OS_CYGWIN
     /*
@@ -135,97 +224,6 @@ void ComPort::stop_reading()
     this->port_reading.store(false);
     SetEvent(thread_term);
 #endif
-}
-
-std::vector<std::string> ComPort::find_ports()
-{
-    available_ports.clear();
-
-#ifdef OS_CYGWIN
-    for (std::size_t i = COM_BEG; i < COM_END; i++)
-    {
-        std::string com_port_str = COM_PORT_PREFIX + std::to_string(i);
-
-        std::cout << "Checking COM" << i << "...\n";
-        handle = CreateFile(com_port_str.c_str(),  // filename
-                            GENERIC_READ,          // access method
-                            0,                     // cannot share
-                            NULL,                  // no security attributes
-                            OPEN_EXISTING,         // file action, value for serial ports
-                            0,                     // FILE_FLAG_OVERLAPPED TODO change
-                            NULL);                 // ignored
-
-        if (handle != INVALID_HANDLE_VALUE)
-        {
-            std::cout << "COM" << i << " available\n";
-            available_ports.push_back(i);
-        }
-        CloseHandle(handle);
-    }
-#endif
-    return available_ports;
-}
-
-bool ComPort::open(const std::string& port)
-{
-    if (port_open)
-    {
-        std::cout << "Port is already opened\n";
-        return false;
-    }
-    std::string com_port_str = COM_PORT_PREFIX + port;
-
-#ifdef OS_CYGWIN
-    handle = CreateFile(com_port_str.c_str(),  // filename
-                        GENERIC_READ,          // access method
-                        0,                     // cannot share
-                        NULL,                  // no security attributes
-                        OPEN_EXISTING,         // file action, value for serial ports
-                        0,                     // FILE_FLAG_OVERLAPPED TODO change
-                        NULL);                 // ignored
-
-    if (handle != INVALID_HANDLE_VALUE)
-    {
-        std::cout << "Successfully opened " << com_port_str << '\n';
-        port_open = true;
-        port_name = com_port_str;
-        return true;
-    }
-#endif
-    return false;
-}
-
-bool ComPort::auto_open()
-{
-    for (std::size_t i = COM_BEG; i < COM_END; i++)
-    {
-        std::string com_port_str = COM_PORT_PREFIX + std::to_string(i);
-
-        std::cout << "Attempting to open COM" << i << "...\n";
-#ifdef OS_CYGWIN
-        handle = CreateFile(com_port_str.c_str(),  // filename
-                            GENERIC_READ,          // access method
-                            0,                     // cannot share
-                            NULL,                  // no security attributes
-                            OPEN_EXISTING,         // file action, value for serial ports
-                            0,                     // FILE_FLAG_OVERLAPPED TODO change
-                            NULL);                 // ignored
-
-        if (handle != INVALID_HANDLE_VALUE)
-        {
-            std::cout << "Successfully pened COM" << i << '\n';
-            port_open = true;
-            open_port = i;
-            return true;
-        }
-#endif
-    }
-    std::cout << "Could not find an available COM port. Aborting.\n";
-    return false;
-}
-
-void ComPort::close()
-{
 }
 
 unsigned ComPort::async_receive(void* params)
