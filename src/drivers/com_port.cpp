@@ -3,12 +3,7 @@
 #include <array>
 #include <algorithm>
 
-ComPort::ComPort(std::size_t packet_len_,
-        char packet_start_symbol_,
-        char packet_stop_symbol) :
-    packet_len(packet_len_),
-    packet_start_symbol(packet_start_symbol_),
-    packet_stop_symbol(packet_stop_symbol)
+ComPort::ComPort(std::shared_ptr<BoundedBuffer<char>> buffer_) : buffer(buffer_)
 {
 }
 
@@ -231,80 +226,6 @@ bool ComPort::auto_open()
 
 void ComPort::close()
 {
-}
-
-/*
- * The telemetry-receiving module of the application processes drone data in a
- * streaming fashion. That is, only the most recent data from the drone is used.
- * The graphics portion of the application runs at 60Hz. At the moment the
- * telemetry processing module also runs at this same frequency of 60Hz, since
- * it is part of the main application loop. The main loop of the drone will
- * likely run at a higher rate, say 100-200Hz. Therefore, many packets will
- * be dropped. At the moment that is fine, but it means that the viewer won't be
- * able to run any kind of controls filters on the data since it does not
- * receive all of it.
- *
- * Now, onto this function. Since we are streaming the data in real-time and
- * don't care about loss, only the minimal amount of raw data is kept. To be
- * precise, the raw telemetry buffer is the size of two full packets, minus one.
- * This makes packet construction both simple and quick. As a quick example, say
- * the packet has a start symbol A, a stop symbol C, and a length of 3. Then the
- * following permutation are possible when the buffer is full:
- *
- *         1. | B | A | C | B | A |
- *   back  2. | C | B | A | C | B |  front
- *         3. | A | C | B | A | C |
- *
- * By searching first for the start symbol, then the stop symbol while ensuring
- * correct length, a complete uncorrupted packet can be built consistently.
- */
-std::shared_ptr<std::string> ComPort::build_latest_packet()
-{
-    char tmp{};
-    std::shared_ptr<char> result{};
-
-    // If necessary, start building new packet. First, find the start symbol.
-    result = buffer->try_pop();
-    if (build_new_packet)
-    {
-        while (result)
-        {
-            if (*result == packet_start_symbol)
-                break;
-            result = buffer->try_pop();
-        }
-    }
-
-    // Extract the rest of the packet.
-    while (result)
-    {
-        if (*result == packet_stop_symbol)
-            break;
-        latest_packet += *result;
-        result = buffer->try_pop();
-    }
-
-    // Complete packet not built yet.
-    if (latest_packet.size() < packet_len)
-    {
-        build_new_packet = false;
-        return nullptr;
-    }
-
-    // Finish building packet.
-    if ((latest_packet.size() == packet_len) &&
-        (latest_packet[0] == packet_start_symbol))
-    {
-        std::string rv = latest_packet;
-        latest_packet.clear();
-        build_new_packet = true;
-        return std::make_shared<std::string>(rv);
-    }
-
-    // Packet is complete but corrupted, restart.
-    latest_packet.clear();
-    build_new_packet = true;
-    return nullptr;
 }
 
 unsigned ComPort::async_receive(void* params)

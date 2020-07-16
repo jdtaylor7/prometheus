@@ -108,7 +108,8 @@ public:
                      std::vector<std::size_t> rot_rate_offsets_,
                      ComPort* com_port_,
                      DroneData* drone_data_,
-                     ResourceManager* resource_manager_) :
+                     ResourceManager* resource_manager_,
+                     std::shared_ptr<BoundedBuffer<char>> telemetry_buffer_) :
         packet_len(packet_len_),
         start_symbol(start_symbol_),
         stop_symbol(stop_symbol_),
@@ -118,12 +119,14 @@ public:
         rot_rate_offsets(rot_rate_offsets_),
         com_port(com_port_),
         drone_data(drone_data_),
-        resource_manager(resource_manager_)
+        resource_manager(resource_manager_),
+        telemetry_buffer(telemetry_buffer_)
     {}
 
     bool init();
 
     DroneData filter_data();
+    std::shared_ptr<std::string> build_latest_packet();
     bool process_telemetry();
 private:
     const std::size_t packet_len;
@@ -134,10 +137,14 @@ private:
     const std::vector<std::size_t> accel_offsets;
     const std::vector<std::size_t> rot_rate_offsets;
 
-    std::unique_ptr<TelemetryFormat> telemetry_format;
+    std::unique_ptr<TelemetryFormat> fmt;
     ComPort* com_port;
     DroneData* drone_data;
     ResourceManager* resource_manager;
+
+    std::shared_ptr<BoundedBuffer<char>> telemetry_buffer;
+    bool build_new_packet = true;
+    std::string latest_packet{};
 
     static constexpr std::size_t RAW_DATA_BUF_MAXLEN = 32;
     std::vector<DroneData> raw_data_buf;
@@ -149,7 +156,7 @@ bool TelemetryManager::init()
     /*
      * Initialize communications interfaces.
      */
-    telemetry_format = std::make_unique<TelemetryFormat>(
+    fmt = std::make_unique<TelemetryFormat>(
         packet_len,
         start_symbol,
         stop_symbol,
@@ -176,13 +183,86 @@ DroneData TelemetryManager::filter_data()
                      sum.orientation / (float)raw_data_buf.size()};
 }
 
+/*
+ * The telemetry-receiving module of the application processes drone data in a
+ * streaming fashion. That is, only the most recent data from the drone is used.
+ * The graphics portion of the application runs at 60Hz. At the moment the
+ * telemetry processing module also runs at this same frequency of 60Hz, since
+ * it is part of the main application loop. The main loop of the drone will
+ * likely run at a higher rate, say 100-200Hz. Therefore, many packets will
+ * be dropped. At the moment that is fine, but it means that the viewer won't be
+ * able to run any kind of controls filters on the data since it does not
+ * receive all of it.
+ *
+ * Now, onto this function. Since we are streaming the data in real-time and
+ * don't care about loss, only the minimal amount of raw data is kept. To be
+ * precise, the raw telemetry buffer is the size of two full packets, minus one.
+ * This makes packet construction both simple and quick. As a quick example, say
+ * the packet has a start symbol A, a stop symbol C, and a length of 3. Then the
+ * following permutation are possible when the buffer is full:
+ *
+ *         1. | B | A | C | B | A |
+ *   back  2. | C | B | A | C | B |  front
+ *         3. | A | C | B | A | C |
+ *
+ * By searching first for the start symbol, then the stop symbol while ensuring
+ * correct length, a complete uncorrupted packet can be built consistently.
+ */
+std::shared_ptr<std::string> TelemetryManager::build_latest_packet()
+{
+    char tmp{};
+    std::shared_ptr<char> result{};
+
+    // If necessary, start building new packet. First, find the start symbol.
+    result = telemetry_buffer->try_pop();
+    if (build_new_packet)
+    {
+        while (result)
+        {
+            if (*result == fmt->start_symbol)
+                break;
+            result = telemetry_buffer->try_pop();
+        }
+    }
+
+    // Extract the rest of the packet.
+    while (result)
+    {
+        if (*result == fmt->stop_symbol)
+            break;
+        latest_packet += *result;
+        result = telemetry_buffer->try_pop();
+    }
+
+    // Complete packet not built yet.
+    if (latest_packet.size() < fmt->packet_len)
+    {
+        build_new_packet = false;
+        return nullptr;
+    }
+
+    // Finish building packet.
+    if ((latest_packet.size() == fmt->packet_len) &&
+        (latest_packet[0] == fmt->start_symbol))
+    {
+        std::string rv = latest_packet;
+        latest_packet.clear();
+        build_new_packet = true;
+        return std::make_shared<std::string>(rv);
+    }
+
+    // Packet is complete but corrupted, restart.
+    latest_packet.clear();
+    build_new_packet = true;
+    return nullptr;
+}
+
 bool TelemetryManager::process_telemetry()
 {
     auto packet_str = std::make_shared<std::string>();
     if (com_port->is_reading())
     {
-        packet_str = com_port->build_latest_packet();
-        // packet_str = build_latest_packet(raw_telem_buffer);  // TODO use this instead
+        packet_str = build_latest_packet();
         if (packet_str)
         {
             std::cout << "packet_str: " << *packet_str << '\n';
@@ -193,7 +273,7 @@ bool TelemetryManager::process_telemetry()
         return true;
     }
 
-    auto telemetry_data = std::make_shared<TelemetryData>(*telemetry_format);
+    auto telemetry_data = std::make_shared<TelemetryData>(*fmt);
     if (packet_str)
     {
         if (!telemetry_data->extract_packet_data(*packet_str)) return false;

@@ -56,6 +56,7 @@ private:
     std::unique_ptr<ViewerMode> viewer_mode;
     std::unique_ptr<DroneData> drone_data;
     std::unique_ptr<Camera> camera;
+    std::shared_ptr<BoundedBuffer<char>> telemetry_buffer;
 
     /*
      * Synchronization constructs.
@@ -84,13 +85,15 @@ bool DroneViewer::init()
     resource_manager = std::make_unique<ResourceManager>();
 
     /*
+     * Create telemetry buffer.
+     */
+    telemetry_buffer =
+        std::make_shared<BoundedBuffer<char>>((TELEMETRY_PACKET_LEN * 2) - 1);
+
+    /*
      * Initialize communications interfaces.
      */
-    com_port = std::make_unique<ComPort>(
-        TELEMETRY_PACKET_LEN,
-        TELEMETRY_START_SYMBOL,
-        TELEMETRY_STOP_SYMBOL
-    );
+    com_port = std::make_unique<ComPort>(telemetry_buffer);
 
     /*
      * Attempt to automatically find a usable port on startup. It's fine if this
@@ -166,7 +169,8 @@ bool DroneViewer::init()
         TELEMETRY_ROT_RATE_OFFSETS,
         com_port.get(),
         drone_data.get(),
-        resource_manager.get());
+        resource_manager.get(),
+        telemetry_buffer);
     if (!telemetry_manager->init()) return false;
 
     return true;
