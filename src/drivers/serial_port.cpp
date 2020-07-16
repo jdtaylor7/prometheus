@@ -9,7 +9,7 @@ explicit SerialPort::SerialPort(
 #elif OS_LINUX
 SerialPort::SerialPort(
         std::shared_ptr<BoundedBuffer<char>> byte_buffer_,
-        LinuxSerialPortConfig cfg_) :
+        LinuxSerialPortConfig const* cfg_) :
     linux_port(byte_buffer_, cfg_)
 {
 }

@@ -40,7 +40,7 @@ class LinuxSerialPort
 public:
     LinuxSerialPort(
         std::shared_ptr<BoundedBuffer<char>>,
-        LinuxSerialPortConfig);
+        LinuxSerialPortConfig const*);
     ~LinuxSerialPort();
 
     // Disallow copying and moving.
@@ -65,7 +65,7 @@ private:
     /*
      * Linux-specific state.
      */
-    LinuxSerialPortConfig cfg;
+    LinuxSerialPortConfig const* cfg;
     LibSerial::SerialStream stream;
 
     /*

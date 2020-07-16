@@ -50,6 +50,16 @@ private:
 
     const std::string GLSL_VERSION = "#version 330";
 
+#ifdef OS_LINUX
+    std::unique_ptr<const LinuxSerialPortConfig> linux_serial_cfg =
+        std::make_unique<const LinuxSerialPortConfig>(
+            LibSerial::BaudRate::BAUD_9600,
+            LibSerial::CharacterSize::CHAR_SIZE_8,
+            LibSerial::FlowControl::FLOW_CONTROL_NONE,
+            LibSerial::Parity::PARITY_NONE,
+            LibSerial::StopBits::STOP_BITS_1);
+#endif
+
     /*
      * Shared state.
      */
@@ -96,23 +106,9 @@ bool DroneViewer::init()
 #ifdef OS_CYGWIN
     serial_port = std::make_unique<SerialPort>(telemetry_buffer);
 #elif OS_LINUX
-    using namespace LibSerial;
-    // auto linux_serial_cfg = std::make_unique<LinuxSerialPortConfig>(
-    //     BaudRate::BAUD_9600,
-    //     CharacterSize::CHAR_SIZE_8,
-    //     FlowControl::FLOW_CONTROL_NONE,
-    //     Parity::PARITY_NONE,
-    //     StopBits::STOP_BITS_1);
-    LinuxSerialPortConfig linux_serial_cfg(
-        BaudRate::BAUD_9600,
-        CharacterSize::CHAR_SIZE_8,
-        FlowControl::FLOW_CONTROL_NONE,
-        Parity::PARITY_NONE,
-        StopBits::STOP_BITS_1);
-
     serial_port = std::make_unique<SerialPort>(
         telemetry_buffer,
-        linux_serial_cfg);
+        linux_serial_cfg.get());
 #endif
 
     // /*

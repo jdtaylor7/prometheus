@@ -28,7 +28,7 @@ public:
 #elif OS_LINUX
     SerialPort(
         std::shared_ptr<BoundedBuffer<char>>,
-        LinuxSerialPortConfig);
+        LinuxSerialPortConfig const*);
 #endif
     ~SerialPort();
 

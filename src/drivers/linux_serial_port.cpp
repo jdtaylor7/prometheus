@@ -4,7 +4,7 @@
 
 LinuxSerialPort::LinuxSerialPort(
         std::shared_ptr<BoundedBuffer<char>> buffer_,
-        LinuxSerialPortConfig cfg_) :
+        LinuxSerialPortConfig const* cfg_) :
     buffer{buffer_},
     cfg(cfg_),
     stream{}
@@ -62,16 +62,16 @@ bool LinuxSerialPort::config()
     }
 
     std::cout << "configuring port\n";
-    if (cfg.br == LibSerial::BaudRate::BAUD_9600)
+    if (cfg->br == LibSerial::BaudRate::BAUD_9600)
         std::cout << "baud rate is correct\n";
     else
         std::cout << "baud rate is wrong!\n";
 
-    stream.SetBaudRate(cfg.br);
-    stream.SetCharacterSize(cfg.cs);
-    stream.SetFlowControl(cfg.fc);
-    stream.SetParity(cfg.py);
-    stream.SetStopBits(cfg.sb);
+    stream.SetBaudRate(cfg->br);
+    stream.SetCharacterSize(cfg->cs);
+    stream.SetFlowControl(cfg->fc);
+    stream.SetParity(cfg->py);
+    stream.SetStopBits(cfg->sb);
 
     port_configured = true;
     return true;
