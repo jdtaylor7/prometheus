@@ -142,7 +142,11 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
     glsl_version(glsl_version_),
     fps_win(93.0, 32.0),
     mode_win(165.0, 80.0),
+#ifdef OS_CYGWIN
     controls_t_win(310.0, 130.0),
+#elif OS_LINUX
+    controls_t_win(370.0, 130.0),
+#endif
     controls_e_win(228.0, 82.0),
     drone_win(300.0, 480.0),
     camera_win(121.0, 167.0),
@@ -275,39 +279,28 @@ void ImguiManager::process_frame()
             std::vector<const char*> port_list;
             for (auto& s : available_ports)
             {
-#ifdef OS_CYGWIN
                 port_list.push_back(s.c_str());
-#elif OS_LINUX
-#endif
             }
 
-#ifdef OS_CYGWIN
-            ImGui::BulletText("Scan for COM ports (s)");
-            ImGui::BulletText("Connect to COM port (c)");
-#elif OS_LINUX
-            ImGui::BulletText("Scan for devices (s)");
-            ImGui::BulletText("Connect to devices (c)");
-#endif
+            ImGui::BulletText("Scan for serial devices (s)");
+            ImGui::BulletText("Connect to serial devices (c)");
             ImGui::BulletText("Start/Stop reading data (spacebar)");
 
             ImGui::Separator();
 
-#ifdef OS_CYGWIN
-            ImGui::Text("Available COM ports:");
-#elif OS_LINUX
-            ImGui::Text("Available devices:");
-#endif
+            ImGui::Text("Available serial devices:");
             ImGui::SameLine();
+#ifdef OS_CYGWIN
             ImGui::SetNextItemWidth(65);
+#elif OS_LINUX
+            ImGui::SetNextItemWidth(115);
+#endif
             ImGui::Combo("",
                          &selected_port_idx,
                          port_list.data(),
                          port_list.size());
 
-#ifdef OS_CYGWIN
-            ImGui::Text("Current COM port status: ");
-#elif OS_LINUX
-#endif
+            ImGui::Text("Current serial port status: ");
             ImGui::SameLine();
             if (!serial_port->is_open())
             {
@@ -315,17 +308,11 @@ void ImguiManager::process_frame()
             }
             else if (serial_port->is_open() && !serial_port->is_reading())
             {
-#ifdef OS_CYGWIN
                 ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.1f, 1.0f), "%s ready", serial_port->get_port_name().c_str());  // TODO fix?
-#elif OS_LINUX
-#endif
             }
             else if (serial_port->is_open() && serial_port->is_reading())
             {
-#ifdef OS_CYGWIN
                 ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Reading %s", serial_port->get_port_name().c_str());  // TODO fix?
-#elif OS_LINUX
-#endif
             }
 
             ImGui::End();
