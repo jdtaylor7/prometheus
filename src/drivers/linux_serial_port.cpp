@@ -3,9 +3,11 @@
 #ifdef OS_LINUX
 
 LinuxSerialPort::LinuxSerialPort(
-        std::shared_ptr<BoundedBuffer<char>> buffer_) :
-    stream{},
-    buffer{buffer_}
+        std::shared_ptr<BoundedBuffer<char>> buffer_,
+        LinuxSerialPortConfig cfg_) :
+    buffer{buffer_},
+    cfg(cfg_),
+    stream{}
 {
 }
 
@@ -13,9 +15,14 @@ LinuxSerialPort::~LinuxSerialPort()
 {
 }
 
-std::vector<std::string> LinuxSerialPort::find_ports() const
+// TODO implement correctly
+std::vector<std::string> LinuxSerialPort::find_ports()
 {
-    return std::vector<std::string>{};
+    // return std::vector<std::string>{};
+    std::vector<std::string> found_ports;
+    found_ports.push_back("/dev/ttyACM0");
+    available_ports = found_ports;
+    return available_ports;
 }
 
 bool LinuxSerialPort::open(const std::string& port)
@@ -28,9 +35,8 @@ bool LinuxSerialPort::open(const std::string& port)
 
     try
     {
-        // TODO reinstate when necessary
-        // stream.Open(port.c_str());
-        stream.Open("/dev/ttyACM0");
+        std::cout << "opening port " << port << '\n';
+        stream.Open(port.c_str());
     }
     catch (const LibSerial::OpenFailed&)
     {
@@ -42,7 +48,7 @@ bool LinuxSerialPort::open(const std::string& port)
     return true;
 }
 
-bool LinuxSerialPort::config(const LinuxSerialPortConfig& cfg)
+bool LinuxSerialPort::config()
 {
     if (!port_open)
     {
@@ -55,12 +61,19 @@ bool LinuxSerialPort::config(const LinuxSerialPortConfig& cfg)
         return false;
     }
 
+    std::cout << "configuring port\n";
+    if (cfg.br == LibSerial::BaudRate::BAUD_9600)
+        std::cout << "baud rate is correct\n";
+    else
+        std::cout << "baud rate is wrong!\n";
+
     stream.SetBaudRate(cfg.br);
     stream.SetCharacterSize(cfg.cs);
     stream.SetFlowControl(cfg.fc);
     stream.SetParity(cfg.py);
     stream.SetStopBits(cfg.sb);
 
+    port_configured = true;
     return true;
 }
 

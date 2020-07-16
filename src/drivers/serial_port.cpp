@@ -1,13 +1,16 @@
 #include "serial_port.hpp"
 
 #ifdef OS_CYGWIN
-SerialPort::SerialPort(std::shared_ptr<BoundedBuffer<char>> byte_buffer_) :
+explicit SerialPort::SerialPort(
+        std::shared_ptr<BoundedBuffer<char>> byte_buffer_) :
     windows_port{byte_buffer_}
 {
 }
 #elif OS_LINUX
-SerialPort::SerialPort(std::shared_ptr<BoundedBuffer<char>> byte_buffer_) :
-    linux_port{byte_buffer_}
+SerialPort::SerialPort(
+        std::shared_ptr<BoundedBuffer<char>> byte_buffer_,
+        LinuxSerialPortConfig cfg_) :
+    linux_port(byte_buffer_, cfg_)
 {
 }
 #endif
@@ -19,7 +22,7 @@ SerialPort::~SerialPort()
 #endif
 }
 
-std::vector<std::string> SerialPort::find_ports() const
+std::vector<std::string> SerialPort::find_ports()
 {
 #ifdef OS_CYGWIN
     return windows_port.find_ports();
@@ -37,17 +40,14 @@ bool SerialPort::open(const std::string& port)
 #endif
 }
 
-#ifdef OS_CYGWIN
 bool SerialPort::config()
 {
+#ifdef OS_CYGWIN
     return windows_port.config();
-}
 #elif OS_LINUX
-bool SerialPort::config(const LinuxSerialPortConfig& cfg)
-{
-    return linux_port.config(cfg);
-}
+    return linux_port.config();
 #endif
+}
 
 bool SerialPort::start_reading()
 {

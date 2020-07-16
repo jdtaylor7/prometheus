@@ -38,7 +38,9 @@ struct LinuxSerialPortConfig
 class LinuxSerialPort
 {
 public:
-    LinuxSerialPort(std::shared_ptr<BoundedBuffer<char>>);
+    LinuxSerialPort(
+        std::shared_ptr<BoundedBuffer<char>>,
+        LinuxSerialPortConfig);
     ~LinuxSerialPort();
 
     // Disallow copying and moving.
@@ -47,10 +49,10 @@ public:
     LinuxSerialPort(LinuxSerialPort&&) = delete;
     LinuxSerialPort& operator=(LinuxSerialPort&&) = delete;
 
-    std::vector<std::string> find_ports() const;  // TODO implement
+    std::vector<std::string> find_ports();  // TODO implement
 
     bool open(const std::string&);
-    bool config(const LinuxSerialPortConfig&);
+    bool config();
 
     bool start_reading();
     void stop_reading();
@@ -63,6 +65,7 @@ private:
     /*
      * Linux-specific state.
      */
+    LinuxSerialPortConfig cfg;
     LibSerial::SerialStream stream;
 
     /*

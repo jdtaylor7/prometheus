@@ -1,6 +1,8 @@
 #ifndef SERIAL_PORT
 #define SERIAL_PORT
 
+#include <memory>
+
 #ifdef OS_CYGWIN
 #include <Process.h>
 #include <windows.h>
@@ -20,7 +22,14 @@
  */
 class SerialPort
 {
-    SerialPort(std::shared_ptr<BoundedBuffer<char>>);
+public:
+#ifdef OS_CYGWIN
+    explicit SerialPort(std::shared_ptr<BoundedBuffer<char>>);
+#elif OS_LINUX
+    SerialPort(
+        std::shared_ptr<BoundedBuffer<char>>,
+        LinuxSerialPortConfig);
+#endif
     ~SerialPort();
 
     // Disallow copying and moving.
@@ -29,15 +38,10 @@ class SerialPort
     SerialPort(SerialPort&&) = delete;
     SerialPort& operator=(SerialPort&&) = delete;
 
-    std::vector<std::string> find_ports() const;
+    std::vector<std::string> find_ports();
 
     bool open(const std::string&);
-
-#ifdef OS_CYGWIN
     bool config();
-#elif OS_LINUX
-    bool config(const LinuxSerialPortConfig&);
-#endif
 
     bool start_reading();
     void stop_reading();

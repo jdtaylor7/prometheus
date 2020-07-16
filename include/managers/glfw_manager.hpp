@@ -9,7 +9,7 @@
 #include <glm/glm.hpp>
 
 #include "callbacks.hpp"
-#include "com_port.hpp"
+#include "serial_port.hpp"
 #include "shared.hpp"
 #include "timer_manager.hpp"
 #include "viewer_mode.hpp"
@@ -23,14 +23,14 @@ public:
                 ViewerMode* viewer_mode_,
                 DroneData* drone_data_,
                 Camera* camera_,
-                ComPort* com_port_) :
+                SerialPort* serial_port_) :
     screen_width(width_),
     screen_height(height_),
     rm(resource_manager_),
     viewer_mode(viewer_mode_),
     drone_data(drone_data_),
     camera(camera_),
-    com_port(com_port_)
+    serial_port(serial_port_)
     {}
 
     ~GlfwManager();
@@ -55,7 +55,7 @@ private:
     DroneData* drone_data;
     Camera* camera;
     ViewerMode* viewer_mode;
-    ComPort* com_port;
+    SerialPort* serial_port;
 
     // Timers.
     std::unique_ptr<TimerManager> timer_manager;
@@ -171,7 +171,7 @@ void GlfwManager::process_input()
         {
             if (timer_manager->is_finished(TimerName::ComScanTimer))
             {
-                com_port->find_ports();
+                serial_port->find_ports();
                 timer_manager->start_timer(TimerName::ComScanTimer);
             }
         }
@@ -180,10 +180,10 @@ void GlfwManager::process_input()
         {
             if (timer_manager->is_finished(TimerName::ComConnectTimer))
             {
-                if (!com_port->get_available_ports().empty())
+                if (!serial_port->get_available_ports().empty())
                 {
-                    com_port->open(com_port->get_available_ports()[0]);
-                    com_port->config();
+                    serial_port->open(serial_port->get_available_ports()[0]);
+                    serial_port->config();
                 }
                 timer_manager->start_timer(TimerName::ComConnectTimer);
             }
@@ -193,10 +193,10 @@ void GlfwManager::process_input()
         {
             if (timer_manager->is_finished(TimerName::ComReadTimer))
             {
-                if (com_port->is_reading())
-                    com_port->stop_reading();
+                if (serial_port->is_reading())
+                    serial_port->stop_reading();
                 else
-                    com_port->start_reading();
+                    serial_port->start_reading();
                 timer_manager->start_timer(TimerName::ComReadTimer);
             }
         }

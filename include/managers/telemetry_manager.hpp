@@ -5,8 +5,8 @@
 #include <memory>
 #include <vector>
 
-#include "com_port.hpp"
 #include "resource_manager.hpp"
+#include "serial_port.hpp"
 #include "shared.hpp"
 
 struct TelemetryData;
@@ -106,7 +106,7 @@ public:
                      std::size_t float_format_len_,
                      std::vector<std::size_t> accel_offsets_,
                      std::vector<std::size_t> rot_rate_offsets_,
-                     ComPort* com_port_,
+                     SerialPort* serial_port_,
                      DroneData* drone_data_,
                      ResourceManager* resource_manager_,
                      std::shared_ptr<BoundedBuffer<char>> telemetry_buffer_) :
@@ -117,7 +117,7 @@ public:
         float_format_len(float_format_len_),
         accel_offsets(accel_offsets_),
         rot_rate_offsets(rot_rate_offsets_),
-        com_port(com_port_),
+        serial_port(serial_port_),
         drone_data(drone_data_),
         resource_manager(resource_manager_),
         telemetry_buffer(telemetry_buffer_)
@@ -138,7 +138,7 @@ private:
     const std::vector<std::size_t> rot_rate_offsets;
 
     std::unique_ptr<TelemetryFormat> fmt;
-    ComPort* com_port;
+    SerialPort* serial_port;
     DroneData* drone_data;
     ResourceManager* resource_manager;
 
@@ -260,7 +260,7 @@ std::shared_ptr<std::string> TelemetryManager::build_latest_packet()
 bool TelemetryManager::process_telemetry()
 {
     auto packet_str = std::make_shared<std::string>();
-    if (com_port->is_reading())
+    if (serial_port->is_reading())
     {
         packet_str = build_latest_packet();
         if (packet_str)

@@ -68,7 +68,6 @@ add_library(imgui OBJECT third_party/imgui/imgui.cpp)
 add_library(implot OBJECT third_party/implot/implot.cpp)
 add_library(implot_demo OBJECT third_party/implot/implot_demo.cpp)
 
-add_library(com_port OBJECT src/drivers/com_port.cpp)
 add_library(linux_serial_port OBJECT src/drivers/linux_serial_port.cpp)
 add_library(windows_serial_port OBJECT src/drivers/windows_serial_port.cpp)
 add_library(serial_port OBJECT src/drivers/serial_port.cpp)
@@ -91,7 +90,6 @@ target_link_libraries(main
     implot
     implot_demo
     "${LIBSERIAL_LIB}"
-    com_port
     linux_serial_port
     windows_serial_port
     serial_port

@@ -15,8 +15,8 @@
 #include "imgui_impl_opengl3.h"
 #include "implot.h"
 
-#include "com_port.hpp"
 #include "resource_manager.hpp"
+#include "serial_port.hpp"
 #include "shared.hpp"
 #include "viewer_mode.hpp"
 
@@ -71,7 +71,7 @@ public:
                  ViewerMode* viewer_mode_,
                  DroneData* drone_data_,
                  Camera* camera_,
-                 ComPort* com_port_,
+                 SerialPort* serial_port_,
                  bool show_demo_window_,
                  bool show_implot_demo_window_,
                  bool show_camera_data_window_);
@@ -118,7 +118,7 @@ private:
     DroneData* drone_data;
     Camera* camera;
 
-    ComPort* com_port;
+    SerialPort* serial_port;
 
     unsigned int producer_n = 0;
     unsigned int consumer_n = 0;
@@ -134,7 +134,7 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
                            ViewerMode* viewer_mode_,
                            DroneData* drone_data_,
                            Camera* camera_,
-                           ComPort* com_port_,
+                           SerialPort* serial_port_,
                            bool show_demo_window_,
                            bool show_implot_demo_window_,
                            bool show_camera_data_window_) :
@@ -150,7 +150,7 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
     viewer_mode(viewer_mode_),
     drone_data(drone_data_),
     camera(camera_),
-    com_port(com_port_),
+    serial_port(serial_port_),
     show_implot_demo_window(show_implot_demo_window_),
     show_demo_window(show_demo_window_),
     show_camera_data_window(show_camera_data_window_)
@@ -271,7 +271,7 @@ void ImguiManager::process_frame()
             ImGui::Begin("Telemetry Controls", NULL, imgui_window_flags);
 
             static int selected_port_idx = 0;
-            std::vector<std::string> available_ports = com_port->get_available_ports();
+            std::vector<std::string> available_ports = serial_port->get_available_ports();
             std::vector<const char*> port_list;
             for (auto& s : available_ports)
             {
@@ -309,21 +309,21 @@ void ImguiManager::process_frame()
 #elif OS_LINUX
 #endif
             ImGui::SameLine();
-            if (!com_port->is_open())
+            if (!serial_port->is_open())
             {
                 ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Disconnected");
             }
-            else if (com_port->is_open() && !com_port->is_reading())
+            else if (serial_port->is_open() && !serial_port->is_reading())
             {
 #ifdef OS_CYGWIN
-                ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.1f, 1.0f), "%s ready", com_port->get_port_name().c_str());  // TODO fix?
+                ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.1f, 1.0f), "%s ready", serial_port->get_port_name().c_str());  // TODO fix?
 #elif OS_LINUX
 #endif
             }
-            else if (com_port->is_open() && com_port->is_reading())
+            else if (serial_port->is_open() && serial_port->is_reading())
             {
 #ifdef OS_CYGWIN
-                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Reading %s", com_port->get_port_name().c_str());  // TODO fix?
+                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Reading %s", serial_port->get_port_name().c_str());  // TODO fix?
 #elif OS_LINUX
 #endif
             }

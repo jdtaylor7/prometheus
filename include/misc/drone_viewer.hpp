@@ -9,11 +9,11 @@
 #include <glm/glm.hpp>
 
 #include "camera.hpp"
-#include "com_port.hpp"
 #include "glfw_manager.hpp"
 #include "imgui_manager.hpp"
 #include "opengl_manager.hpp"
 #include "resource_manager.hpp"
+#include "serial_port.hpp"
 #include "shader.hpp"
 #include "shared.hpp"
 #include "telemetry_manager.hpp"
@@ -66,7 +66,7 @@ private:
     /*
      * Communications interfaces.
      */
-    std::unique_ptr<ComPort> com_port;
+    std::unique_ptr<SerialPort> serial_port;
 
     /*
      * Data managers.
@@ -93,20 +93,40 @@ bool DroneViewer::init()
     /*
      * Initialize communications interfaces.
      */
-    com_port = std::make_unique<ComPort>(telemetry_buffer);
+#ifdef OS_CYGWIN
+    serial_port = std::make_unique<SerialPort>(telemetry_buffer);
+#elif OS_LINUX
+    using namespace LibSerial;
+    // auto linux_serial_cfg = std::make_unique<LinuxSerialPortConfig>(
+    //     BaudRate::BAUD_9600,
+    //     CharacterSize::CHAR_SIZE_8,
+    //     FlowControl::FLOW_CONTROL_NONE,
+    //     Parity::PARITY_NONE,
+    //     StopBits::STOP_BITS_1);
+    LinuxSerialPortConfig linux_serial_cfg(
+        BaudRate::BAUD_9600,
+        CharacterSize::CHAR_SIZE_8,
+        FlowControl::FLOW_CONTROL_NONE,
+        Parity::PARITY_NONE,
+        StopBits::STOP_BITS_1);
 
-    /*
-     * Attempt to automatically find a usable port on startup. It's fine if this
-     * fails, as it can be controlled via the UI.
-     */
-    if (!com_port)
-        std::cout << "com_port is null\n";
-    std::vector<std::string> available_ports = com_port->find_ports();
-    if (!available_ports.empty())
-    {
-        com_port->open(available_ports[0]);
-        com_port->config();
-    }
+    serial_port = std::make_unique<SerialPort>(
+        telemetry_buffer,
+        linux_serial_cfg);
+#endif
+
+    // /*
+    //  * Attempt to automatically find a usable port on startup. It's fine if this
+    //  * fails, as it can be controlled via the UI.
+    //  */
+    // if (!serial_port)
+    //     std::cout << "serial_port is null\n";
+    // std::vector<std::string> available_ports = serial_port->find_ports();
+    // if (!available_ports.empty())
+    // {
+    //     serial_port->open(available_ports[0]);
+    //     serial_port->config();
+    // }
 
     /*
      * Initialize state.
@@ -132,7 +152,7 @@ bool DroneViewer::init()
         viewer_mode.get(),
         drone_data.get(),
         camera.get(),
-        com_port.get());
+        serial_port.get());
     if (!glfw_manager->init()) return false;
 
     imgui_manager = std::make_unique<ImguiManager>(
@@ -144,7 +164,7 @@ bool DroneViewer::init()
         viewer_mode.get(),
         drone_data.get(),
         camera.get(),
-        com_port.get(),
+        serial_port.get(),
         SHOW_DEMO_WINDOW,
         SHOW_IMPLOT_DEMO_WINDOW,
         SHOW_CAMERA_DATA_WINDOW);
@@ -167,7 +187,7 @@ bool DroneViewer::init()
         TELEMETRY_FLOAT_FORMAT_LEN,
         TELEMETRY_ACCEL_OFFSETS,
         TELEMETRY_ROT_RATE_OFFSETS,
-        com_port.get(),
+        serial_port.get(),
         drone_data.get(),
         resource_manager.get(),
         telemetry_buffer);
