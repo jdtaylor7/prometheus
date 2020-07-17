@@ -75,29 +75,24 @@ void WindowsSerialPort::close()
 
 bool WindowsSerialPort::auto_open()
 {
-    for (std::size_t i = COM_BEG; i < COM_END; i++)
+    find_ports();
+    if (available_ports.size() == 1)
     {
-        std::string com_port_str = COM_PORT_PREFIX + std::to_string(i);
-
-        std::cout << "Attempting to open COM" << i << "...\n";
-        handle = CreateFile(com_port_str.c_str(),  // filename
-                            GENERIC_READ,          // access method
-                            0,                     // cannot share
-                            NULL,                  // no security attributes
-                            OPEN_EXISTING,         // file action, value for serial ports
-                            0,                     // FILE_FLAG_OVERLAPPED TODO change
-                            NULL);                 // ignored
-
-        if (handle != INVALID_HANDLE_VALUE)
-        {
-            std::cout << "Successfully pened COM" << i << '\n';
-            port_open = true;
-            open_port = i;
-            return true;
-        }
+        std::cout << "Automatically opening " << available_ports[0] << '\n';
+        open(available_ports[0]);
+        config();
+        return true;
     }
-    std::cout << "Could not find an available COM port. Aborting.\n";
-    return false;
+    else if (available_ports.size() > 1)
+    {
+        std::cout << "Not auto-opening any ports: More than 1 available\n";
+        return false;
+    }
+    else
+    {
+        std::cout << "Not auto-opening any ports: None available\n";
+        return false;
+    }
 }
 
 bool WindowsSerialPort::config()

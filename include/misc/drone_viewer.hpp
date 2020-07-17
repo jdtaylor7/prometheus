@@ -111,18 +111,11 @@ bool DroneViewer::init()
         linux_serial_cfg.get());
 #endif
 
-    // /*
-    //  * Attempt to automatically find a usable port on startup. It's fine if this
-    //  * fails, as it can be controlled via the UI.
-    //  */
-    // if (!serial_port)
-    //     std::cout << "serial_port is null\n";
-    // std::vector<std::string> available_ports = serial_port->find_ports();
-    // if (!available_ports.empty())
-    // {
-    //     serial_port->open(available_ports[0]);
-    //     serial_port->config();
-    // }
+    /*
+     * Attempt to auto-open a port if only one is available. Else, do nothing
+     * since ports can easily be opened once the application is running.
+     */
+    serial_port->auto_open();
 
     /*
      * Initialize state.

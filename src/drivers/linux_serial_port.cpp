@@ -31,9 +31,9 @@ std::vector<std::string> LinuxSerialPort::find_ports()
     fs::path serial_device_path{"/dev/serial/by-id/"};
     fs::path dev_dir{"/dev/"};
 
-    if (serial_device_path.empty())
+    if (!fs::exists(serial_device_path))
     {
-        std::cerr << "Serial device directory does not exist.\n";
+        std::cerr << "Serial device directory does not exist\n";
         return std::vector<std::string>{};
     }
 
@@ -41,7 +41,6 @@ std::vector<std::string> LinuxSerialPort::find_ports()
     {
         fs::path dev_file = fs::read_symlink(entry).filename();
         fs::path dev_path = dev_dir / dev_file;
-        std::cout << dev_path.string() << '\n';
         available_ports.push_back(dev_path.string());
     }
 
@@ -58,7 +57,7 @@ bool LinuxSerialPort::open(const std::string& port)
 
     try
     {
-        std::cout << "opening port " << port << '\n';
+        std::cout << "Opening port " << port << '\n';
         stream.Open(port.c_str());
     }
     catch (const LibSerial::OpenFailed&)
@@ -71,11 +70,33 @@ bool LinuxSerialPort::open(const std::string& port)
     return true;
 }
 
+bool LinuxSerialPort::auto_open()
+{
+    find_ports();
+    if (available_ports.size() == 1)
+    {
+        std::cout << "Automatically opening " << available_ports[0] << '\n';
+        open(available_ports[0]);
+        config();
+        return true;
+    }
+    else if (available_ports.size() > 1)
+    {
+        std::cout << "Not auto-opening any ports: More than 1 available\n";
+        return false;
+    }
+    else
+    {
+        std::cout << "Not auto-opening any ports: None available\n";
+        return false;
+    }
+}
+
 bool LinuxSerialPort::config()
 {
     if (!port_open)
     {
-        std::cout << "Canont configure port before opening.\n";
+        std::cout << "Cannot configure port before opening.\n";
         return false;
     }
     if (port_configured)
@@ -84,11 +105,7 @@ bool LinuxSerialPort::config()
         return false;
     }
 
-    std::cout << "configuring port\n";
-    if (cfg->br == LibSerial::BaudRate::BAUD_9600)
-        std::cout << "baud rate is correct\n";
-    else
-        std::cout << "baud rate is wrong!\n";
+    std::cout << "Configuring port " << port_name << '\n';
 
     stream.SetBaudRate(cfg->br);
     stream.SetCharacterSize(cfg->cs);

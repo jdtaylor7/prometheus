@@ -53,6 +53,7 @@ public:
     std::vector<std::string> find_ports();
 
     bool open(const std::string&);
+    bool auto_open();
     bool config();
 
     bool start_reading();

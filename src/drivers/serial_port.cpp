@@ -40,6 +40,15 @@ bool SerialPort::open(const std::string& port)
 #endif
 }
 
+bool SerialPort::auto_open()
+{
+#ifdef OS_CYGWIN
+    return windows_port.auto_open();
+#elif OS_LINUX
+    return linux_port.auto_open();
+#endif
+}
+
 bool SerialPort::config()
 {
 #ifdef OS_CYGWIN
