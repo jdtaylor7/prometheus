@@ -54,9 +54,9 @@ private:
     HANDLE handle;
     HANDLE thread_started;
     HANDLE thread_term;
-    
+
     std::thread thread_handle;
-    static unsigned async_receive(void*);  // TODO make private
+    static unsigned async_receive(void*);
 
     /*
      * General serial port state.

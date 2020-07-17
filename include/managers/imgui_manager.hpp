@@ -308,11 +308,11 @@ void ImguiManager::process_frame()
             }
             else if (serial_port->is_open() && !serial_port->is_reading())
             {
-                ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.1f, 1.0f), "%s ready", serial_port->get_port_name().c_str());  // TODO fix?
+                ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.1f, 1.0f), "%s ready", serial_port->get_port_name().c_str());
             }
             else if (serial_port->is_open() && serial_port->is_reading())
             {
-                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Reading %s", serial_port->get_port_name().c_str());  // TODO fix?
+                ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Reading %s", serial_port->get_port_name().c_str());
             }
 
             ImGui::End();

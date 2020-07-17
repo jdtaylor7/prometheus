@@ -15,13 +15,36 @@ LinuxSerialPort::~LinuxSerialPort()
 {
 }
 
-// TODO implement correctly
+/*
+ * All relevant external serial devices are listed in /dev/serial. These entries
+ * then symlink to the actual enpoint in /dev (/dev/ttyS0, /dev/ttyACM0, etc.).
+ * Additionally, /dev/serial does not exist if no devices are plugged into the
+ * system. Again, this method finds physical USB->UART devices at the very
+ * least, not virtual ports or potentially other serial devices. For our
+ * purposes that's sufficient.
+ */
 std::vector<std::string> LinuxSerialPort::find_ports()
 {
-    // return std::vector<std::string>{};
-    std::vector<std::string> found_ports;
-    found_ports.push_back("/dev/ttyACM0");
-    available_ports = found_ports;
+    namespace fs = std::filesystem;
+
+    available_ports.clear();
+    fs::path serial_device_path{"/dev/serial/by-id/"};
+    fs::path dev_dir{"/dev/"};
+
+    if (serial_device_path.empty())
+    {
+        std::cerr << "Serial device directory does not exist.\n";
+        return std::vector<std::string>{};
+    }
+
+    for (auto& entry : fs::directory_iterator(serial_device_path))
+    {
+        fs::path dev_file = fs::read_symlink(entry).filename();
+        fs::path dev_path = dev_dir / dev_file;
+        std::cout << dev_path.string() << '\n';
+        available_ports.push_back(dev_path.string());
+    }
+
     return available_ports;
 }
 

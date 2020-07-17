@@ -4,6 +4,7 @@
 #ifdef OS_LINUX
 
 #include <atomic>
+#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -49,7 +50,7 @@ public:
     LinuxSerialPort(LinuxSerialPort&&) = delete;
     LinuxSerialPort& operator=(LinuxSerialPort&&) = delete;
 
-    std::vector<std::string> find_ports();  // TODO implement
+    std::vector<std::string> find_ports();
 
     bool open(const std::string&);
     bool config();
@@ -77,7 +78,7 @@ private:
     bool port_configured = false;
     std::atomic<bool> port_reading = false;
 
-    std::string port_name{};  // TODO actually assign somewhere
+    std::string port_name{};
     std::vector<std::string> available_ports{};  // actually assign somewhere
 };
 
