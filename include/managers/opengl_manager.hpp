@@ -26,10 +26,18 @@ class OpenglManager
 public:
     OpenglManager(std::size_t screen_width_,
         std::size_t screen_height_,
-        // const float room_size,
+        glm::vec3 room_dimensions_,
         ResourceManager* resource_manager_,
         DroneData* drone_data_,
-        Camera* camera_);
+        Camera* camera_) :
+            screen_width(screen_width_),
+            screen_height(screen_height_),
+            room_dimensions(room_dimensions_),
+            resource_manager(resource_manager_),
+            drone_data(drone_data_),
+            camera(camera_)
+    {
+    }
     ~OpenglManager();
 
     bool init();
@@ -42,59 +50,23 @@ private:
     std::size_t screen_width;
     std::size_t screen_height;
 
-    // const fs::path shader_dir = "src/shaders";
-    // const fs::path texture_dir = "assets/textures";
-    //
-    // const fs::path vertex_shader_path = shader_dir / "main.vs";
-    // const fs::path fragment_shader_path = shader_dir / "main.fs";
-    //
-    // // Individual textures.
-    // const fs::path container_texture_path = texture_dir / "container.jpg";
-    // const fs::path face_texture_path = texture_dir / "awesomeface.png";
-    // const fs::path wall_texture_path = texture_dir / "wall.jpg";
-    // const fs::path box_diffuse_texture_path = texture_dir / "box_specular_map.jpg";
-    // const fs::path box_specular_texture_path = texture_dir / "box_diffuse_map.jpg";
-    //
-    // // Texture family directories.
-    // const fs::path tile_floor_texture_dir = texture_dir / "tile_floor";
-    // const fs::path scifi_wall_texture_dir = texture_dir / "scifi_wall";
-    //
-    // // Texture families.
-    // const fs::path tile_floor_texture_diff = tile_floor_texture_dir / "diffuse.png";
-    // const fs::path tile_floor_texture_spec = tile_floor_texture_dir / "specular.png";
-    // const fs::path scifi_wall_texture_diff = scifi_wall_texture_dir / "diffuse.png";
-    // const fs::path scifi_wall_texture_spec = scifi_wall_texture_dir / "specular.png";
-
     /*
      * Shader paths.
      */
     const fs::path shader_path = "src/shaders";
 
-    // const fs::path vertex_shader_path = shader_dir / "shader.vs";
-    // const fs::path fragment_shader_path = shader_dir / "shader.fs";
-
     const fs::path main_vshader_path = shader_path / "main.vs";
     const fs::path main_fshader_path = shader_path / "main.fs";
-    const fs::path plight_vshader_path = shader_path / "plight.vs";
-    const fs::path plight_fshader_path = shader_path / "plight.fs";
+    const fs::path plight_vshader_path = shader_path / "point_light.vs";
+    const fs::path plight_fshader_path = shader_path / "point_light.fs";
 
     float fov = 45.0;
 
-    // float room_size;
+    glm::vec3 room_dimensions;
 
     // glm::vec3 room_pos{};
     DroneData* drone_data;
     Camera* camera;
-
-    // unsigned int vao;
-    // unsigned int vbo;
-    // unsigned int ebo;
-
-    // Shader shader{};
-
-    // std::array<unsigned int, 2> textures{};
-    // std::size_t next_texture = 0;
-
     ResourceManager* resource_manager;
 
     /*
@@ -103,78 +75,32 @@ private:
     std::unique_ptr<Shader> plight_shader;
     std::unique_ptr<Shader> main_shader;
 
-    // glm::mat4 room_model;
     /*
      * Models.
      */
     SceneLighting* sl;
     Room* room;
     Model* drone;
-
-    // void make_opengl_objects();
-    // void init_buffers();
-    // bool make_jpeg_texture(fs::path texture_path);
-    // bool make_png_texture(fs::path texture_path);
 };
-
-OpenglManager::OpenglManager(std::size_t screen_width_,
-                             std::size_t screen_height_,
-                             // const float room_size_,
-                             ResourceManager* resource_manager_,
-                             DroneData* drone_data_,
-                             Camera* camera_) :
-        screen_width(screen_width_),
-        screen_height(screen_height_),
-        // room_size(room_size_),
-        resource_manager(resource_manager_),
-        drone_data(drone_data_),
-        camera(camera_)
-{
-}
 
 bool OpenglManager::init()
 {
-    // Set OpenGL flags.
+    /*
+     * Set global OpenGL state.
+     */
     glEnable(GL_DEPTH_TEST);
 
-    // Generate array and buffer objects.
-    // make_opengl_objects();
-    // init_buffers();
-    // glBindBuffer(GL_ARRAY_BUFFER, 0);
-    // glBindVertexArray(0);
-
-    // // Create shaders.
-    // auto plight_shader = std::make_unique<Shader>(
-    //     plight_vshader_path, plight_fshader_path);
-    // plight_shader.init();
+    /*
+     * Create shaders.
+     */
+    plight_shader = std::make_unique<Shader>(plight_vshader_path, plight_fshader_path);
+    plight_shader->init();
     main_shader = std::make_unique<Shader>(main_vshader_path, main_fshader_path);
     main_shader->init();
 
-    // /*
-    //  * Initialize lights.
-    //  */
-    //
-    // /*
-    //  * Initialize models.
-    //  */
-    // // Light model(s).
-    //
-    // Room model.
-    //
-    // // Drone model.
-    //
-    // // Load textures.
-    // glGenTextures(2, textures.data());
-    // stbi_set_flip_vertically_on_load(true);
-    // make_jpeg_texture(container_texture_path);
-    // make_jpeg_texture(wall_texture_path);
-    //
-    //
-    // // Initialize room model.
-    // room_model = glm::mat4(1.0f);
-    // room_model = glm::translate(room_model, room_pos);
-    // room_model = glm::scale(room_model,
-    //     glm::vec3(room_size, room_size, room_size));
+    /*
+     * Set up shadow mapping.
+     */
 
     return true;
 }
@@ -280,25 +206,25 @@ void OpenglManager::process_frame()
     // Render scene normally.
     render_scene(main_shader.get());
 
-    // /*
-    //  * Draw point lights.
-    //  */
-    // plight_shader->use();
-    //
-    // // Set MVP matrices.
-    // plight_shader->set_mat4fv("projection", projection);
-    // plight_shader->set_mat4fv("view", view);
-    //
-    // // Render point light(s).
-    // for (auto& point_light : point_lights)
-    // {
-    //     model = glm::mat4(1.0f);
-    //     model = glm::translate(model, point_light->position);
-    //     model = glm::scale(model, glm::vec3(point_light->scale_factor));
-    //     plight_shader->set_mat4fv("model", model);
-    //     plight_shader->set_vec3("color", point_light->color);
-    //     point_light->draw();
-    // }
+    /*
+     * Draw point lights.
+     */
+    plight_shader->use();
+
+    // Set MVP matrices.
+    plight_shader->set_mat4fv("projection", projection);
+    plight_shader->set_mat4fv("view", view);
+
+    // Render point light(s).
+    for (auto& point_light : sl->points)
+    {
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, point_light->position);
+        model = glm::scale(model, glm::vec3(point_light->scale_factor));
+        plight_shader->set_mat4fv("model", model);
+        plight_shader->set_vec3("color", point_light->color);
+        point_light->draw();
+    }
 
     // // Render square.
     // glActiveTexture(GL_TEXTURE0);
@@ -348,147 +274,5 @@ void OpenglManager::process_frame()
     // // Unbind VAO.
     // glBindVertexArray(0);
 }
-
-// bool OpenglManager::make_jpeg_texture(fs::path texture_path)
-// {
-//     // Activate a texture unit and bind the texture as the current
-//     // GL_TEXTURE_2D.
-//     glBindTexture(GL_TEXTURE_2D, textures[next_texture]);
-//     next_texture++;
-//
-//     // Set texture wrapping and filtering options.
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//
-//     // Load container texture.
-//     int width;
-//     int height;
-//     int num_channels;
-//     unsigned char *data = stbi_load(texture_path.c_str(),
-//         &width,
-//         &height,
-//         &num_channels,
-//         0);
-//
-//     // Generate texture.
-//     if (data)
-//     {
-//         glTexImage2D(GL_TEXTURE_2D,
-//             0,
-//             GL_RGB,
-//             width,
-//             height,
-//             0,
-//             GL_RGB,
-//             GL_UNSIGNED_BYTE,
-//             data);
-//         glGenerateMipmap(GL_TEXTURE_2D);
-//         stbi_image_free(data);
-//     }
-//     else
-//     {
-//         std::cout << "Failed to load texture at " << texture_path.string() << '\n';
-//         return false;
-//     }
-//
-//     return true;
-// }
-//
-// bool OpenglManager::make_png_texture(fs::path texture_path)
-// {
-//     // Activate a texture unit and bind the texture as the current
-//     // GL_TEXTURE_2D.
-//     glBindTexture(GL_TEXTURE_2D, textures[next_texture]);
-//     next_texture++;
-//
-//     // Set texture wrapping and filtering options.
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//
-//     // Load container texture.
-//     int width;
-//     int height;
-//     int num_channels;
-//     unsigned char *data = stbi_load(texture_path.c_str(),
-//         &width,
-//         &height,
-//         &num_channels,
-//         0);
-//
-//     // Generate texture.
-//     if (data)
-//     {
-//         glTexImage2D(GL_TEXTURE_2D,
-//             0,
-//             GL_RGBA,
-//             width,
-//             height,
-//             0,
-//             GL_RGBA,
-//             GL_UNSIGNED_BYTE,
-//             data);
-//         glGenerateMipmap(GL_TEXTURE_2D);
-//         stbi_image_free(data);
-//     }
-//     else
-//     {
-//         std::cout << "Failed to load texture at " << texture_path.string() << '\n';
-//         return false;
-//     }
-//
-//     return true;
-// }
-
-// void OpenglManager::make_opengl_objects()
-// {
-//     // Generate and bind a "vertex array object" (VAO) to store the VBO and
-//     // corresponding vertex attribute configurations.
-//     glGenVertexArrays(1, &vao);
-//     glBindVertexArray(vao);
-//
-//     // Send vertex data to the vertex shader. Do so by allocating GPU
-//     // memory, which is managed by "vertex buffer objects" (VBOs).
-//     glGenBuffers(1, &vbo);
-//     glGenBuffers(1, &ebo);
-// }
-
-// void OpenglManager::init_buffers()
-// {
-//     // Bind VBO to the vertex buffer object, GL_ARRAY_BUFFER. Buffer
-//     // operations on GL_ARRAY_BUFFER then apply to VBO.
-//     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-//     glBufferData(GL_ARRAY_BUFFER,
-//         sizeof(float) * vertices.size(),
-//         vertices.data(),
-//         GL_STATIC_DRAW);
-//
-//     // Bind EBO to the element buffer object, GL_ELEMENT_ARRAY_BUFFER. Buffer
-//     // operations on GL_ELEMENT_ARRAY_BUFFER then apply to EBO.
-//     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-//     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-//         sizeof(unsigned int) * indices.size(),
-//         indices.data(),
-//         GL_STATIC_DRAW);
-//
-//     // Specify vertex data format.
-//     glVertexAttribPointer(0,
-//         3,
-//         GL_FLOAT,
-//         GL_FALSE,
-//         5 * sizeof(float),
-//         (void*)0);
-//     glEnableVertexAttribArray(0);
-//     glVertexAttribPointer(1,
-//         2,
-//         GL_FLOAT,
-//         GL_FALSE,
-//         5 * sizeof(float),
-//         (void*)(3 * sizeof(float)));
-//     glEnableVertexAttribArray(1);
-// }
 
 #endif /* OPENGL_MANAGER_HPP */

@@ -145,7 +145,6 @@ void Room::init()
     ceiling_specular_texture = load_texture_from_file(ceiling_specular_texture_path);
     wall_diffuse_texture = load_texture_from_file(wall_diffuse_texture_path);
     wall_specular_texture = load_texture_from_file(wall_specular_texture_path);
-    std::cout << "room inited\n";
 }
 
 void Room::deinit()

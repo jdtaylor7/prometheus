@@ -197,8 +197,6 @@ bool DroneViewer::init()
         resource_manager.get(),
         SCREEN_WIDTH,
         SCREEN_HEIGHT,
-        // ROOM_SIZE / 2,
-        // ROOM_SIZE,  // TODO change
         room_dimensions,
         CAMERA_POSITION_HEADON,
         CAMERA_TARGET_HEADON);
@@ -231,11 +229,10 @@ bool DroneViewer::init()
         SHOW_CAMERA_DATA_WINDOW);
     if (!imgui_manager->init()) return false;
 
-    std::cout << "Create opengl manager.\n";
     opengl_manager = std::make_unique<OpenglManager>(
         SCREEN_WIDTH,
         SCREEN_HEIGHT,
-        // ROOM_SIZE,
+        room_dimensions,
         resource_manager.get(),
         drone_data.get(),
         camera.get());
@@ -262,7 +259,6 @@ bool DroneViewer::init()
     assert(point_light_positions.size() == point_light_colors.size());
     for (std::size_t i = 0; i < point_light_positions.size(); i++)
     {
-        std::cout << "i = " << i << '\n';
         auto point_light = std::make_shared<PointLight>(
             point_light_positions[i],
             point_light_colors[i],
@@ -278,7 +274,6 @@ bool DroneViewer::init()
     }
 
     // Scene lighting.
-    std::cout << "Create scene lighting.\n";
     scene_lighting = std::make_unique<SceneLighting>(
         nullptr,
         point_lights,
@@ -286,7 +281,6 @@ bool DroneViewer::init()
     );
 
     // Room.
-    std::cout << "Create room.\n";
     room = std::make_unique<Room>(
         tile_floor_texture_diff,
         tile_floor_texture_spec,
@@ -304,7 +298,6 @@ bool DroneViewer::init()
     room->init();
 
     // Drone.
-    std::cout << "Create drone.\n";
     drone = std::make_unique<Model>(
         drone_obj_path,
         drone_flip_textures,
