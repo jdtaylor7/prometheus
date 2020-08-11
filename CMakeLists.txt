@@ -7,14 +7,17 @@ project(DroneViewer VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# Build type.
+set(CMAKE_BUILD_TYPE Release)
+
 # Create compilation database for Sourcetrail.
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
 # Add packages.
-find_package(OpenGL REQUIRED)
-
 set(CMAKE_PREFIX_PATH /usr/lib/glfw)
-find_package(glfw3 3.3 REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(glfw3 3.3 CONFIG REQUIRED)
+find_package(ASSIMP CONFIG REQUIRED)
 
 # Find libraries.
 find_library(LIBSERIAL_LIB serial "${PROJECT_SOURCE_DIR}/third_party/libserial/lib")
@@ -22,10 +25,10 @@ find_library(LIBSERIAL_LIB serial "${PROJECT_SOURCE_DIR}/third_party/libserial/l
 # Detect OS.
 string(COMPARE EQUAL "${CMAKE_SYSTEM_NAME}" "Linux" is_linux)
 if(is_linux)
-    set(CXXOPTS "${CXXOPTS} -D OS_LINUX")
+    set(CXXOPTS "${CXXOPTS} -DOS_LINUX")
 	include_directories(/usr/include/libusb-1.0)
 elseif(CYGWIN)
-    set(CXXOPTS "${CXXOPTS} -D OS_CYGWIN")
+    set(CXXOPTS "${CXXOPTS} -DOS_CYGWIN")
 endif()
 
 # Add include directories
@@ -43,7 +46,13 @@ include_directories(
     "${PROJECT_SOURCE_DIR}/include/data"
     "${PROJECT_SOURCE_DIR}/include/drivers"
     "${PROJECT_SOURCE_DIR}/include/managers"
+    "${PROJECT_SOURCE_DIR}/include/models"
     "${PROJECT_SOURCE_DIR}/include/misc"
+)
+
+# Add library directories.
+link_directories(
+    "${ASSIMP_LIBRARIES}"
 )
 
 # Add compiler/linker options.
@@ -80,6 +89,7 @@ target_link_libraries(main
     glad
     stb_image
     glfw
+    assimp
     "${OPENGL_LIBRARIES}"
     imgui_impl_glfw
     imgui_impl_opengl3

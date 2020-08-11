@@ -1,22 +1,22 @@
 # Detect Linux.
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Linux)
-	CFLAGS += -D OS_LINUX
+	CFLAGS += -DOS_LINUX
 	LINKOPTS += -L$(glfw)/lib/linux
 	INCLUDES += -I/usr/include/libusb-1.0
 endif
 # ifeq ($(filter %CYGWIN, $(UNAME_S)),)
-# 	CFLAGS += -D OS_CYGWIN
+# 	CFLAGS += -DOS_CYGWIN
 # 	LINKOPTS += -L$(glfw)/lib/cygwin
 # endif
 
 # Detect architecture for Linux.
 UNAME_M := $(shell uname -m)
 ifeq ($(UNAME_M), x86_64)
-	CFLAGS += -D AMD64
+	CFLAGS += -DAMD64
 endif
 ifneq ($(filter %86, $(UNAME_M)),)
-	CFLAGS += -D IA32
+	CFLAGS += -DIA32
 endif
 
 gl = third_party/GL

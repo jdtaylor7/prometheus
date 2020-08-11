@@ -22,19 +22,18 @@ public:
     Camera(ResourceManager* rm_,
            std::size_t screen_width,
            std::size_t screen_height,
-           float horizontal_boundary_,
-           float top_boundary_,
+           glm::vec3 room_dimensions_,
            glm::vec3 position_,
            glm::vec3 target_) :
         rm(rm_),
         lastx(screen_width / 2),
         lasty(screen_height / 2),
-        horizontal_boundary(horizontal_boundary_ - 0.2f),
-        top_boundary(top_boundary_ - 0.2f),
+        room_dimensions(room_dimensions_),
         position(position_),
         target(target_),
         front(target_ - position_)
-        {}
+    {
+    }
 
     friend std::ostream& operator<<(std::ostream&, const Camera&);
 
@@ -63,7 +62,7 @@ private:
      */
     const glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
     const float mouse_sensitivity = 0.05f;
-    const float bottom_boundary = 0.2f;
+    const float collision_bias = 0.2f;
 
     /*
      * Internal state.
@@ -77,8 +76,7 @@ private:
 
     bool first_mouse = true;
 
-    float horizontal_boundary;
-    float top_boundary;
+    glm::vec3 room_dimensions;
 
     float lastx;
     float lasty;
@@ -169,20 +167,20 @@ void Camera::set_target_and_front(glm::vec3 tar)
  */
 inline void Camera::constrain_to_boundary()
 {
-    if (position.x > horizontal_boundary)
-        position.x = horizontal_boundary;
-    else if (position.x < (-1 * horizontal_boundary))
-        position.x = (-1 * horizontal_boundary);
+    if (position.x > room_dimensions.x / 2 - collision_bias)
+        position.x = room_dimensions.x / 2 - collision_bias;
+    else if (position.x < (-1 * room_dimensions.x / 2) + collision_bias)
+        position.x = (-1 * room_dimensions.x / 2 + collision_bias);
 
-    if (position.y > top_boundary)
-        position.y = top_boundary;
-    else if (position.y < bottom_boundary)
-        position.y = bottom_boundary;
+    if (position.y > room_dimensions.y)  // TODO fix
+        position.y = room_dimensions.y;
+    else if (position.y < 0)
+        position.y = 0;
 
-    if (position.z > horizontal_boundary)
-        position.z = horizontal_boundary;
-    else if (position.z < (-1 * horizontal_boundary))
-        position.z = (-1 * horizontal_boundary);
+    if (position.z > room_dimensions.z / 2 - collision_bias)
+        position.z = room_dimensions.z / 2 - collision_bias;
+    else if (position.z < (-1 * room_dimensions.z / 2) + collision_bias)
+        position.z = (-1 * room_dimensions.z / 2 + collision_bias);
 }
 
 void Camera::update_position(GLFWwindow* window)

@@ -2,6 +2,7 @@
 #define DRONE_VIEWER_HPP
 
 #include <iostream>
+#include <filesystem>
 #include <memory>
 #include <string>
 
@@ -11,6 +12,7 @@
 #include "camera.hpp"
 #include "glfw_manager.hpp"
 #include "imgui_manager.hpp"
+#include "lights.hpp"
 #include "opengl_manager.hpp"
 #include "resource_manager.hpp"
 #include "serial_port.hpp"
@@ -39,16 +41,77 @@ private:
     const std::vector<std::size_t> TELEMETRY_ACCEL_OFFSETS = {1, 7, 13};
     const std::vector<std::size_t> TELEMETRY_ROT_RATE_OFFSETS = {19, 25, 31};
 
-    static constexpr std::size_t SCREEN_WIDTH = 1600;
-    static constexpr std::size_t SCREEN_HEIGHT = 1200;
+    // static constexpr std::size_t SCREEN_WIDTH = 1600;
+    // static constexpr std::size_t SCREEN_HEIGHT = 1200;
+    static constexpr std::size_t SCREEN_WIDTH = 1200;
+    static constexpr std::size_t SCREEN_HEIGHT = 900;
 
     static constexpr bool SHOW_DEMO_WINDOW = false;
     static constexpr bool SHOW_IMPLOT_DEMO_WINDOW = false;
     static constexpr bool SHOW_CAMERA_DATA_WINDOW = true;
 
-    static constexpr float ROOM_SIZE = 10.0f;
+    // static constexpr float room_height = 24.0f;  // TODO change
+    // static constexpr float room_width = 12.0f;  // TODO change
+    // static constexpr float room_depth = 24.0f;  // TODO change
+    static constexpr glm::vec3 room_dimensions = glm::vec3(24.0f, 12.0f, 24.0f);
 
     const std::string GLSL_VERSION = "#version 330";
+
+    // const fs::path shader_dir = "src/shaders";
+    //
+    // const fs::path vertex_shader_path = shader_dir / "shader.vs";
+    // const fs::path fragment_shader_path = shader_dir / "shader.fs";
+
+    const fs::path texture_dir = "assets/textures";
+
+    // Individual textures. TODO remove unnecessary ones.
+    const fs::path container_texture_path = texture_dir / "container.jpg";
+    const fs::path face_texture_path = texture_dir / "awesomeface.png";
+    const fs::path wall_texture_path = texture_dir / "wall.jpg";
+    const fs::path box_diffuse_texture_path = texture_dir / "box_specular_map.jpg";
+    const fs::path box_specular_texture_path = texture_dir / "box_diffuse_map.jpg";
+
+    // Texture family directories.
+    const fs::path tile_floor_texture_dir = texture_dir / "tile_floor";
+    const fs::path scifi_wall_texture_dir = texture_dir / "scifi_wall";
+
+    // Texture families.
+    const fs::path tile_floor_texture_diff = tile_floor_texture_dir / "diffuse.png";
+    const fs::path tile_floor_texture_spec = tile_floor_texture_dir / "specular.png";
+    const fs::path scifi_wall_texture_diff = scifi_wall_texture_dir / "diffuse.png";
+    const fs::path scifi_wall_texture_spec = scifi_wall_texture_dir / "specular.png";
+
+    /*
+     * Lights.
+     */
+    glm::vec3 diffuse_light_intensity = glm::vec3(0.5f);
+    glm::vec3 specular_light_intensity = glm::vec3(1.0f);
+
+    float light_attenuation_constant = 1.0f;
+    float light_attenuation_linear = 0.07f;
+    float light_attenuation_quadratic = 0.017f;
+
+    // Point lights.
+    std::vector<glm::vec3> point_light_positions = {
+        glm::vec3( 1.5f, 3.5f, 0.0f),
+    };
+    std::vector<glm::vec3> point_light_colors = {
+        glm::vec3(0.529f, 0.808f, 0.922f),
+    };
+    float point_light_scale_factor = 0.2f;
+    glm::vec3 point_light_ambient_intensity = glm::vec3(0.8f);
+
+    /*
+     * Room.
+     */
+    float room_scale_factor = 24.0f;
+
+    /*
+     * Drone.
+     */
+    const fs::path drone_directory = "assets/models/drone";
+    const fs::path drone_obj_path = drone_directory / "drone.obj";
+    bool drone_flip_textures = true;
 
 #ifdef OS_LINUX
     std::unique_ptr<const LinuxSerialPortConfig> linux_serial_cfg =
@@ -67,6 +130,14 @@ private:
     std::unique_ptr<DroneData> drone_data;
     std::unique_ptr<Camera> camera;
     std::shared_ptr<BoundedBuffer<char>> telemetry_buffer;
+
+    /*
+     * OpenGL models.
+     */
+    std::vector<std::shared_ptr<PointLight>> point_lights;
+    std::unique_ptr<SceneLighting> scene_lighting;
+    std::unique_ptr<Room> room;
+    std::unique_ptr<Model> drone;
 
     /*
      * Synchronization constructs.
@@ -126,8 +197,9 @@ bool DroneViewer::init()
         resource_manager.get(),
         SCREEN_WIDTH,
         SCREEN_HEIGHT,
-        ROOM_SIZE / 2,
-        ROOM_SIZE,
+        // ROOM_SIZE / 2,
+        // ROOM_SIZE,  // TODO change
+        room_dimensions,
         CAMERA_POSITION_HEADON,
         CAMERA_TARGET_HEADON);
 
@@ -159,10 +231,11 @@ bool DroneViewer::init()
         SHOW_CAMERA_DATA_WINDOW);
     if (!imgui_manager->init()) return false;
 
+    std::cout << "Create opengl manager.\n";
     opengl_manager = std::make_unique<OpenglManager>(
         SCREEN_WIDTH,
         SCREEN_HEIGHT,
-        ROOM_SIZE,
+        // ROOM_SIZE,
         resource_manager.get(),
         drone_data.get(),
         camera.get());
@@ -181,6 +254,69 @@ bool DroneViewer::init()
         resource_manager.get(),
         telemetry_buffer);
     if (!telemetry_manager->init()) return false;
+
+    /*
+     * Initialize OpenGL models.
+     */
+    // Point lights.
+    assert(point_light_positions.size() == point_light_colors.size());
+    for (std::size_t i = 0; i < point_light_positions.size(); i++)
+    {
+        std::cout << "i = " << i << '\n';
+        auto point_light = std::make_shared<PointLight>(
+            point_light_positions[i],
+            point_light_colors[i],
+            point_light_scale_factor,
+            point_light_ambient_intensity,
+            diffuse_light_intensity,
+            specular_light_intensity,
+            light_attenuation_constant,
+            light_attenuation_linear,
+            light_attenuation_quadratic);
+        point_light->init();
+        point_lights.push_back(point_light);
+    }
+
+    // Scene lighting.
+    std::cout << "Create scene lighting.\n";
+    scene_lighting = std::make_unique<SceneLighting>(
+        nullptr,
+        point_lights,
+        nullptr
+    );
+
+    // Room.
+    std::cout << "Create room.\n";
+    room = std::make_unique<Room>(
+        tile_floor_texture_diff,
+        tile_floor_texture_spec,
+        tile_floor_texture_diff,
+        tile_floor_texture_spec,
+        scifi_wall_texture_diff,
+        scifi_wall_texture_spec,
+        scene_lighting.get(),
+        room_scale_factor);
+    if (!room)
+    {
+        std::cout << "DroneViewer::init: Room not created";
+        return false;
+    }
+    room->init();
+
+    // Drone.
+    std::cout << "Create drone.\n";
+    drone = std::make_unique<Model>(
+        drone_obj_path,
+        drone_flip_textures,
+        scene_lighting.get());
+    drone->init();
+
+    // Pass models to OpenGL manager.
+    opengl_manager->pass_objects(
+        scene_lighting.get(),
+        room.get(),
+        drone.get()
+    );
 
     return true;
 }
