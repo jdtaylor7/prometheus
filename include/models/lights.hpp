@@ -31,9 +31,9 @@ struct SceneLighting
     {
     }
 
-    DirectionalLight* dir;
+    DirectionalLight* dir = nullptr;
     std::vector<std::shared_ptr<PointLight>> points;
-    Spotlight* spot;
+    Spotlight* spot = nullptr;
 };
 
 struct DirectionalLight

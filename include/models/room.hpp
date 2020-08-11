@@ -210,7 +210,7 @@ void Room::draw(Shader* shader)
             }
             else
             {
-                std::cout << "Room::draw: No point lights present in the scene.\n";
+                // std::cout << "Room::draw: No point lights present in the scene.\n";
             }
         }
 

@@ -61,6 +61,7 @@ private:
     const fs::path plight_fshader_path = shader_path / "point_light.fs";
 
     float fov = 45.0;
+    float drone_scale_factor = 0.002f;
 
     glm::vec3 room_dimensions;
 
@@ -145,27 +146,27 @@ void OpenglManager::render_scene(Shader* shader)
     }
     room->draw(shader);
 
-    // /*
-    //  * Draw model.
-    //  */
-    // shader->use();
-    //
-    // // Position properties.
-    // shader->set_vec3("view_pos", camera_pos);
-    //
-    // // Set model matrix.
-    // glm::mat4 model = glm::mat4(1.0f);
-    // model = glm::translate(model, model_pos);
-    // model = glm::scale(model, glm::vec3(model_settings.scale_factor));
-    // shader->set_mat4fv("model", model);
-    //
-    // // Render drone.
-    // if (!drone)
-    // {
-    //     std::cerr << "opengl_manager::render_scene: drone is NULL\n";
-    //     return;
-    // }
-    // drone->draw(shader);
+    /*
+     * Draw model.
+     */
+    shader->use();
+
+    // Position properties.
+    shader->set_vec3("view_pos", camera->get_position());
+
+    // Set model matrix.
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, drone_data->position);
+    model = glm::scale(model, glm::vec3(drone_scale_factor));
+    shader->set_mat4fv("model", model);
+
+    // Render drone.
+    if (!drone)
+    {
+        std::cerr << "opengl_manager::render_scene: drone is NULL\n";
+        return;
+    }
+    drone->draw(shader);
 }
 
 void OpenglManager::process_frame()

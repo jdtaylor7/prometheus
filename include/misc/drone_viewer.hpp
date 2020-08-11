@@ -50,17 +50,9 @@ private:
     static constexpr bool SHOW_IMPLOT_DEMO_WINDOW = false;
     static constexpr bool SHOW_CAMERA_DATA_WINDOW = true;
 
-    // static constexpr float room_height = 24.0f;  // TODO change
-    // static constexpr float room_width = 12.0f;  // TODO change
-    // static constexpr float room_depth = 24.0f;  // TODO change
     static constexpr glm::vec3 room_dimensions = glm::vec3(24.0f, 12.0f, 24.0f);
 
     const std::string GLSL_VERSION = "#version 330";
-
-    // const fs::path shader_dir = "src/shaders";
-    //
-    // const fs::path vertex_shader_path = shader_dir / "shader.vs";
-    // const fs::path fragment_shader_path = shader_dir / "shader.fs";
 
     const fs::path texture_dir = "assets/textures";
 
@@ -111,7 +103,7 @@ private:
      */
     const fs::path drone_directory = "assets/models/drone";
     const fs::path drone_obj_path = drone_directory / "drone.obj";
-    bool drone_flip_textures = true;
+    bool drone_flip_textures = false;
 
 #ifdef OS_LINUX
     std::unique_ptr<const LinuxSerialPortConfig> linux_serial_cfg =

@@ -99,64 +99,68 @@ void Mesh::draw(Shader* shader)
     // Set shader attributes.
     if (!shader)
     {
-        std::cerr << "Room::draw: SceneLighting->Spotlight pointer is null.\n";
+        std::cerr << "Mesh::draw: shader pointer is null.\n";
         return;
     }
     shader->use();
 
     // Directional light properties.
-    if (!sl->dir)
+    if (sl->dir)
     {
-        std::cerr << "Room::draw: SceneLighting->DirectionalLight pointer is null.\n";
-        return;
+        shader->set_vec3("dir_light.direction", sl->dir->direction);
+
+        shader->set_vec3("dir_light.ambient", sl->dir->ambient);
+        shader->set_vec3("dir_light.diffuse", sl->dir->diffuse);
+        shader->set_vec3("dir_light.specular", sl->dir->specular);
     }
-
-    shader->set_vec3("dir_light.direction", sl->dir->direction);
-
-    shader->set_vec3("dir_light.ambient", sl->dir->ambient);
-    shader->set_vec3("dir_light.diffuse", sl->dir->diffuse);
-    shader->set_vec3("dir_light.specular", sl->dir->specular);
+    else
+    {
+        // std::cout << "Mesh::draw: No directional light present.\n";
+    }
 
     // Point light properties.
     for (std::size_t i = 0; i < sl->points.size(); i++)
     {
         std::string attr_prefix{"point_lights[" + std::to_string(i) + "]."};
 
-        if (!sl->points[i])
+        if (sl->points[i])
         {
-            std::cerr << "Room::draw: SceneLighting->PointLight pointer is null.\n";
-            return;
+            shader->set_vec3(attr_prefix + "position", sl->points[i]->position);
+            shader->set_vec3(attr_prefix + "ambient", sl->points[i]->ambient);
+            shader->set_vec3(attr_prefix + "diffuse", sl->points[i]->color * sl->points[i]->diffuse);
+            shader->set_vec3(attr_prefix + "specular", sl->points[i]->color * sl->points[i]->specular);
+            shader->set_float(attr_prefix + "constant", sl->points[i]->constant);
+            shader->set_float(attr_prefix + "linear", sl->points[i]->linear);
+            shader->set_float(attr_prefix + "quadratic", sl->points[i]->quadratic);
         }
-
-        shader->set_vec3(attr_prefix + "position", sl->points[i]->position);
-        shader->set_vec3(attr_prefix + "ambient", sl->points[i]->ambient);
-        shader->set_vec3(attr_prefix + "diffuse", sl->points[i]->color * sl->points[i]->diffuse);
-        shader->set_vec3(attr_prefix + "specular", sl->points[i]->color * sl->points[i]->specular);
-        shader->set_float(attr_prefix + "constant", sl->points[i]->constant);
-        shader->set_float(attr_prefix + "linear", sl->points[i]->linear);
-        shader->set_float(attr_prefix + "quadratic", sl->points[i]->quadratic);
+        else
+        {
+            std::cout << "Room::draw: No pointer lights present.\n";
+        }
     }
 
     // Spotlight properties.
-    if (!sl->spot)
+    if (sl->spot)
     {
-        std::cerr << "Room::draw: SceneLighting pointer is null.\n";
-        return;
+        shader->set_vec3("spotlight.position", sl->spot->position);
+        shader->set_vec3("spotlight.direction", sl->spot->direction);
+
+        shader->set_float("spotlight.inner_cutoff", glm::cos(glm::radians(sl->spot->inner_cutoff)));
+        shader->set_float("spotlight.outer_cutoff", glm::cos(glm::radians(sl->spot->outer_cutoff)));
+
+        shader->set_vec3("spotlight.ambient", sl->spot->ambient);
+        shader->set_vec3("spotlight.diffuse", sl->spot->diffuse);
+        shader->set_vec3("spotlight.specular", sl->spot->specular);
+
+        shader->set_float("spotlight.constant", sl->spot->constant);
+        shader->set_float("spotlight.linear", sl->spot->linear);
+        shader->set_float("spotlight.quadratic", sl->spot->quadratic);
+    }
+    else
+    {
+        // std::cout << "Room::draw: No spotlight present.\n";
     }
 
-    shader->set_vec3("spotlight.position", sl->spot->position);
-    shader->set_vec3("spotlight.direction", sl->spot->direction);
-
-    shader->set_float("spotlight.inner_cutoff", glm::cos(glm::radians(sl->spot->inner_cutoff)));
-    shader->set_float("spotlight.outer_cutoff", glm::cos(glm::radians(sl->spot->outer_cutoff)));
-
-    shader->set_vec3("spotlight.ambient", sl->spot->ambient);
-    shader->set_vec3("spotlight.diffuse", sl->spot->diffuse);
-    shader->set_vec3("spotlight.specular", sl->spot->specular);
-
-    shader->set_float("spotlight.constant", sl->spot->constant);
-    shader->set_float("spotlight.linear", sl->spot->linear);
-    shader->set_float("spotlight.quadratic", sl->spot->quadratic);
 
     // // Material properties.
     // shader->set_float("material.shininess", 32.0f);

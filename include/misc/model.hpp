@@ -18,20 +18,6 @@
 #include "shader.hpp"
 #include "utility.hpp"
 
-struct ModelSettings
-{
-    ModelSettings(std::string name_, bool flip_textures_, float scale_factor_) :
-        name(name_),
-        flip_textures(flip_textures_),
-        scale_factor(scale_factor_)
-    {
-    }
-
-    std::string name;
-    bool flip_textures;
-    float scale_factor;
-};
-
 class Model
 {
 public:
