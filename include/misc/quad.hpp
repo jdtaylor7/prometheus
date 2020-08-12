@@ -45,7 +45,7 @@ void Quad::draw(Shader* shader)
 {
     if (!shader)
     {
-        logger.error("Quad::draw: shader is null\n");
+        logger.log(LogLevel::error, "Quad::draw: shader is null\n");
         return;
     }
 

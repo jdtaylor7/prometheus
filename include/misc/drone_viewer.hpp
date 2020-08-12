@@ -23,6 +23,8 @@
 #include "vertex_data.hpp"
 #include "viewer_mode.hpp"
 
+Logger logger = Logger(LogLevel::info);
+
 class DroneViewer
 {
 public:
@@ -286,7 +288,7 @@ bool DroneViewer::init()
         room_scale_factor);
     if (!room)
     {
-        std::cout << "DroneViewer::init: Room not created";
+        logger.log(LogLevel::fatal, "DroneViewer::init: Room not created\n");
         return false;
     }
     room->init();

@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 
 #include "callbacks.hpp"
+#include "logger.hpp"
 #include "serial_port.hpp"
 #include "shared.hpp"
 #include "timer_manager.hpp"
@@ -84,7 +85,7 @@ bool GlfwManager::init()
     window = glfwCreateWindow(screen_width, screen_height, "Drone Viewer", NULL, NULL);
     if (!window)
     {
-        std::cout << "Failed to create GLFW window\n";
+        logger.log(LogLevel::fatal, "Failed to create GLFW window\n");
         return false;
     }
 
@@ -110,7 +111,7 @@ bool GlfwManager::init()
      */
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        std::cout << "Failed to initialize GLAD\n";
+        logger.log(LogLevel::fatal, "Failed to initialize GLAD\n");
         return false;
     }
 

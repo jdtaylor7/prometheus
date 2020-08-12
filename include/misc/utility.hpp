@@ -42,7 +42,7 @@ unsigned int load_texture_from_file(const std::filesystem::path texture_path)
     }
     else
     {
-        logger.error("load_texture_from_file: Failed to load texture at ", texture_path, '\n');
+        logger.log(LogLevel::error, "load_texture_from_file: Failed to load texture at ", texture_path, '\n');
         stbi_image_free(data);
     }
 

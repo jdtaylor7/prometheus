@@ -5,6 +5,10 @@
 #include <array>
 #include <algorithm>
 
+#include "logger.hpp"
+
+// extern Logger logger;
+
 explicit WindowsSerialPort::WindowsSerialPort(std::shared_ptr<BoundedBuffer<char>> buffer_)
     : buffer{buffer_}
 {
@@ -23,7 +27,7 @@ std::vector<std::string> WindowsSerialPort::find_ports()
     {
         std::string com_port_str = COM_PORT_PREFIX + std::to_string(i);
 
-        std::cout << "Checking COM" << i << "...\n";
+        logger.log(LogLevel::info: "Checking COM", i, "...\n");
         handle = CreateFile(com_port_str.c_str(),  // filename
                             GENERIC_READ,          // access method
                             0,                     // cannot share
@@ -34,7 +38,7 @@ std::vector<std::string> WindowsSerialPort::find_ports()
 
         if (handle != INVALID_HANDLE_VALUE)
         {
-            std::cout << "COM" << i << " available\n";
+            logger.log(LogLevel::info: "COM", i, " available\n");
             available_ports.push_back(i);
         }
         CloseHandle(handle);
@@ -46,7 +50,7 @@ bool WindowsSerialPort::open(const std::string& port)
 {
     if (port_open)
     {
-        std::cout << "Port is already opened\n";
+        logger.log(LogLevel::info: "Port is already opened\n");
         return false;
     }
     std::string com_port_str = COM_PORT_PREFIX + port;
@@ -61,7 +65,7 @@ bool WindowsSerialPort::open(const std::string& port)
 
     if (handle != INVALID_HANDLE_VALUE)
     {
-        std::cout << "Successfully opened " << com_port_str << '\n';
+        logger.log(LogLevel::info: "Successfully opened ", com_port_str, '\n');
         port_open = true;
         port_name = com_port_str;
         return true;
@@ -78,19 +82,19 @@ bool WindowsSerialPort::auto_open()
     find_ports();
     if (available_ports.size() == 1)
     {
-        std::cout << "Automatically opening " << available_ports[0] << '\n';
+        logger.log(LogLevel::info: "Automatically opening ", available_ports[0], '\n');
         open(available_ports[0]);
         config();
         return true;
     }
     else if (available_ports.size() > 1)
     {
-        std::cout << "Not auto-opening any ports: More than 1 available\n";
+        logger.log(LogLevel::info: "Not auto-opening any ports: More than 1 available\n");
         return false;
     }
     else
     {
-        std::cout << "Not auto-opening any ports: None available\n";
+        logger.log(LogLevel::info: "Not auto-opening any ports: None available\n");
         return false;
     }
 }
@@ -99,12 +103,12 @@ bool WindowsSerialPort::config()
 {
     if (!port_open)
     {
-        std::cout << "Cannot configure port before opening.\n";
+        logger.log(LogLevel::warning: "Cannot configure port before opening\n");
         return false;
     }
     if (port_configured)
     {
-        std::cout << "Port has already been configured.\n";
+        logger.log(LogLevel::warning: "Port has already been configured\n");
         return false;
     }
 
@@ -113,7 +117,7 @@ bool WindowsSerialPort::config()
      */
     if (!SetCommMask(handle, EV_RXCHAR))
     {
-        std::cout << "Error setting COM mask: " << GetLastError() << '\n';
+        logger.log(LogLevel::error: "Cannot set COM mask: ", GetLastError(), '\n');
         return false;
     }
 
@@ -125,7 +129,7 @@ bool WindowsSerialPort::config()
 
     if (!GetCommState(handle, &dcb))
     {
-        std::cout << "Error getting comm state: " << GetLastError() << '\n';
+        logger.log(LogLevel::error: "Cannot get comm state: ", GetLastError(), '\n');
         return false;
     }
 
@@ -136,7 +140,7 @@ bool WindowsSerialPort::config()
 
     if (!SetCommState(handle, &dcb))
     {
-        std::cout << "Error setting comm state: " << GetLastError() << '\n';
+        logger.log(LogLevel::error: "Cannot set comm state: ", GetLastError(), '\n');
         return false;
     }
 
@@ -150,7 +154,7 @@ bool WindowsSerialPort::config()
 
     if (!SetCommTimeouts(handle, &com_timeouts))
     {
-        std::cout << "Error settings timeouts: " << GetLastError() << '\n';
+        logger.log(LogLevel::error: "Cannot set comm timeouts: ", GetLastError(), '\n');
         return false;
     }
 
@@ -162,17 +166,17 @@ bool WindowsSerialPort::start_reading()
 {
     if (is_reading())
     {
-        std::cout << "Already reading from port.\n";
+        logger.log(LogLevel::warning: "Already reading from port\n");
         return false;
     }
     if (!port_open)
     {
-        std::cout << "Cannot start reading from port before opening.\n";
+        logger.log(LogLevel::warning: "Cannot read from port before opening it\n");
         return false;
     }
     if (!port_configured)
     {
-        std::cout << "Must configure port before starting to read from it.\n";
+        logger.log(LogLevel::warning: "Must configure port before reading from it\n");
         return false;
     }
 
@@ -232,7 +236,7 @@ unsigned WindowsSerialPort::async_receive(void* params)
     {
         if (!WaitCommEvent(com_ptr->handle, &event_mask, &ov))
         {
-            std::cout << "GetLastError() = " << GetLastError() << '\n';
+            logger.log(LogLevel::info: "Could not set comm mask: ", GetLastError(), '\n');
             assert(GetLastError() == ERROR_IO_PENDING);
         }
 
@@ -291,7 +295,7 @@ unsigned WindowsSerialPort::async_receive(void* params)
                 }
                 catch(...)
                 {
-                    std::cout << "Error: Serial reading thread failed!";
+                    logger.log(LogLevel::error: "Failed to read from serial thread\n");
                     assert(0);
                 }
                 ResetEvent(ov.hEvent);

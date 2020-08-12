@@ -156,7 +156,7 @@ void Room::deinit()
 void Room::draw(Shader* shader)
 {
     if (!shader)
-        logger.warning("Room::draw: shader is null");
+        logger.log(LogLevel::warning, "Room::draw: shader is null");
 
     // Set depth map for room if possible.
     if (depth_map_set)
@@ -183,7 +183,7 @@ void Room::draw(Shader* shader)
         }
         else
         {
-            logger.info("Room:draw: No directional light present in the scene\n");
+            logger.log(LogLevel::debug, "Room:draw: No directional light present in the scene\n");
         }
 
         // Point light properties.
@@ -204,7 +204,7 @@ void Room::draw(Shader* shader)
             }
             else
             {
-                logger.info("Room:draw: No point light present in the scene\n");
+                logger.log(LogLevel::debug, "Room:draw: No point light present in the scene\n");
             }
         }
 
@@ -227,12 +227,12 @@ void Room::draw(Shader* shader)
         }
         else
         {
-            logger.info("Room:draw: No spotlight present in the scene\n");
+            logger.log(LogLevel::debug, "Room:draw: No spotlight present in the scene\n");
         }
     }
     else
     {
-        logger.warning("Room:draw: SceneLighting pointer is null\n");
+        logger.log(LogLevel::warning, "Room:draw: SceneLighting pointer is null\n");
     }
 
     /*

@@ -10,6 +10,8 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
+#include "logger.hpp"
+
 namespace fs = std::filesystem;
 
 class Shader
@@ -32,7 +34,6 @@ private:
     fs::path fragment_path;
     unsigned int id;
 };
-
 
 void Shader::init()
 {
@@ -63,8 +64,7 @@ void Shader::init()
     }
     catch (std::ifstream::failure e)
     {
-        std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ\n";
-        std::cout << e.what() << '\n';
+        logger.log(LogLevel::error, "Shader::init: Shader file could not be read: ", e.what(), '\n');
     }
 
     const char* vertex_shader_source = vertex_code.c_str();
@@ -83,7 +83,7 @@ void Shader::init()
     if (!success)
     {
         glGetShaderInfoLog(vertex_shader, 512, NULL, info_log);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << info_log << '\n';
+        logger.log(LogLevel::error, "Shader::init: Vertex shader could not be compiled: ", info_log, '\n');
     }
 
     // Create fragment shader object.
@@ -96,7 +96,7 @@ void Shader::init()
     if (!success)
     {
         glGetShaderInfoLog(fragment_shader, 512, NULL, info_log);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << info_log << '\n';
+        logger.log(LogLevel::error, "Shader::init: Fragment shader could not be compiled: ", info_log, '\n');
     }
 
     // Build shader program.
@@ -110,7 +110,7 @@ void Shader::init()
     if (!success)
     {
         glGetProgramInfoLog(id, 512, NULL, info_log);
-        std::cout << "ERROR::PROGRAM::LINKING_FAILED\n" << info_log << '\n';
+        logger.log(LogLevel::error, "Shader::init: Shader file could not be linked: ", info_log, '\n');
     }
 
     // Delete the shader objects since they've already been linked into the

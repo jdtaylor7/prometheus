@@ -1,5 +1,9 @@
 #include "linux_serial_port.hpp"
 
+#include "logger.hpp"
+
+// extern Logger logger;
+
 #ifdef OS_LINUX
 
 LinuxSerialPort::LinuxSerialPort(
@@ -51,13 +55,13 @@ bool LinuxSerialPort::open(const std::string& port)
 {
     if (port_open)
     {
-        std::cout << "Port is already opened\n";
+        logger.log(LogLevel::warning, "Port is already opened\n");
         return false;
     }
 
     try
     {
-        std::cout << "Opening port " << port << '\n';
+        logger.log(LogLevel::info, "Opening ", port, '\n');
         stream.Open(port.c_str());
     }
     catch (const LibSerial::OpenFailed&)
@@ -75,19 +79,19 @@ bool LinuxSerialPort::auto_open()
     find_ports();
     if (available_ports.size() == 1)
     {
-        std::cout << "Automatically opening " << available_ports[0] << '\n';
+        logger.log(LogLevel::info, "Automatically opening ", available_ports[0], '\n');
         open(available_ports[0]);
         config();
         return true;
     }
     else if (available_ports.size() > 1)
     {
-        std::cout << "Not auto-opening any ports: More than 1 available\n";
+        logger.log(LogLevel::info, "Not auto-opening any ports: More than 1 available\n");
         return false;
     }
     else
     {
-        std::cout << "Not auto-opening any ports: None available\n";
+        logger.log(LogLevel::info, "Not auto-opening any ports: None available\n");
         return false;
     }
 }
@@ -96,16 +100,16 @@ bool LinuxSerialPort::config()
 {
     if (!port_open)
     {
-        std::cout << "Cannot configure port before opening.\n";
+        logger.log(LogLevel::warning, "Cannot configure port before opening\n");
         return false;
     }
     if (port_configured)
     {
-        std::cout << "Port has already been configured.\n";
+        logger.log(LogLevel::warning, "Port has already been configured\n");
         return false;
     }
 
-    std::cout << "Configuring port " << port_name << '\n';
+    logger.log(LogLevel::info, "Configuring ", port_name, "\n");
 
     stream.SetBaudRate(cfg->br);
     stream.SetCharacterSize(cfg->cs);
@@ -121,17 +125,17 @@ bool LinuxSerialPort::start_reading()
 {
     if (is_reading())
     {
-        std::cout << "Already reading from port.\n";
+        logger.log(LogLevel::warning, "Already reading from port\n");
         return false;
     }
     if (!port_open)
     {
-        std::cout << "Cannot start reading from port before opening.\n";
+        logger.log(LogLevel::warning, "Cannot read from port before opening it\n");
         return false;
     }
     if (!port_configured)
     {
-        std::cout << "Must configure port before starting to read from it.\n";
+        logger.log(LogLevel::warning, "Must configure port before reading from it\n");
         return false;
     }
 

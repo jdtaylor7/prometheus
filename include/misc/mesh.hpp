@@ -100,7 +100,7 @@ void Mesh::draw(Shader* shader)
     // Set shader attributes.
     if (!shader)
     {
-        logger.error("Mesh::draw: shader is null\n");
+        logger.log(LogLevel::error, "Mesh::draw: shader is null\n");
         return;
     }
     shader->use();
@@ -116,7 +116,7 @@ void Mesh::draw(Shader* shader)
     }
     else
     {
-        // std::cout << "Mesh::draw: No directional light present.\n";
+        logger.log(LogLevel::debug, "Mesh::draw: No directional light present\n");
     }
 
     // Point light properties.
@@ -136,7 +136,7 @@ void Mesh::draw(Shader* shader)
         }
         else
         {
-            std::cout << "Room::draw: No pointer lights present.\n";
+            logger.log(LogLevel::debug, "Mesh::draw: No point lights present\n");
         }
     }
 
@@ -159,7 +159,7 @@ void Mesh::draw(Shader* shader)
     }
     else
     {
-        // std::cout << "Room::draw: No spotlight present.\n";
+        logger.log(LogLevel::debug, "Mesh::draw: No spotlight present\n");
     }
 
     // Set textures.

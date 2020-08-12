@@ -3,83 +3,44 @@
 
 #include <iostream>
 
-enum class LogLevel;
-class Logger;
-
 enum class LogLevel
 {
-    error = 0,
-    warning = 1,
-    info = 2,
+    fatal = 0,
+    error,
+    warning,
+    info,
+    debug,
 };
 
 class Logger
 {
 public:
-    explicit Logger(LogLevel level_) : level(level_) {}
+    explicit Logger(LogLevel threshold_) : threshold(threshold_) {}
 
     template <typename T>
-    void info(T);
+    void log(LogLevel, T);
     template <typename T, typename ... Args>
-    void info(T, Args...);
-
-    template <typename T>
-    void warning(T);
-    template <typename T, typename ... Args>
-    void warning(T, Args...);
-
-    template <typename T>
-    void error(T);
-    template <typename T, typename ... Args>
-    void error(T, Args...);
+    void log(LogLevel, T, Args...);
 private:
-    LogLevel level;
+    LogLevel threshold;
     bool first_print = true;
-
 };
 
 template <typename T>
-void Logger::info(T first)
+void Logger::log(LogLevel level, T first)
 {
-    if (level >= LogLevel::info)
+    if (level <= threshold)
     {
         if (first_print)
         {
-            std::cout << "INFO: ";
-            first_print = false;
-        }
-
-        std::cout << first;
-    }
-
-    // Reset flag.
-    first_print = true;
-}
-
-template <typename T, typename ... Args>
-void Logger::info(T first, Args... args)
-{
-    if (level >= LogLevel::info)
-    {
-        if (first_print)
-        {
-            std::cout << "INFO: ";
-            first_print = false;
-        }
-
-        std::cout << first;
-        info(args...);
-    }
-}
-
-template <typename T>
-void Logger::warning(T first)
-{
-    if (level >= LogLevel::warning)
-    {
-        if (first_print)
-        {
-            std::cout << "WARNING: ";
+            switch (level)
+            {
+                case LogLevel::fatal: std::cout << "FATAL: "; break;
+                case LogLevel::error: std::cerr << "ERROR: "; break;
+                case LogLevel::warning: std::cerr << "WARNING: "; break;
+                case LogLevel::info: std::cout << "INFO: "; break;
+                case LogLevel::debug: std::cout << "DEBUG: "; break;
+            }
             first_print = false;
         }
 
@@ -91,55 +52,29 @@ void Logger::warning(T first)
 }
 
 template <typename T, typename ... Args>
-void Logger::warning(T first, Args... args)
+void Logger::log(LogLevel level, T first, Args... args)
 {
-    if (level >= LogLevel::warning)
+    if (level <= threshold)
     {
         if (first_print)
         {
-            std::cout << "WARNING: ";
+            switch (level)
+            {
+                case LogLevel::fatal: std::cout << "FATAL: "; break;
+                case LogLevel::error: std::cerr << "ERROR: "; break;
+                case LogLevel::warning: std::cerr << "WARNING: "; break;
+                case LogLevel::info: std::cout << "INFO: "; break;
+                case LogLevel::debug: std::cout << "DEBUG: "; break;
+            }
             first_print = false;
         }
 
         std::cout << first;
-        warning(args...);
+        log(level, args...);
     }
 }
 
-template <typename T>
-void Logger::error(T first)
-{
-    if (level >= LogLevel::error)
-    {
-        if (first_print)
-        {
-            std::cout << "ERROR: ";
-            first_print = false;
-        }
-
-        std::cout << first;
-
-        // Reset flag.
-        first_print = true;
-    }
-}
-
-template <typename T, typename ... Args>
-void Logger::error(T first, Args... args)
-{
-    if (level >= LogLevel::error)
-    {
-        if (first_print)
-        {
-            std::cout << "ERROR: ";
-            first_print = false;
-        }
-
-        std::cout << first;
-        error(args...);
-    }
-}
-
-Logger logger(LogLevel::warning);
+// Logger logger(LogLevel::info);
+extern Logger logger;
 
 #endif /* LOGGER_HPP */

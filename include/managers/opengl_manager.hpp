@@ -135,7 +135,7 @@ bool OpenglManager::init()
      * Set up shadow mapping.
      */
     // Create framebuffer for depth map.
-    std::cout << "Init shadow map\n";
+    logger.log(LogLevel::info, "Init shadow map\n");
     glGenFramebuffers(1, &depth_map_fbo);
 
     // Create texture for depth map.
@@ -157,7 +157,7 @@ bool OpenglManager::init()
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        logger.warning("OpenglManager::init: Framebuffer incomplete\n");
+        logger.log(LogLevel::warning, "OpenglManager::init: Framebuffer incomplete\n");
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // Set shader attributes.
@@ -189,7 +189,7 @@ void OpenglManager::render_scene(Shader* shader)
 {
     if (!shader)
     {
-        logger.error("OpenglManager::render_scene: shader is null\n");
+        logger.log(LogLevel::error, "OpenglManager::render_scene: shader is null\n");
         return;
     }
     /*
@@ -203,7 +203,7 @@ void OpenglManager::render_scene(Shader* shader)
     // Render room.
     if (!room)
     {
-        logger.error("OpenglManager::render_scene: room is null\n");
+        logger.log(LogLevel::error, "OpenglManager::render_scene: room is null\n");
         return;
     }
     room->draw(shader);
@@ -225,7 +225,7 @@ void OpenglManager::render_scene(Shader* shader)
     // Render drone.
     if (!drone)
     {
-        logger.error("OpenglManager::render_scene: drone is null\n");
+        logger.log(LogLevel::error, "OpenglManager::render_scene: drone is null\n");
         return;
     }
     drone->draw(shader);
@@ -248,7 +248,7 @@ void OpenglManager::process_frame()
     if (!sl->points[0])
         generate_shadows = false;
 
-    // std::cout << "generate_shadows = " << generate_shadows << '\n';
+    logger.log(LogLevel::debug, "generate_shadows = ", generate_shadows, '\n');
     glm::mat4 light_space_matrix;
     if (generate_shadows)
     {
@@ -273,7 +273,7 @@ void OpenglManager::process_frame()
     }
     else
     {
-        std::cout << "OpenglManager::process_frame: Not generating shadows.\n";
+        logger.log(LogLevel::info, "OpenglManager::process_frame: Not generating shadows\n");
     }
 
     /*

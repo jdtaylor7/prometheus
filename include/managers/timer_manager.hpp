@@ -7,6 +7,8 @@
 #include <thread>
 #include <unordered_map>
 
+#include "logger.hpp"
+
 /*
  * Valid timer names.
  */
@@ -110,7 +112,7 @@ bool TimerManager::register_timer(TimerName timer_name, std::chrono::duration<do
     auto search = timers.find(timer_name);
     if (search != std::end(timers))
     {
-        std::cout << "TimerManager::register_timer: Timer with that name already exists.\n";
+        logger.log(LogLevel::error, "TimerManager::register_timer: Timer with that name already exists\n");
         return false;
     }
     else

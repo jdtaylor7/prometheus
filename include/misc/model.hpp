@@ -70,7 +70,7 @@ void Model::deinit()
 void Model::draw(Shader* shader)
 {
     if (!shader)
-        logger.error("Model::draw: shader is null\n");
+        logger.log(LogLevel::error, "Model::draw: shader is null\n");
 
     for (auto& mesh : meshes)
         mesh.draw(shader);
@@ -78,7 +78,7 @@ void Model::draw(Shader* shader)
 
 bool Model::load_model()
 {
-    std::cout << "Importing scene from " << path << '\n';
+    logger.log(LogLevel::info, "Importing scene from ", path, '\n');
 
     Assimp::Importer importer;
     const aiScene* scene;
@@ -95,7 +95,7 @@ bool Model::load_model()
 
     if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode)
     {
-        logger.error("Model::load_model: Assimp: ", importer.GetErrorString(), '\n');
+        logger.log(LogLevel::error, "Model::load_model: Assimp: ", importer.GetErrorString(), '\n');
         return false;
     }
 
@@ -211,7 +211,7 @@ std::vector<Texture> Model::load_material_textures(aiMaterial* material,
             Texture texture;
             std::filesystem::path texture_path = directory / str.C_Str();
 
-            std::cout << "Loading texture from " << texture_path << '\n';
+            logger.log(LogLevel::info, "Loading texture from ", texture_path, '\n');
             texture.id = load_texture_from_file(texture_path);
             texture.type = type_name;
             texture.path = str.C_Str();

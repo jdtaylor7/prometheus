@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 
+#include "logger.hpp"
 #include "resource_manager.hpp"
 #include "serial_port.hpp"
 #include "shared.hpp"
@@ -54,7 +55,7 @@ public:
     {
         if (packet.size() != fmt.packet_len)
         {
-            std::cout << "Packet incorrect length. Aborting.\n";
+            logger.log(LogLevel::error, "Packet incorrect length.\n");
             return false;
         }
 
@@ -265,7 +266,7 @@ bool TelemetryManager::process_telemetry()
         packet_str = build_latest_packet();
         if (packet_str)
         {
-            std::cout << "packet_str: " << *packet_str << '\n';
+            logger.log(LogLevel::info, "packet_str = ", *packet_str, '\n');
         }
     }
     else
@@ -297,9 +298,9 @@ bool TelemetryManager::process_telemetry()
     //     std::lock_guard<std::mutex> g(resource_manager->drone_data_mutex);
     //     drone_data->position.z = integration_sum;
     //
-    //     std::cout << "drone.x = " << drone_data->position.x << '\n';
-    //     std::cout << "integration_sum = " << integration_sum << '\n';
-    //     std::cout << "drone.z = " << drone_data->position.z << '\n';
+    //     logger.log(LogLevel::info, "drone.x = ", drone_data->position.x, '\n');
+    //     logger.log(LogLevel::info, "integration_sum = ", integration_sum, '\n');
+    //     logger.log(LogLevel::info, "drone.z = ", drone_data->position.z, '\n');
     // }
 
     return true;
