@@ -40,7 +40,6 @@ public:
             camera(camera_)
     {
     }
-    ~OpenglManager();
 
     bool init();
 
@@ -49,8 +48,17 @@ public:
 
     void process_frame();
 private:
-    std::size_t screen_width;
-    std::size_t screen_height;
+    const std::size_t screen_width;
+    const std::size_t screen_height;
+    const glm::vec3 room_dimensions;
+    // const glm::vec3 room_pos{};
+
+    /*
+     * Internal state.
+     */
+    bool generate_shadows = true;
+    unsigned int depth_map;
+    unsigned int depth_map_fbo;
 
     /*
      * Shader paths.
@@ -66,31 +74,30 @@ private:
     const fs::path quad_vshader_path = shader_path / "quad.vs";
     const fs::path quad_fshader_path = shader_path / "quad.fs";
 
-    float fov = 45.0;
-    float drone_scale_factor = 0.002f;
-
-    glm::vec3 room_dimensions;
+    static constexpr float fov = 45.0;
+    static constexpr float drone_scale_factor = 0.002f;
 
     /*
      * Shadow settings.
      */
-    const std::size_t shadow_width = 4096;
-    const std::size_t shadow_height = 4096;
-    unsigned int depth_map;
-    unsigned int depth_map_fbo;
-    bool generate_shadows = true;
+    static constexpr std::size_t shadow_width = 4096;
+    static constexpr std::size_t shadow_height = 4096;
 
-    // Light frustum settings.
-    float light_frustum_near_plane = 0.1f;
-    float light_frustum_far_plane = 30.0f;
-    float light_fov = 90.0f;
-    glm::mat4 light_projection = glm::perspective(
+    /*
+     * Light frustum settings.
+     */
+    static constexpr float light_frustum_near_plane = 0.1f;
+    static constexpr float light_frustum_far_plane = 30.0f;
+    static constexpr float light_fov = 90.0f;
+    const glm::mat4 light_projection = glm::perspective(
         glm::radians(light_fov),
         float(shadow_width / shadow_height),
         light_frustum_near_plane,
         light_frustum_far_plane);
 
-    // glm::vec3 room_pos{};
+    /*
+     * Shared state.
+     */
     DroneData* drone_data;
     Camera* camera;
     ResourceManager* resource_manager;
@@ -168,13 +175,6 @@ bool OpenglManager::init()
     main_shader->set_float("material.shininess", 32.0f);
 
     return true;
-}
-
-OpenglManager::~OpenglManager()
-{
-    // glDeleteVertexArrays(1, &vao);
-    // glDeleteBuffers(1, &vbo);
-    // glDeleteBuffers(1, &ebo);
 }
 
 void OpenglManager::pass_objects(SceneLighting* sl_, Room* room_, Model* model_, Quad* quad_)
@@ -266,9 +266,9 @@ void OpenglManager::process_frame()
 
         // Render scene to shadow map. Cull front faces during to eliminate
         // potential peter panning.
-        // glCullFace(GL_FRONT);
+        glCullFace(GL_FRONT);
         render_scene(shadow_shader.get());
-        // glCullFace(GL_BACK);
+        glCullFace(GL_BACK);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
     else

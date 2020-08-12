@@ -44,8 +44,6 @@ private:
     const std::vector<std::size_t> TELEMETRY_ACCEL_OFFSETS = {1, 7, 13};
     const std::vector<std::size_t> TELEMETRY_ROT_RATE_OFFSETS = {19, 25, 31};
 
-    // static constexpr std::size_t SCREEN_WIDTH = 1600;
-    // static constexpr std::size_t SCREEN_HEIGHT = 1200;
     static constexpr std::size_t SCREEN_WIDTH = 1200;
     static constexpr std::size_t SCREEN_HEIGHT = 900;
 
@@ -53,18 +51,12 @@ private:
     static constexpr bool SHOW_IMPLOT_DEMO_WINDOW = false;
     static constexpr bool SHOW_CAMERA_DATA_WINDOW = true;
 
-    static constexpr glm::vec3 room_dimensions = glm::vec3(24.0f, 12.0f, 24.0f);
-
     const std::string GLSL_VERSION = "#version 330";
 
+    /*
+     * Textures.
+     */
     const fs::path texture_dir = "assets/textures";
-
-    // Individual textures. TODO remove unnecessary ones.
-    const fs::path container_texture_path = texture_dir / "container.jpg";
-    const fs::path face_texture_path = texture_dir / "awesomeface.png";
-    const fs::path wall_texture_path = texture_dir / "wall.jpg";
-    const fs::path box_diffuse_texture_path = texture_dir / "box_specular_map.jpg";
-    const fs::path box_specular_texture_path = texture_dir / "box_diffuse_map.jpg";
 
     // Texture family directories.
     const fs::path tile_floor_texture_dir = texture_dir / "tile_floor";
@@ -79,34 +71,36 @@ private:
     /*
      * Lights.
      */
-    glm::vec3 diffuse_light_intensity = glm::vec3(0.5f);
-    glm::vec3 specular_light_intensity = glm::vec3(1.0f);
+    // General lights.
+    static constexpr glm::vec3 diffuse_light_intensity = glm::vec3(0.5f);
+    static constexpr glm::vec3 specular_light_intensity = glm::vec3(1.0f);
 
-    float light_attenuation_constant = 1.0f;
-    float light_attenuation_linear = 0.07f;
-    float light_attenuation_quadratic = 0.017f;
+    static constexpr float light_attenuation_constant = 1.0f;
+    static constexpr float light_attenuation_linear = 0.07f;
+    static constexpr float light_attenuation_quadratic = 0.017f;
 
     // Point lights.
-    std::vector<glm::vec3> point_light_positions = {
+    const std::vector<glm::vec3> point_light_positions = {
         glm::vec3( 1.5f, 3.5f, 0.0f),
     };
-    std::vector<glm::vec3> point_light_colors = {
+    const std::vector<glm::vec3> point_light_colors = {
         glm::vec3(0.529f, 0.808f, 0.922f),
     };
-    float point_light_scale_factor = 0.2f;
-    glm::vec3 point_light_ambient_intensity = glm::vec3(0.8f);
+    static constexpr float point_light_scale_factor = 0.2f;
+    static constexpr glm::vec3 point_light_ambient_intensity = glm::vec3(0.8f);
 
     /*
      * Room.
      */
-    float room_scale_factor = 24.0f;
+    static constexpr float room_scale_factor = 24.0f;
+    static constexpr glm::vec3 room_dimensions = room_scale_factor * glm::vec3(1.0f, 0.5f, 1.0f);
 
     /*
      * Drone.
      */
     const fs::path drone_directory = "assets/models/drone";
     const fs::path drone_obj_path = drone_directory / "drone.obj";
-    bool drone_flip_textures = false;
+    static constexpr bool drone_flip_textures = false;
 
 #ifdef OS_LINUX
     std::unique_ptr<const LinuxSerialPortConfig> linux_serial_cfg =

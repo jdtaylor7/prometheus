@@ -2,8 +2,6 @@
 
 #include "logger.hpp"
 
-// extern Logger logger;
-
 #ifdef OS_LINUX
 
 LinuxSerialPort::LinuxSerialPort(

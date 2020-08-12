@@ -7,8 +7,6 @@
 
 #include "logger.hpp"
 
-// extern Logger logger;
-
 explicit WindowsSerialPort::WindowsSerialPort(std::shared_ptr<BoundedBuffer<char>> buffer_)
     : buffer{buffer_}
 {

@@ -74,7 +74,6 @@ void Logger::log(LogLevel level, T first, Args... args)
     }
 }
 
-// Logger logger(LogLevel::info);
 extern Logger logger;
 
 #endif /* LOGGER_HPP */
