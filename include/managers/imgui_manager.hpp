@@ -1,7 +1,6 @@
 #ifndef IMGUI_MANAGER_HPP
 #define IMGUI_MANAGER_HPP
 
-#include <iostream>
 #include <memory>
 #include <mutex>
 #include <string>

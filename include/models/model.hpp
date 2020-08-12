@@ -2,7 +2,6 @@
 #define MODEL_HPP
 
 #include <filesystem>
-#include <iostream>
 #include <string>
 #include <vector>
 

@@ -1,7 +1,6 @@
 #ifndef DRONE_VIEWER_HPP
 #define DRONE_VIEWER_HPP
 
-#include <iostream>
 #include <filesystem>
 #include <memory>
 #include <string>

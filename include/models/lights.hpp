@@ -1,7 +1,6 @@
 #ifndef LIGHTS_HPP
 #define LIGHTS_HPP
 
-#include <iostream>
 #include <memory>
 #include <vector>
 
