@@ -107,8 +107,8 @@ vec3 calc_point_light(PointLight light, vec3 normal, vec3 frag_pos, vec3 view_di
     // Shadow.
     float shadow = calc_shadow(normal, light_dir);
 
-    // return (ambient + (1.0f - shadow) * (diffuse + specular));
-    return vec3(1.0f - shadow);
+    return (ambient + (1.0f - shadow) * (diffuse + specular));
+    // return vec3(1.0f - shadow);
     // return vec3(shadow);
 }
 

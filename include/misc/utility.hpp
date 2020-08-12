@@ -3,6 +3,8 @@
 
 #include <filesystem>
 
+#include "logger.hpp"
+
 unsigned int load_texture_from_file(const std::filesystem::path texture_path)
 {
     // Create texture ID.
@@ -40,7 +42,7 @@ unsigned int load_texture_from_file(const std::filesystem::path texture_path)
     }
     else
     {
-        std::cerr << "Failed to load texture at " << texture_path << '\n';
+        logger.error("load_texture_from_file: Failed to load texture at ", texture_path, '\n');
         stbi_image_free(data);
     }
 

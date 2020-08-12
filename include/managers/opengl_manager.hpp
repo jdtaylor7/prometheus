@@ -13,6 +13,7 @@
 #include <stb_image.h>
 
 #include "lights.hpp"
+#include "logger.hpp"
 #include "model.hpp"
 #include "quad.hpp"
 #include "room.hpp"
@@ -156,7 +157,7 @@ bool OpenglManager::init()
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cerr << "OpenglManager::init: Framebuffer incomplete\n";
+        logger.warning("OpenglManager::init: Framebuffer incomplete\n");
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // Set shader attributes.
@@ -188,7 +189,7 @@ void OpenglManager::render_scene(Shader* shader)
 {
     if (!shader)
     {
-        std::cerr << "opengl_manager::render_scene: shader is NULL\n";
+        logger.error("OpenglManager::render_scene: shader is null\n");
         return;
     }
     /*
@@ -202,7 +203,7 @@ void OpenglManager::render_scene(Shader* shader)
     // Render room.
     if (!room)
     {
-        std::cerr << "opengl_manager::render_scene: room is NULL\n";
+        logger.error("OpenglManager::render_scene: room is null\n");
         return;
     }
     room->draw(shader);
@@ -224,7 +225,7 @@ void OpenglManager::render_scene(Shader* shader)
     // Render drone.
     if (!drone)
     {
-        std::cerr << "opengl_manager::render_scene: drone is NULL\n";
+        logger.error("OpenglManager::render_scene: drone is null\n");
         return;
     }
     drone->draw(shader);

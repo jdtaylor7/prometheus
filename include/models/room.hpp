@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "lights.hpp"
+#include "logger.hpp"
 #include "shader.hpp"
 #include "shapes.hpp"
 #include "utility.hpp"
@@ -155,7 +156,7 @@ void Room::deinit()
 void Room::draw(Shader* shader)
 {
     if (!shader)
-        std::cerr << "Room::draw: shader is NULL\n";
+        logger.warning("Room::draw: shader is null");
 
     // Set depth map for room if possible.
     if (depth_map_set)
@@ -182,7 +183,7 @@ void Room::draw(Shader* shader)
         }
         else
         {
-            // std::cout << "Room::draw: No directional light present in the scene.\n";
+            logger.info("Room:draw: No directional light present in the scene\n");
         }
 
         // Point light properties.
@@ -203,7 +204,7 @@ void Room::draw(Shader* shader)
             }
             else
             {
-                // std::cout << "Room::draw: No point lights present in the scene.\n";
+                logger.info("Room:draw: No point light present in the scene\n");
             }
         }
 
@@ -226,12 +227,12 @@ void Room::draw(Shader* shader)
         }
         else
         {
-            // std::cout << "Room::draw: No spotlight present in the scene.\n";
+            logger.info("Room:draw: No spotlight present in the scene\n");
         }
     }
     else
     {
-        std::cerr << "Room::draw: SceneLighting pointer is null.\n";
+        logger.warning("Room:draw: SceneLighting pointer is null\n");
     }
 
     /*

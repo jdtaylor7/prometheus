@@ -14,7 +14,7 @@
 #include "imgui_manager.hpp"
 #include "lights.hpp"
 #include "opengl_manager.hpp"
-#include <quad.hpp>
+#include "quad.hpp"
 #include "resource_manager.hpp"
 #include "serial_port.hpp"
 #include "shader.hpp"
@@ -32,7 +32,7 @@ public:
     bool process_frame();
 private:
     /*
-     * Constants.
+     * Telemetry.
      */
     static constexpr std::size_t TELEMETRY_PACKET_LEN = 37;
     static constexpr char TELEMETRY_START_SYMBOL = '|';

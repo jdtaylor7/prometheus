@@ -5,6 +5,8 @@
 
 #include <GLFW/glfw3.h>
 
+#include "logger.hpp"
+
 std::vector<float> quad_vertices = {
     // positions        // tex_coords
     -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
@@ -43,7 +45,7 @@ void Quad::draw(Shader* shader)
 {
     if (!shader)
     {
-        std::cerr << "Quad::draw: shader is NULL\n";
+        logger.error("Quad::draw: shader is null\n");
         return;
     }
 

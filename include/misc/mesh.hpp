@@ -10,6 +10,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "lights.hpp"
+#include "logger.hpp"
 #include "shader.hpp"
 
 struct Vertex
@@ -99,7 +100,7 @@ void Mesh::draw(Shader* shader)
     // Set shader attributes.
     if (!shader)
     {
-        std::cerr << "Mesh::draw: shader pointer is null.\n";
+        logger.error("Mesh::draw: shader is null\n");
         return;
     }
     shader->use();

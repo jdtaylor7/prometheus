@@ -14,6 +14,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "lights.hpp"
+#include "logger.hpp"
 #include "mesh.hpp"
 #include "shader.hpp"
 #include "utility.hpp"
@@ -69,7 +70,7 @@ void Model::deinit()
 void Model::draw(Shader* shader)
 {
     if (!shader)
-        std::cerr << "Model::draw: shader is NULL\n";
+        logger.error("Model::draw: shader is null\n");
 
     for (auto& mesh : meshes)
         mesh.draw(shader);
@@ -94,7 +95,7 @@ bool Model::load_model()
 
     if (!scene || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !scene->mRootNode)
     {
-        std::cerr << "ERROR::ASSIMP::" << importer.GetErrorString() << '\n';
+        logger.error("Model::load_model: Assimp: ", importer.GetErrorString(), '\n');
         return false;
     }
 
