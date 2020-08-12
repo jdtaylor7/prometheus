@@ -43,7 +43,7 @@ public:
 
     bool init();
 
-    void pass_objects(SceneLighting*, Room*, Model*, Quad*);
+    void pass_objects(SceneLighting*, Room*, Model*);
     void render_scene(Shader*);
 
     void process_frame();
