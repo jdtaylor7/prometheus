@@ -31,13 +31,15 @@ public:
         glm::vec3 room_dimensions_,
         ResourceManager* resource_manager_,
         DroneData* drone_data_,
-        Camera* camera_) :
+        Camera* camera_,
+        bool use_anti_aliasing_) :
             screen_width(screen_width_),
             screen_height(screen_height_),
             room_dimensions(room_dimensions_),
             resource_manager(resource_manager_),
             drone_data(drone_data_),
-            camera(camera_)
+            camera(camera_),
+            use_anti_aliasing(use_anti_aliasing_)
     {
     }
 
@@ -59,6 +61,7 @@ private:
     bool generate_shadows = true;
     unsigned int depth_map;
     unsigned int depth_map_fbo;
+    bool use_anti_aliasing;
 
     /*
      * Shader paths.
@@ -125,6 +128,8 @@ bool OpenglManager::init()
      * Set global OpenGL state.
      */
     glEnable(GL_DEPTH_TEST);
+    if (use_anti_aliasing)
+        glEnable(GL_MULTISAMPLE);
 
     /*
      * Create shaders.
@@ -280,7 +285,10 @@ void OpenglManager::process_frame()
      * Render.
      */
     main_shader->use();
-    main_shader->set_bool("smooth_shadows", false);
+    if (use_anti_aliasing)
+        main_shader->set_bool("smooth_shadows", true);
+    else
+        main_shader->set_bool("smooth_shadows", false);
 
     // Reset viewport.
     glViewport(0, 0, screen_width, screen_height);

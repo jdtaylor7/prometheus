@@ -24,15 +24,18 @@ public:
                 ViewerMode* viewer_mode_,
                 DroneData* drone_data_,
                 Camera* camera_,
-                SerialPort* serial_port_) :
-    screen_width(width_),
-    screen_height(height_),
-    rm(resource_manager_),
-    viewer_mode(viewer_mode_),
-    drone_data(drone_data_),
-    camera(camera_),
-    serial_port(serial_port_)
-    {}
+                SerialPort* serial_port_,
+                bool use_anti_aliasing_) :
+        screen_width(width_),
+        screen_height(height_),
+        rm(resource_manager_),
+        viewer_mode(viewer_mode_),
+        drone_data(drone_data_),
+        camera(camera_),
+        serial_port(serial_port_),
+        use_anti_aliasing(use_anti_aliasing_)
+    {
+    }
 
     ~GlfwManager();
 
@@ -50,6 +53,7 @@ private:
     std::size_t screen_width;
     std::size_t screen_height;
     GLFWwindow* window;
+    bool use_anti_aliasing;
 
     ResourceManager* rm;
 
@@ -78,6 +82,8 @@ bool GlfwManager::init()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    if (use_anti_aliasing)
+        glfwWindowHint(GLFW_SAMPLES, 4);
 
     /*
      * GLFW window creation.

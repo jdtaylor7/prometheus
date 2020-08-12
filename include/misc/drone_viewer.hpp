@@ -90,6 +90,11 @@ private:
     static constexpr glm::vec3 point_light_ambient_intensity = glm::vec3(0.8f);
 
     /*
+     * Model settings.
+     */
+    static constexpr bool use_anti_aliasing = true;
+
+    /*
      * Room.
      */
     static constexpr float room_scale_factor = 24.0f;
@@ -201,7 +206,8 @@ bool DroneViewer::init()
         viewer_mode.get(),
         drone_data.get(),
         camera.get(),
-        serial_port.get());
+        serial_port.get(),
+        use_anti_aliasing);
     if (!glfw_manager->init()) return false;
 
     imgui_manager = std::make_unique<ImguiManager>(
@@ -225,7 +231,8 @@ bool DroneViewer::init()
         room_dimensions,
         resource_manager.get(),
         drone_data.get(),
-        camera.get());
+        camera.get(),
+        use_anti_aliasing);
     if (!opengl_manager->init()) return false;
 
     telemetry_manager = std::make_unique<TelemetryManager>(
