@@ -7,7 +7,7 @@ layout (location = 2) in vec2 in_tex_coords;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
-uniform vec4 light_space_matrix;
+uniform mat4 light_space_matrix;
 
 out vec3 frag_pos;
 out vec3 normal_vec;

@@ -59,6 +59,10 @@ private:
 
     unsigned int depth_map;
     bool depth_map_set = false;
+
+    // For debugging within render loop.
+    bool first_loop = true;
+    bool second_loop = false;
 };
 
 void Mesh::init()
@@ -97,6 +101,11 @@ void Mesh::deinit()
 
 void Mesh::draw(Shader* shader)
 {
+    if (first_loop)
+        logger.log(LogLevel::debug, "Mesh::draw (first loop)\n");
+    else if (second_loop)
+        logger.log(LogLevel::debug, "Mesh::draw (second loop)\n");
+
     // Set shader attributes.
     if (!shader)
     {
@@ -104,6 +113,7 @@ void Mesh::draw(Shader* shader)
         return;
     }
     shader->use();
+    shader->set_float("material.shininess", 16.0f);
 
     // Directional light properties.
     if (sl->dir)
@@ -184,6 +194,11 @@ void Mesh::draw(Shader* shader)
 
     if (depth_map_set)
     {
+        if (first_loop)
+            logger.log(LogLevel::debug, "Mesh::draw (first loop): set depth map\n");
+        else if (second_loop)
+            logger.log(LogLevel::debug, "Mesh::draw (second loop): set depth map\n");
+
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, depth_map);
         shader->set_int("shadow_map", 2);
@@ -191,8 +206,16 @@ void Mesh::draw(Shader* shader)
 
     // Draw mesh.
     glBindVertexArray(vao);
+    if (second_loop)
+        logger.log(LogLevel::debug, "Mesh::draw (second loop): call shader\n");
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+
+    if (second_loop)
+        second_loop = false;
+    if (first_loop)
+        second_loop = true;
+    first_loop = false;
 }
 
 void Mesh::set_depth_map(unsigned int texture_id)

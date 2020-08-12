@@ -109,6 +109,10 @@ private:
 
     unsigned int depth_map;
     bool depth_map_set = false;
+
+    // For debugging within render loop.
+    bool first_loop = true;
+    bool second_loop = false;
 };
 
 void Room::init()
@@ -155,12 +159,30 @@ void Room::deinit()
 
 void Room::draw(Shader* shader)
 {
+    if (first_loop)
+        logger.log(LogLevel::debug, "Room::draw (first loop)\n");
+    else if (second_loop)
+        logger.log(LogLevel::debug, "Room::draw (second loop)\n");
+
     if (!shader)
         logger.log(LogLevel::warning, "Room::draw: shader is null");
+
+    shader->use();
+
+    // Set shader attributes.
+    shader->set_int("material.texture_diffuse1", 0);
+    shader->set_int("material.texture_specular1", 1);
+    shader->set_int("shadow_map", 2);
+    shader->set_float("material.shininess", 16.0f);
 
     // Set depth map for room if possible.
     if (depth_map_set)
     {
+        if (second_loop)
+            logger.log(LogLevel::debug, "Room::draw (second loop): set depth map\n");
+
+        if (second_loop)
+            logger.log(LogLevel::debug, "Room::draw (second loop): depth_map = ", depth_map, '\n');
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, depth_map);
         shader->set_int("shadow_map", 2);
@@ -267,6 +289,8 @@ void Room::draw(Shader* shader)
 
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    if (second_loop)
+        logger.log(LogLevel::debug, "Room::draw (second loop): call floor shader\n");
     glDrawElements(GL_TRIANGLES, square_indices.size(), GL_UNSIGNED_INT, 0);
 
     /*
@@ -336,6 +360,12 @@ void Room::draw(Shader* shader)
     }
 
     glBindVertexArray(0);
+
+    if (second_loop)
+        second_loop = false;
+    if (first_loop)
+        second_loop = true;
+    first_loop = false;
 }
 
 void Room::set_depth_map(unsigned int texture_id)

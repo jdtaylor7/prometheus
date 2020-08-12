@@ -14,7 +14,6 @@
 #include "lights.hpp"
 #include "logger.hpp"
 #include "model.hpp"
-#include "quad.hpp"
 #include "room.hpp"
 #include "shader.hpp"
 #include "vertex_data.hpp"
@@ -62,6 +61,10 @@ private:
     unsigned int depth_map_fbo;
     bool use_anti_aliasing;
 
+    // For debugging within render loop.
+    bool first_loop = true;
+    bool second_loop = false;
+
     /*
      * Shader paths.
      */
@@ -73,8 +76,6 @@ private:
     const fs::path plight_fshader_path = shader_path / "point_light.fs";
     const fs::path shadow_vshader_path = shader_path / "shadow.vs";
     const fs::path shadow_fshader_path = shader_path / "shadow.fs";
-    const fs::path quad_vshader_path = shader_path / "quad.vs";
-    const fs::path quad_fshader_path = shader_path / "quad.fs";
 
     static constexpr float fov = 45.0;
     static constexpr float drone_scale_factor = 0.002f;
@@ -110,7 +111,6 @@ private:
     std::unique_ptr<Shader> plight_shader;
     std::unique_ptr<Shader> main_shader;
     std::unique_ptr<Shader> shadow_shader;
-    std::unique_ptr<Shader> quad_shader;
 
     /*
      * Models.
@@ -118,11 +118,13 @@ private:
     SceneLighting* sl;
     Room* room;
     Model* drone;
-    Quad* quad;
 };
 
 bool GraphicsManager::init()
 {
+    if (first_loop)
+        logger.log(LogLevel::debug, "GraphicsManager::init\n");
+
     /*
      * Set global OpenGL state.
      */
@@ -139,14 +141,12 @@ bool GraphicsManager::init()
     main_shader->init();
     shadow_shader = std::make_unique<Shader>(shadow_vshader_path, shadow_fshader_path);
     shadow_shader->init();
-    quad_shader = std::make_unique<Shader>(quad_vshader_path, quad_fshader_path);
-    quad_shader->init();
 
     /*
      * Set up shadow mapping.
      */
     // Create framebuffer for depth map.
-    logger.log(LogLevel::info, "Init shadow map\n");
+    logger.log(LogLevel::debug, "Init shadow map\n");
     glGenFramebuffers(1, &depth_map_fbo);
 
     // Create texture for depth map.
@@ -168,42 +168,43 @@ bool GraphicsManager::init()
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        logger.log(LogLevel::warning, "GraphicsManager::init: Framebuffer incomplete\n");
+        logger.log(LogLevel::error, "GraphicsManager::init: Framebuffer incomplete\n");
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // Set shader attributes.
-    main_shader->use();
-    main_shader->set_int("material.texture_diffuse1", 0);
-    main_shader->set_int("material.texture_specular1", 1);
-    main_shader->set_int("shadow_map", 2);
-    main_shader->set_float("material.shininess", 32.0f);
 
     return true;
 }
 
-void GraphicsManager::pass_objects(SceneLighting* sl_, Room* room_, Model* model_, Quad* quad_)
+void GraphicsManager::pass_objects(SceneLighting* sl_, Room* room_, Model* model_)
 {
     sl = sl_;
     room = room_;
     drone = model_;
-    quad = quad_;
 }
 
 void GraphicsManager::render_scene(Shader* shader)
 {
+    if (first_loop)
+        logger.log(LogLevel::debug, "GraphicsManager::render_scene (first loop)\n");
+    else if (second_loop)
+        logger.log(LogLevel::debug, "GraphicsManager::render_scene (second loop)\n");
+
     if (!shader)
     {
         logger.log(LogLevel::error, "GraphicsManager::render_scene: shader is null\n");
         return;
     }
+
     /*
-     * Draw room.
+     * Configure shader.
      */
     shader->use();
 
     // Position properties.
     shader->set_vec3("view_pos", camera->get_position());
 
+    /*
+     * Draw room.
+     */
     // Render room.
     if (!room)
     {
@@ -215,11 +216,6 @@ void GraphicsManager::render_scene(Shader* shader)
     /*
      * Draw model.
      */
-    shader->use();
-
-    // Position properties.
-    shader->set_vec3("view_pos", camera->get_position());
-
     // Set model matrix.
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, drone_data->position);
@@ -237,9 +233,10 @@ void GraphicsManager::render_scene(Shader* shader)
 
 void GraphicsManager::process_frame()
 {
-    // Color buffer.
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (first_loop)
+        logger.log(LogLevel::debug, "GraphicsManager::process_frame (first loop)\n");
+    else if (second_loop)
+        logger.log(LogLevel::debug, "GraphicsManager::process_frame (second loop)\n");
 
     /*
      * Generate depth buffer for shadows.
@@ -271,14 +268,23 @@ void GraphicsManager::process_frame()
         // Render scene to shadow map. Cull front faces during to eliminate
         // potential peter panning.
         glCullFace(GL_FRONT);
+        if (first_loop)
+            logger.log(LogLevel::debug, "GraphicsManager::process_frame (first loop): Generate depth map\n");
         render_scene(shadow_shader.get());
         glCullFace(GL_BACK);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
     else
     {
-        logger.log(LogLevel::info, "GraphicsManager::process_frame: Not generating shadows\n");
+        logger.log(LogLevel::warning, "GraphicsManager::process_frame: Not generating shadows\n");
     }
+
+    // Reset viewport.
+    glViewport(0, 0, screen_width, screen_height);
+
+    // Reset buffers.
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     /*
      * Render.
@@ -288,13 +294,6 @@ void GraphicsManager::process_frame()
         main_shader->set_bool("smooth_shadows", true);
     else
         main_shader->set_bool("smooth_shadows", false);
-
-    // Reset viewport.
-    glViewport(0, 0, screen_width, screen_height);
-
-    // Reset buffers.
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Initial projection and view matrix definitions.
     glm::mat4 model = glm::mat4(1.0f);
@@ -316,11 +315,15 @@ void GraphicsManager::process_frame()
         main_shader->set_mat4fv("light_space_matrix", light_space_matrix);
 
         // Pass depth map to objects, to render shadows.
+        if (first_loop)
+            logger.log(LogLevel::debug, "GraphicsManager::process_frame: Set depth maps\n");
         room->set_depth_map(depth_map);
         drone->set_depth_map(depth_map);
     }
 
     // Render scene normally.
+    if (first_loop)
+        logger.log(LogLevel::debug, "GraphicsManager::process_frame (first loop): Render scene\n");
     render_scene(main_shader.get());
 
     /*
@@ -343,13 +346,11 @@ void GraphicsManager::process_frame()
         point_light->draw();
     }
 
-    // // Render quad. TODO for testing only.
-    // quad_shader->use();
-    // quad_shader->set_float("near_plane", light_frustum_near_plane);
-    // quad_shader->set_float("far_plane", light_frustum_far_plane);
-    // // quad_shader->set_int("depth_map", 0);
-    // quad->set_depth_map(depth_map);
-    // quad->draw(quad_shader.get());
+    if (second_loop)
+        second_loop = false;
+    if (first_loop)
+        second_loop = true;
+    first_loop = false;
 }
 
 #endif /* GRAPHICS_MANAGER_HPP */

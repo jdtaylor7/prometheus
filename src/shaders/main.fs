@@ -76,8 +76,6 @@ float calc_shadow(vec3 normal, vec3 light_dir)
         shadow = 0.0f;
 
     return shadow;
-    // return closest_depth;
-    // return current_depth;
 }
 
 vec3 calc_point_light(PointLight light, vec3 normal, vec3 frag_pos, vec3 view_dir)
@@ -108,8 +106,6 @@ vec3 calc_point_light(PointLight light, vec3 normal, vec3 frag_pos, vec3 view_di
     float shadow = calc_shadow(normal, light_dir);
 
     return (ambient + (1.0f - shadow) * (diffuse + specular));
-    // return vec3(1.0f - shadow);
-    // return vec3(shadow);
 }
 
 void main()
