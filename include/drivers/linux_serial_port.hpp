@@ -14,6 +14,7 @@
 #include "libserial/SerialStream.h"
 
 #include "bounded_buffer.hpp"
+#include "logger.hpp"
 
 struct LinuxSerialPortConfig
 {
@@ -54,6 +55,7 @@ public:
 
     bool open(const std::string&);
     bool auto_open();
+    void close();
     bool config();
 
     bool start_reading();
@@ -80,7 +82,7 @@ private:
     std::atomic<bool> port_reading = false;
 
     std::string port_name{};
-    std::vector<std::string> available_ports{};  // actually assign somewhere
+    std::vector<std::string> available_ports{};  // TODO actually assign somewhere
 };
 
 #endif /* OS_LINUX */

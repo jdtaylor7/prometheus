@@ -3,9 +3,10 @@
 
 #ifdef OS_CYGWIN
 
+#include <algorithm>
+#include <array>
 #include <atomic>
 #include <cassert>
-#include <iostream>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -16,6 +17,7 @@
 #include <windows.h>
 
 #include "bounded_buffer.hpp"
+#include "logger.hpp"
 
 class WindowsSerialPort
 {

@@ -1,6 +1,9 @@
 #undef NDEBUG
 
 #include "drone_viewer.hpp"
+#include "logger.hpp"
+
+Logger logger = Logger(LogLevel::info);
 
 int main()
 {

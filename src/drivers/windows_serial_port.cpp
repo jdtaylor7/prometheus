@@ -2,11 +2,6 @@
 
 #ifdef OS_CYGWIN
 
-#include <array>
-#include <algorithm>
-
-#include "logger.hpp"
-
 explicit WindowsSerialPort::WindowsSerialPort(std::shared_ptr<BoundedBuffer<char>> buffer_)
     : buffer{buffer_}
 {

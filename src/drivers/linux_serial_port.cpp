@@ -1,7 +1,5 @@
 #include "linux_serial_port.hpp"
 
-#include "logger.hpp"
-
 #ifdef OS_LINUX
 
 LinuxSerialPort::LinuxSerialPort(
@@ -15,6 +13,7 @@ LinuxSerialPort::LinuxSerialPort(
 
 LinuxSerialPort::~LinuxSerialPort()
 {
+    close();
 }
 
 /*
@@ -92,6 +91,19 @@ bool LinuxSerialPort::auto_open()
         logger.log(LogLevel::info, "Not auto-opening any ports: None available\n");
         return false;
     }
+}
+
+void LinuxSerialPort::close()
+{
+    stop_reading();
+    port_open = false;
+    port_configured = false;
+    port_name = "";
+
+    buffer->clear();
+    available_ports.clear();
+
+    stream.Close();
 }
 
 bool LinuxSerialPort::config()

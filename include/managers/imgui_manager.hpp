@@ -145,7 +145,7 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
 #ifdef OS_CYGWIN
     controls_t_win(310.0, 130.0),
 #elif OS_LINUX
-    controls_t_win(370.0, 130.0),
+    controls_t_win(350.0, 130.0),
 #endif
     controls_e_win(228.0, 82.0),
     drone_win(300.0, 480.0),

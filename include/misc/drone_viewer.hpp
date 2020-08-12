@@ -13,6 +13,7 @@
 #include "glfw_manager.hpp"
 #include "imgui_manager.hpp"
 #include "lights.hpp"
+#include "logger.hpp"
 #include "opengl_manager.hpp"
 #include "quad.hpp"
 #include "resource_manager.hpp"
@@ -22,8 +23,6 @@
 #include "telemetry_manager.hpp"
 #include "vertex_data.hpp"
 #include "viewer_mode.hpp"
-
-Logger logger = Logger(LogLevel::info);
 
 class DroneViewer
 {
