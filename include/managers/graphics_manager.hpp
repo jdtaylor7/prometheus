@@ -1,5 +1,5 @@
-#ifndef OPENGL_MANAGER_HPP
-#define OPENGL_MANAGER_HPP
+#ifndef GRAPHICS_MANAGER_HPP
+#define GRAPHICS_MANAGER_HPP
 
 #include <array>
 #include <filesystem>
@@ -22,10 +22,10 @@
 
 namespace fs = std::filesystem;
 
-class OpenglManager
+class GraphicsManager
 {
 public:
-    OpenglManager(std::size_t screen_width_,
+    GraphicsManager(std::size_t screen_width_,
         std::size_t screen_height_,
         glm::vec3 room_dimensions_,
         ResourceManager* resource_manager_,
@@ -121,7 +121,7 @@ private:
     Quad* quad;
 };
 
-bool OpenglManager::init()
+bool GraphicsManager::init()
 {
     /*
      * Set global OpenGL state.
@@ -168,7 +168,7 @@ bool OpenglManager::init()
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        logger.log(LogLevel::warning, "OpenglManager::init: Framebuffer incomplete\n");
+        logger.log(LogLevel::warning, "GraphicsManager::init: Framebuffer incomplete\n");
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // Set shader attributes.
@@ -181,7 +181,7 @@ bool OpenglManager::init()
     return true;
 }
 
-void OpenglManager::pass_objects(SceneLighting* sl_, Room* room_, Model* model_, Quad* quad_)
+void GraphicsManager::pass_objects(SceneLighting* sl_, Room* room_, Model* model_, Quad* quad_)
 {
     sl = sl_;
     room = room_;
@@ -189,11 +189,11 @@ void OpenglManager::pass_objects(SceneLighting* sl_, Room* room_, Model* model_,
     quad = quad_;
 }
 
-void OpenglManager::render_scene(Shader* shader)
+void GraphicsManager::render_scene(Shader* shader)
 {
     if (!shader)
     {
-        logger.log(LogLevel::error, "OpenglManager::render_scene: shader is null\n");
+        logger.log(LogLevel::error, "GraphicsManager::render_scene: shader is null\n");
         return;
     }
     /*
@@ -207,7 +207,7 @@ void OpenglManager::render_scene(Shader* shader)
     // Render room.
     if (!room)
     {
-        logger.log(LogLevel::error, "OpenglManager::render_scene: room is null\n");
+        logger.log(LogLevel::error, "GraphicsManager::render_scene: room is null\n");
         return;
     }
     room->draw(shader);
@@ -229,13 +229,13 @@ void OpenglManager::render_scene(Shader* shader)
     // Render drone.
     if (!drone)
     {
-        logger.log(LogLevel::error, "OpenglManager::render_scene: drone is null\n");
+        logger.log(LogLevel::error, "GraphicsManager::render_scene: drone is null\n");
         return;
     }
     drone->draw(shader);
 }
 
-void OpenglManager::process_frame()
+void GraphicsManager::process_frame()
 {
     // Color buffer.
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -277,7 +277,7 @@ void OpenglManager::process_frame()
     }
     else
     {
-        logger.log(LogLevel::info, "OpenglManager::process_frame: Not generating shadows\n");
+        logger.log(LogLevel::info, "GraphicsManager::process_frame: Not generating shadows\n");
     }
 
     /*
@@ -352,4 +352,4 @@ void OpenglManager::process_frame()
     // quad->draw(quad_shader.get());
 }
 
-#endif /* OPENGL_MANAGER_HPP */
+#endif /* GRAPHICS_MANAGER_HPP */

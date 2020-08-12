@@ -1,5 +1,5 @@
-#ifndef IMGUI_MANAGER_HPP
-#define IMGUI_MANAGER_HPP
+#ifndef UI_MANAGER_HPP
+#define UI_MANAGER_HPP
 
 #include <memory>
 #include <mutex>
@@ -40,9 +40,9 @@ struct ScrollingData {
     }
 };
 
-struct ImguiWindowSettings
+struct UiWindowSettings
 {
-    ImguiWindowSettings(float width_, float height_) :
+    UiWindowSettings(float width_, float height_) :
         width(width_), height(height_) {}
 
     float width = 0.0;
@@ -59,10 +59,10 @@ struct ImguiWindowSettings
     }
 };
 
-class ImguiManager
+class UiManager
 {
 public:
-    ImguiManager(GLFWwindow* window_,
+    UiManager(GLFWwindow* window_,
                  const std::string& glsl_version,
                  std::size_t screen_width_,
                  std::size_t screen_height_,
@@ -74,7 +74,7 @@ public:
                  bool show_demo_window_,
                  bool show_implot_demo_window_,
                  bool show_camera_data_window_);
-    ~ImguiManager();
+    ~UiManager();
 
     bool init();
 
@@ -107,12 +107,12 @@ private:
 
     static constexpr float WINDOW_BUF = 20.0f;
 
-    ImguiWindowSettings fps_win;
-    ImguiWindowSettings mode_win;
-    ImguiWindowSettings controls_t_win;
-    ImguiWindowSettings controls_e_win;
-    ImguiWindowSettings drone_win;
-    ImguiWindowSettings camera_win;
+    UiWindowSettings fps_win;
+    UiWindowSettings mode_win;
+    UiWindowSettings controls_t_win;
+    UiWindowSettings controls_e_win;
+    UiWindowSettings drone_win;
+    UiWindowSettings camera_win;
 
     DroneData* drone_data;
     Camera* camera;
@@ -125,7 +125,7 @@ private:
     void update_window_settings();
 };
 
-ImguiManager::ImguiManager(GLFWwindow* window_,
+UiManager::UiManager(GLFWwindow* window_,
                            const std::string& glsl_version_,
                            std::size_t screen_width_,
                            std::size_t screen_height_,
@@ -144,7 +144,7 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
 #ifdef OS_CYGWIN
     controls_t_win(310.0, 130.0),
 #elif OS_LINUX
-    controls_t_win(350.0, 130.0),
+    controls_t_win(360.0, 130.0),
 #endif
     controls_e_win(228.0, 82.0),
     drone_win(300.0, 480.0),
@@ -171,7 +171,7 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
     camera_win.set_pos(WINDOW_BUF, drone_win.bottom() + WINDOW_BUF);
 }
 
-bool ImguiManager::init()
+bool UiManager::init()
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -192,14 +192,14 @@ bool ImguiManager::init()
     return true;
 }
 
-ImguiManager::~ImguiManager()
+UiManager::~UiManager()
 {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 }
 
-void ImguiManager::process_frame()
+void UiManager::process_frame()
 {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
@@ -299,7 +299,7 @@ void ImguiManager::process_frame()
                          port_list.data(),
                          port_list.size());
 
-            ImGui::Text("Current serial port status: ");
+            ImGui::Text("Current serial port status:");
             ImGui::SameLine();
             if (!serial_port->is_open())
             {
@@ -419,17 +419,17 @@ void ImguiManager::process_frame()
     }
 }
 
-void ImguiManager::render()
+void UiManager::render()
 {
     ImGui::Render();
 }
 
-void ImguiManager::render_draw_data()
+void UiManager::render_draw_data()
 {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void ImguiManager::update_screen_dimensions(std::size_t width,
+void UiManager::update_screen_dimensions(std::size_t width,
     std::size_t height)
 {
     screen_width = width;
@@ -438,7 +438,7 @@ void ImguiManager::update_screen_dimensions(std::size_t width,
     update_window_settings();
 }
 
-void ImguiManager::update_window_settings()
+void UiManager::update_window_settings()
 {
     fps_win.set_pos(WINDOW_BUF, WINDOW_BUF);
     mode_win.set_pos(screen_width - mode_win.width - WINDOW_BUF, WINDOW_BUF);
@@ -450,10 +450,10 @@ void ImguiManager::update_window_settings()
     camera_win.set_pos(WINDOW_BUF, drone_win.bottom() + WINDOW_BUF);
 }
 
-void ImguiManager::update_queue_data(unsigned int p, unsigned int c)
+void UiManager::update_queue_data(unsigned int p, unsigned int c)
 {
     producer_n = p;
     consumer_n = c;
 }
 
-#endif /* IMGUI_MANAGER_HPP */
+#endif /* UI_MANAGER_HPP */

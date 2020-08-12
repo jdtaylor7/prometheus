@@ -9,11 +9,11 @@
 #include <glm/glm.hpp>
 
 #include "camera.hpp"
-#include "glfw_manager.hpp"
-#include "imgui_manager.hpp"
+#include "window_manager.hpp"
+#include "ui_manager.hpp"
 #include "lights.hpp"
 #include "logger.hpp"
-#include "opengl_manager.hpp"
+#include "graphics_manager.hpp"
 #include "quad.hpp"
 #include "resource_manager.hpp"
 #include "serial_port.hpp"
@@ -145,9 +145,9 @@ private:
     /*
      * Data managers.
      */
-    std::unique_ptr<GlfwManager> glfw_manager;
-    std::unique_ptr<ImguiManager> imgui_manager;
-    std::unique_ptr<OpenglManager> opengl_manager;
+    std::unique_ptr<WindowManager> window_manager;
+    std::unique_ptr<UiManager> ui_manager;
+    std::unique_ptr<GraphicsManager> graphics_manager;
     std::unique_ptr<TelemetryManager> telemetry_manager;
 };
 
@@ -197,7 +197,7 @@ bool DroneViewer::init()
     /*
      * Initialize data managers.
      */
-    glfw_manager = std::make_unique<GlfwManager>(
+    window_manager = std::make_unique<WindowManager>(
         SCREEN_WIDTH,
         SCREEN_HEIGHT,
         resource_manager.get(),
@@ -206,10 +206,10 @@ bool DroneViewer::init()
         camera.get(),
         serial_port.get(),
         use_anti_aliasing);
-    if (!glfw_manager->init()) return false;
+    if (!window_manager->init()) return false;
 
-    imgui_manager = std::make_unique<ImguiManager>(
-        glfw_manager->get_window(),
+    ui_manager = std::make_unique<UiManager>(
+        window_manager->get_window(),
         GLSL_VERSION,
         SCREEN_WIDTH,
         SCREEN_HEIGHT,
@@ -221,9 +221,9 @@ bool DroneViewer::init()
         SHOW_DEMO_WINDOW,
         SHOW_IMPLOT_DEMO_WINDOW,
         SHOW_CAMERA_DATA_WINDOW);
-    if (!imgui_manager->init()) return false;
+    if (!ui_manager->init()) return false;
 
-    opengl_manager = std::make_unique<OpenglManager>(
+    graphics_manager = std::make_unique<GraphicsManager>(
         SCREEN_WIDTH,
         SCREEN_HEIGHT,
         room_dimensions,
@@ -231,7 +231,7 @@ bool DroneViewer::init()
         drone_data.get(),
         camera.get(),
         use_anti_aliasing);
-    if (!opengl_manager->init()) return false;
+    if (!graphics_manager->init()) return false;
 
     telemetry_manager = std::make_unique<TelemetryManager>(
         TELEMETRY_PACKET_LEN,
@@ -304,7 +304,7 @@ bool DroneViewer::init()
     quad->init();
 
     // Pass models to OpenGL manager.
-    opengl_manager->pass_objects(
+    graphics_manager->pass_objects(
         scene_lighting.get(),
         room.get(),
         drone.get(),
@@ -316,7 +316,7 @@ bool DroneViewer::init()
 
 bool DroneViewer::is_running() const
 {
-    return !glfw_manager->should_window_close();
+    return !window_manager->should_window_close();
 }
 
 bool DroneViewer::process_frame()
@@ -324,24 +324,24 @@ bool DroneViewer::process_frame()
     /*
      * Process input.
      */
-    glfw_manager->process_input();
+    window_manager->process_input();
     if (*viewer_mode == ViewerMode::Telemetry)
         if (!telemetry_manager->process_telemetry()) return false;
 
     /*
-     * Render. Order between imgui_manager and opengl_manager is important.
+     * Render. Order between ui_manager and graphics_manager is important.
      */
     camera->process_frame();
-    imgui_manager->process_frame();
-    imgui_manager->render();
-    opengl_manager->process_frame();
-    imgui_manager->render_draw_data();
+    ui_manager->process_frame();
+    ui_manager->render();
+    graphics_manager->process_frame();
+    ui_manager->render_draw_data();
 
     /*
      * Swap buffers and poll I/O events.
      */
-    glfw_manager->swap_buffers();
-    glfw_manager->poll_events();
+    window_manager->swap_buffers();
+    window_manager->poll_events();
 
     return true;
 }

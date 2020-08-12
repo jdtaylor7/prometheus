@@ -1,5 +1,5 @@
-#ifndef GLFW_MANAGER_HPP
-#define GLFW_MANAGER_HPP
+#ifndef WINDOW_MANAGER_HPP
+#define WINDOW_MANAGER_HPP
 
 #include <functional>
 #include <memory>
@@ -15,10 +15,10 @@
 #include "timer_manager.hpp"
 #include "viewer_mode.hpp"
 
-class GlfwManager
+class WindowManager
 {
 public:
-    GlfwManager(std::size_t width_,
+    WindowManager(std::size_t width_,
                 std::size_t height_,
                 ResourceManager* resource_manager_,
                 ViewerMode* viewer_mode_,
@@ -37,7 +37,7 @@ public:
     {
     }
 
-    ~GlfwManager();
+    ~WindowManager();
 
     bool init();
 
@@ -73,7 +73,7 @@ private:
     void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 };
 
-bool GlfwManager::init()
+bool WindowManager::init()
 {
     /*
      * GLFW initialization and configuration.
@@ -103,9 +103,9 @@ bool GlfwManager::init()
     // object, and making the member function static all do not suffice. This
     // post explains the problem in even more depth:
     // https://stackoverflow.com/a/402385.
-    FramebufferCallback<void(GLFWwindow*, int, int)>::func = std::bind(&GlfwManager::framebuffer_size_callback, this, _1, _2, _3);
-    CursorCallback<void(GLFWwindow*, double, double)>::func = std::bind(&GlfwManager::cursor_callback, this, _1, _2, _3);
-    ScrollCallback<void(GLFWwindow*, double, double)>::func = std::bind(&GlfwManager::scroll_callback, this, _1, _2, _3);
+    FramebufferCallback<void(GLFWwindow*, int, int)>::func = std::bind(&WindowManager::framebuffer_size_callback, this, _1, _2, _3);
+    CursorCallback<void(GLFWwindow*, double, double)>::func = std::bind(&WindowManager::cursor_callback, this, _1, _2, _3);
+    ScrollCallback<void(GLFWwindow*, double, double)>::func = std::bind(&WindowManager::scroll_callback, this, _1, _2, _3);
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, static_cast<void(*)(GLFWwindow*, int, int)>(FramebufferCallback<void(GLFWwindow*, int, int)>::callback));
@@ -134,27 +134,27 @@ bool GlfwManager::init()
     return true;
 }
 
-GlfwManager::~GlfwManager()
+WindowManager::~WindowManager()
 {
     glfwTerminate();
 }
 
-bool GlfwManager::load_glad_loader()
+bool WindowManager::load_glad_loader()
 {
     return gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 }
 
-bool GlfwManager::should_window_close() const
+bool WindowManager::should_window_close() const
 {
     return glfwWindowShouldClose(window);
 }
 
-GLFWwindow* GlfwManager::get_window() const
+GLFWwindow* WindowManager::get_window() const
 {
     return window;
 }
 
-void GlfwManager::process_input()
+void WindowManager::process_input()
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -254,12 +254,12 @@ void GlfwManager::process_input()
     }
 }
 
-void GlfwManager::swap_buffers()
+void WindowManager::swap_buffers()
 {
     glfwSwapBuffers(window);
 }
 
-void GlfwManager::poll_events()
+void WindowManager::poll_events()
 {
     glfwPollEvents();
 }
@@ -267,21 +267,21 @@ void GlfwManager::poll_events()
 /*
  * Callback functions.
  */
-void GlfwManager::framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void WindowManager::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-void GlfwManager::cursor_callback(GLFWwindow* window, double xpos, double ypos)
+void WindowManager::cursor_callback(GLFWwindow* window, double xpos, double ypos)
 {
     if (*viewer_mode == ViewerMode::Edit)
         camera->update_angle(xpos, ypos);
 }
 
-void GlfwManager::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+void WindowManager::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     if (*viewer_mode == ViewerMode::Edit)
         camera->update_pov(yoffset);
 }
 
-#endif /* GLFW_MANAGER_HPP */
+#endif /* WINDOW_MANAGER_HPP */

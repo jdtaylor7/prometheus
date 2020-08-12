@@ -20,7 +20,7 @@ if [ ! -z "$r_flag" ]; then
     echo "Rebuilding build directory"
     rm -rf ./build
 fi
-mkdir build 2>/dev/null
+mkdir -p build
 cd build
 
 cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
