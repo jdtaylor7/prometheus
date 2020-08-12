@@ -161,10 +161,6 @@ void Mesh::draw(Shader* shader)
         // std::cout << "Room::draw: No spotlight present.\n";
     }
 
-
-    // // Material properties.
-    // shader->set_float("material.shininess", 32.0f);
-
     // Set textures.
     unsigned int diffuse_num = 1;
     unsigned int specular_num = 1;
@@ -189,7 +185,7 @@ void Mesh::draw(Shader* shader)
     {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, depth_map);
-        shader->set_int("shadow_map", i);
+        shader->set_int("shadow_map", 2);
     }
 
     // Draw mesh.

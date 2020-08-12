@@ -26,12 +26,59 @@ struct Material
 in vec3 frag_pos;
 in vec3 normal_vec;
 in vec2 tex_coords;
+in vec4 frag_pos_light_space;
 
 uniform vec3 view_pos;
 uniform PointLight point_lights[NUM_POINT_LIGHTS];
 uniform Material material;
+uniform sampler2D shadow_map;
+uniform bool smooth_shadows;
 
 out vec4 frag_color;
+
+float calc_shadow(vec3 normal, vec3 light_dir)
+{
+    // Normalize perspective.
+    vec3 proj_coords = frag_pos_light_space.xyz / frag_pos_light_space.w;
+
+    // Transform from clip space ([-1, 1]) to screen space ([0, 1]).
+    proj_coords = (proj_coords * 0.5f) + 0.5f;
+
+    // Compute closest and current depths.
+    float closest_depth = texture(shadow_map, proj_coords.xy).r;
+    float current_depth = proj_coords.z;
+
+    // Provide bias to shadow calculations to remove shadow acne.
+    float shadow_bias = 0.0005f;
+
+    // Calculate whether fragment is in shadow. Implement PCF by averaging
+    // surrounding texels.
+    float shadow = 0.0f;
+    if (smooth_shadows)
+    {
+        vec2 texel_size = 1.0f / textureSize(shadow_map, 0);
+        for (int x = -2; x <= 2; ++x)
+        {
+            for (int y = -2; y <= 2; ++y)
+            {
+                float pcf_depth = texture(shadow_map, proj_coords.xy + vec2(x, y) * texel_size).r;
+                shadow += current_depth - shadow_bias > pcf_depth ? 0.075f : 0.0f;
+            }
+        }
+    }
+    else
+    {
+        shadow = current_depth - shadow_bias > closest_depth ? 1.0f : 0.0f;
+    }
+
+    // Remove shadows outside of light frustum.
+    if (proj_coords.z > 1.0f)
+        shadow = 0.0f;
+
+    return shadow;
+    // return closest_depth;
+    // return current_depth;
+}
 
 vec3 calc_point_light(PointLight light, vec3 normal, vec3 frag_pos, vec3 view_dir)
 {
@@ -57,7 +104,12 @@ vec3 calc_point_light(PointLight light, vec3 normal, vec3 frag_pos, vec3 view_di
     diffuse *= attenuation;
     specular *= attenuation;
 
-    return (ambient + diffuse + specular);
+    // Shadow.
+    float shadow = calc_shadow(normal, light_dir);
+
+    // return (ambient + (1.0f - shadow) * (diffuse + specular));
+    return vec3(1.0f - shadow);
+    // return vec3(shadow);
 }
 
 void main()
@@ -72,5 +124,5 @@ void main()
     for (int i = 0; i < NUM_POINT_LIGHTS; i++)
         result += calc_point_light(point_lights[i], normal, frag_pos, view_dir);
 
-    frag_color = vec4(result, 1.0f);  // correct output
+    frag_color = vec4(result, 1.0f);
 }

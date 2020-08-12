@@ -149,7 +149,7 @@ ImguiManager::ImguiManager(GLFWwindow* window_,
 #endif
     controls_e_win(228.0, 82.0),
     drone_win(300.0, 480.0),
-    camera_win(121.0, 167.0),
+    camera_win(150.0, 220.0),
     rm(resource_manager_),
     viewer_mode(viewer_mode_),
     drone_data(drone_data_),
@@ -405,6 +405,10 @@ void ImguiManager::process_frame()
             ImGui::BulletText("x: %.3f", camera->get_position().x);
             ImGui::BulletText("y: %.3f", camera->get_position().y);
             ImGui::BulletText("z: %.3f", camera->get_position().z);
+
+            ImGui::Text("Camera Orientation");
+            ImGui::BulletText("pitch: %.3f", camera->get_pitch());
+            ImGui::BulletText("yaw: %.3f", camera->get_yaw());
 
             ImGui::Text("Target Position");
             ImGui::BulletText("x: %.3f", camera->get_target().x);

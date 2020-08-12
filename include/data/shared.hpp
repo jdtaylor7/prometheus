@@ -67,6 +67,8 @@ const DroneData INITIAL_DRONE_DATA = DroneData(glm::vec3(0.0, 0.1, 0.0),
 
 const glm::vec3 CAMERA_POSITION_HEADON = glm::vec3(0.0, 1.0, 4.0);
 const glm::vec3 CAMERA_TARGET_HEADON = glm::vec3(0.0, 1.0, 3.0);
+// const glm::vec3 CAMERA_POSITION_HEADON = glm::vec3(0.0, 2.35, 12.0);
+// const glm::vec3 CAMERA_TARGET_HEADON = glm::vec3(0.0, 2.45, 12.0);
 
 const glm::vec3 CAMERA_POSITION_OVERHEAD = glm::vec3(0.0, 4.0, 0.0);
 const glm::vec3 CAMERA_TARGET_OVERHEAD = glm::vec3(0.0, 3.0, 0.0);

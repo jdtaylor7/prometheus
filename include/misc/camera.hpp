@@ -42,6 +42,8 @@ public:
     glm::vec3 get_front() const;
     glm::vec3 get_up() const;
     float get_fov() const;
+    float get_yaw() const { return yaw; };
+    float get_pitch() const { return pitch; };
 
     void set_speed_modifier(CameraSpeedSetting);
     void set_position(glm::vec3);

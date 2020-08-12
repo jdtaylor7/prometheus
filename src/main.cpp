@@ -1,3 +1,5 @@
+#undef NDEBUG
+
 #include "drone_viewer.hpp"
 
 int main()

@@ -14,6 +14,7 @@
 #include "imgui_manager.hpp"
 #include "lights.hpp"
 #include "opengl_manager.hpp"
+#include <quad.hpp>
 #include "resource_manager.hpp"
 #include "serial_port.hpp"
 #include "shader.hpp"
@@ -130,6 +131,7 @@ private:
     std::unique_ptr<SceneLighting> scene_lighting;
     std::unique_ptr<Room> room;
     std::unique_ptr<Model> drone;
+    std::unique_ptr<Quad> quad;
 
     /*
      * Synchronization constructs.
@@ -296,11 +298,16 @@ bool DroneViewer::init()
         scene_lighting.get());
     drone->init();
 
+    // Quad.
+    quad = std::make_unique<Quad>();
+    quad->init();
+
     // Pass models to OpenGL manager.
     opengl_manager->pass_objects(
         scene_lighting.get(),
         room.get(),
-        drone.get()
+        drone.get(),
+        quad.get()
     );
 
     return true;

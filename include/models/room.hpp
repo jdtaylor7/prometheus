@@ -43,14 +43,12 @@ const std::vector<glm::vec3> wall_translation_vecs = {
     glm::vec3(-12.0f, 4.0f, 0.0f),
     glm::vec3(12.0f, 4.0f, 0.0f),
 };
-
 const std::vector<float> wall_rotation_angles = {
     180.0f,
     0.0f,
     90.0f,
     90.0f,
 };
-
 const std::vector<glm::vec3> wall_rotation_axes = {
     glm::vec3(0.0f, 1.0f, 0.0f),
     glm::vec3(1.0f, 0.0f, 0.0f),
@@ -159,23 +157,18 @@ void Room::draw(Shader* shader)
     if (!shader)
         std::cerr << "Room::draw: shader is NULL\n";
 
-    shader->use();
-
-    // Set shader textures.
-    shader->set_int("material.texture_diffuse1", 0);
-    shader->set_int("material.texture_specular1", 1);
-    shader->set_int("shadow_map", 2);
-
     // Set depth map for room if possible.
     if (depth_map_set)
     {
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, depth_map);
+        shader->set_int("shadow_map", 2);
     }
 
     /*
      * Set shader attributes.
      */
+    shader->use();
     if (sl)
     {
         // Directional light properties.
@@ -235,9 +228,6 @@ void Room::draw(Shader* shader)
         {
             // std::cout << "Room::draw: No spotlight present in the scene.\n";
         }
-
-        // Material properties.
-        // shader->set_float("material.shininess", 32.0f);
     }
     else
     {
