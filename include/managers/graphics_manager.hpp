@@ -303,7 +303,7 @@ void GraphicsManager::process_frame()
     // Set view and projection matrices. Model matrix set per object in
     // render_scene function.
     view = glm::lookAt(camera->get_position(), camera->get_position() + camera->get_front(), camera->get_up());
-    projection = glm::perspective(glm::radians(fov), float(screen_width / screen_height), 0.1f, 100.0f);
+    projection = glm::perspective(glm::radians(fov), float(screen_width) / screen_height, 0.1f, 100.0f);
 
     // Assign projection and view matrices.
     main_shader->set_mat4fv("projection", projection);
