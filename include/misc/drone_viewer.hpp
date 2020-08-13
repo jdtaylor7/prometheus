@@ -205,7 +205,9 @@ bool DroneViewer::init()
         drone_data.get(),
         camera.get(),
         serial_port.get(),
-        use_anti_aliasing);
+        use_anti_aliasing,
+        room_dimensions,
+        room_position);
     if (!window_manager->init()) return false;
 
     ui_manager = std::make_unique<UiManager>(

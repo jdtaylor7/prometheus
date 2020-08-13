@@ -63,6 +63,8 @@ std::ostream& operator<<(std::ostream& os, const DroneData& data)
  */
 const DroneData INITIAL_DRONE_DATA = DroneData(glm::vec3(0.0, 0.3, 0.0),
                                                glm::vec3(0.0, 0.0, 0.0));
+constexpr float DRONE_OFFSET_TOP = 1.5;
+constexpr float DRONE_OFFSET_BOT = 0.5;
 
 const glm::vec3 CAMERA_POSITION_HEADON = glm::vec3(0.0, 2.0, 11.5);
 const glm::vec3 CAMERA_FRONT_HEADON = glm::vec3(0.0, 0.0, -1.0);

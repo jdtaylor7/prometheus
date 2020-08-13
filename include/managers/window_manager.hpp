@@ -25,7 +25,9 @@ public:
                 DroneData* drone_data_,
                 Camera* camera_,
                 SerialPort* serial_port_,
-                bool use_anti_aliasing_) :
+                bool use_anti_aliasing_,
+                glm::vec3 room_dimensions_,
+                glm::vec3 room_position_) :
         screen_width(width_),
         screen_height(height_),
         rm(resource_manager_),
@@ -33,7 +35,9 @@ public:
         drone_data(drone_data_),
         camera(camera_),
         serial_port(serial_port_),
-        use_anti_aliasing(use_anti_aliasing_)
+        use_anti_aliasing(use_anti_aliasing_),
+        room_dimensions(room_dimensions_),
+        room_position(room_position_)
     {
     }
 
@@ -54,9 +58,10 @@ private:
     std::size_t screen_height;
     GLFWwindow* window;
     bool use_anti_aliasing;
+    glm::vec3 room_dimensions;
+    glm::vec3 room_position;
 
     ResourceManager* rm;
-
     DroneData* drone_data;
     Camera* camera;
     ViewerMode* viewer_mode;
@@ -213,6 +218,8 @@ void WindowManager::process_input()
         {
             std::lock_guard<std::mutex> g(rm->drone_data_mutex);
             drone_data->position.y += 0.05f;
+            if (drone_data->position.y > room_dimensions.y - (DRONE_OFFSET_TOP / 2))
+                drone_data->position.y = room_dimensions.y - (DRONE_OFFSET_TOP / 2);
         }
 
         // TODO Testing.
@@ -220,6 +227,8 @@ void WindowManager::process_input()
         {
             std::lock_guard<std::mutex> g(rm->drone_data_mutex);
             drone_data->position.y -= 0.05f;
+            if (drone_data->position.y < room_position.y + (DRONE_OFFSET_BOT / 2))
+                drone_data->position.y = room_position.y + (DRONE_OFFSET_BOT / 2);
         }
 
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
