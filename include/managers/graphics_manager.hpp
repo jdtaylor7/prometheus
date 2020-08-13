@@ -57,9 +57,9 @@ private:
      * Internal state.
      */
     bool generate_shadows = true;
+    bool use_anti_aliasing;
     unsigned int depth_map;
     unsigned int depth_map_fbo;
-    bool use_anti_aliasing;
 
     // For debugging within render loop.
     bool first_loop = true;

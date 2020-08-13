@@ -215,14 +215,14 @@ void WindowManager::process_input()
         if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
         {
             std::lock_guard<std::mutex> g(rm->drone_data_mutex);
-            drone_data->position.y += 0.003f;
+            drone_data->position.y += 0.05f;
         }
 
         // TODO Testing.
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
         {
             std::lock_guard<std::mutex> g(rm->drone_data_mutex);
-            drone_data->position.y -= 0.003f;
+            drone_data->position.y -= 0.05f;
         }
 
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);

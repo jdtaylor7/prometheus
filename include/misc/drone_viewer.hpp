@@ -89,7 +89,7 @@ private:
     /*
      * Model settings.
      */
-    static constexpr bool use_anti_aliasing = true;
+    static constexpr bool use_anti_aliasing = false;
 
     /*
      * Room.
