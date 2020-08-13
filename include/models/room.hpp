@@ -27,36 +27,6 @@ const std::vector<float> wall_vertices = {
     -0.5f,  0.25f, 0.0f,  0.0f, 0.0f, -1.0f,  0.0f, 2.0f,  // top left
 };
 
-// Floor.
-const glm::vec3 floor_translation_vec = glm::vec3(0.0f, -2.0f, 0.0f);
-const float floor_rotation_angle = 90.0f;
-const glm::vec3 floor_rotation_axis = glm::vec3(1.0f, 0.0f, 0.0f);
-
-// Ceiling.
-const glm::vec3 ceiling_translation_vec = glm::vec3(0.0f, 10.0f, 0.0f);
-const float ceiling_rotation_angle = -90.0f;
-const glm::vec3 ceiling_rotation_axis = glm::vec3(1.0f, 0.0f, 0.0f);
-
-// Walls.
-const std::vector<glm::vec3> wall_translation_vecs = {
-    glm::vec3(0.0f, 4.0f, -12.0f),
-    glm::vec3(0.0f, 4.0f, 12.0f),
-    glm::vec3(-12.0f, 4.0f, 0.0f),
-    glm::vec3(12.0f, 4.0f, 0.0f),
-};
-const std::vector<float> wall_rotation_angles = {
-    180.0f,
-    0.0f,
-    90.0f,
-    90.0f,
-};
-const std::vector<glm::vec3> wall_rotation_axes = {
-    glm::vec3(0.0f, 1.0f, 0.0f),
-    glm::vec3(1.0f, 0.0f, 0.0f),
-    glm::vec3(0.0f, 1.0f, 0.0f),
-    glm::vec3(0.0f, 1.0f, 0.0f),
-};
-
 class Room
 {
 public:
@@ -67,7 +37,9 @@ public:
         std::filesystem::path wall_diffuse_texture_path_,
         std::filesystem::path wall_specular_texture_path_,
         SceneLighting* scene_lighting_,
-        float scale_factor_) :
+        float scale_factor_,
+        glm::vec3 dimensions_,
+        glm::vec3 position_) :
             floor_diffuse_texture_path(floor_diffuse_texture_path_),
             floor_specular_texture_path(floor_specular_texture_path_),
             ceiling_diffuse_texture_path(ceiling_diffuse_texture_path_),
@@ -75,7 +47,9 @@ public:
             wall_diffuse_texture_path(wall_diffuse_texture_path_),
             wall_specular_texture_path(wall_specular_texture_path_),
             sl(scene_lighting_),
-            scale_factor(scale_factor_)
+            scale_factor(scale_factor_),
+            dimensions(dimensions_),
+            position(position_)
     {
     }
 
@@ -106,6 +80,36 @@ private:
     SceneLighting* sl;
 
     float scale_factor;
+    glm::vec3 dimensions;
+    glm::vec3 position;
+
+    /*
+     * Transformation matrices.
+     */
+    // Floor.
+    glm::vec3 floor_translation_vec;
+    const float floor_rotation_angle = 90.0f;
+    const glm::vec3 floor_rotation_axis = glm::vec3(1.0f, 0.0f, 0.0f);
+
+    // Ceiling.
+    glm::vec3 ceiling_translation_vec;
+    const float ceiling_rotation_angle = -90.0f;
+    const glm::vec3 ceiling_rotation_axis = glm::vec3(1.0f, 0.0f, 0.0f);
+
+    // Walls.
+    std::vector<glm::vec3> wall_translation_vecs;
+    const std::vector<float> wall_rotation_angles = {
+        180.0f,
+        0.0f,
+        90.0f,
+        90.0f,
+    };
+    const std::vector<glm::vec3> wall_rotation_axes = {
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(1.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f),
+    };
 
     unsigned int depth_map;
     bool depth_map_set = false;
@@ -117,6 +121,26 @@ private:
 
 void Room::init()
 {
+    /*
+     * Compute transformation matrices.
+     */
+    // Floor.
+    floor_translation_vec = position;
+
+    // Ceiling.
+    ceiling_translation_vec = position + glm::vec3(0.0, scale_factor / 2, 0.0);
+
+    // Walls.
+    wall_translation_vecs = {
+        glm::vec3(0.0, scale_factor / 4.0, -scale_factor / 2.0),
+        glm::vec3(0.0, scale_factor / 4.0, scale_factor / 2.0),
+        glm::vec3(-scale_factor / 2.0, scale_factor / 4.0, 0.0),
+        glm::vec3(scale_factor / 2.0, scale_factor / 4.0, 0.0),
+    };
+
+    /*
+     * Set up OpenGL buffers and other data.
+     */
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
     glGenBuffers(1, &ebo);

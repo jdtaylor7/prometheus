@@ -97,6 +97,7 @@ private:
      */
     static constexpr float room_scale_factor = 24.0f;
     static constexpr glm::vec3 room_dimensions = room_scale_factor * glm::vec3(1.0f, 0.5f, 1.0f);
+    static constexpr glm::vec3 room_position = glm::vec3(0.0f, 0.0f, 0.0f);
 
     /*
      * Drone.
@@ -283,7 +284,9 @@ bool DroneViewer::init()
         scifi_wall_texture_diff,
         scifi_wall_texture_spec,
         scene_lighting.get(),
-        room_scale_factor);
+        room_scale_factor,
+        room_dimensions,
+        room_position);
     if (!room)
     {
         logger.log(LogLevel::fatal, "DroneViewer::init: Room not created\n");

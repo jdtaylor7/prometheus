@@ -238,7 +238,6 @@ void WindowManager::process_input()
                 camera->set_pitch(CAMERA_PITCH_HEADON);
                 camera->set_yaw(CAMERA_YAW_HEADON);
             }
-            // camera->update_angle(screen_width / 2, screen_height / 2);
         }
         // TODO
         if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
@@ -250,7 +249,6 @@ void WindowManager::process_input()
                 camera->set_pitch(CAMERA_PITCH_OVERHEAD);
                 camera->set_yaw(CAMERA_YAW_OVERHEAD);
             }
-            // camera->update_angle(screen_width / 2, screen_height / 2);
         }
 
         camera->update_position(window);

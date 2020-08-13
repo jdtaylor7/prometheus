@@ -61,12 +61,12 @@ std::ostream& operator<<(std::ostream& os, const DroneData& data)
 /*
  * Global constants.
  */
-const DroneData INITIAL_DRONE_DATA = DroneData(glm::vec3(0.0, 0.1, 0.0),
+const DroneData INITIAL_DRONE_DATA = DroneData(glm::vec3(0.0, 0.3, 0.0),
                                                glm::vec3(0.0, 0.0, 0.0));
 
 const glm::vec3 CAMERA_POSITION_HEADON = glm::vec3(0.0, 2.0, 11.5);
-const glm::vec3 CAMERA_FRONT_HEADON = glm::vec3(0.0, -0.087, -0.996);
-const float CAMERA_PITCH_HEADON = -5.0;
+const glm::vec3 CAMERA_FRONT_HEADON = glm::vec3(0.0, 0.0, -1.0);
+const float CAMERA_PITCH_HEADON = 0.0;
 const float CAMERA_YAW_HEADON = -90.0;
 
 const glm::vec3 CAMERA_POSITION_OVERHEAD = glm::vec3(6.952, 5.641, 9.737);

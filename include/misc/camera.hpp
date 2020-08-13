@@ -177,15 +177,10 @@ inline void Camera::constrain_to_room()
     else if (position.x < (-1 * room_dimensions.x / 2) + collision_bias)
         position.x = (-1 * room_dimensions.x / 2 + collision_bias);
 
-    // TODO update when room position fixed.
-    // if (position.y > room_dimensions.y - collision_bias)
-    //     position.y = room_dimensions.y - collision_bias;
-    // else if (position.y < 0 + collision_bias)
-    //     position.y = 0 + collision_bias;
-    if (position.y > room_dimensions.y - 2 - collision_bias)
-        position.y = room_dimensions.y - 2 - collision_bias;
-    else if (position.y < -2 + collision_bias)
-        position.y = -2 + collision_bias;
+    if (position.y > room_dimensions.y - collision_bias)
+        position.y = room_dimensions.y - collision_bias;
+    else if (position.y < 0 + collision_bias)
+        position.y = 0 + collision_bias;
 
     if (position.z > room_dimensions.z / 2 - collision_bias)
         position.z = room_dimensions.z / 2 - collision_bias;
