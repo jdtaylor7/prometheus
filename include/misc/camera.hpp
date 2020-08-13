@@ -174,10 +174,15 @@ inline void Camera::constrain_to_boundary()
     else if (position.x < (-1 * room_dimensions.x / 2) + collision_bias)
         position.x = (-1 * room_dimensions.x / 2 + collision_bias);
 
-    if (position.y > room_dimensions.y)  // TODO fix
-        position.y = room_dimensions.y;
-    else if (position.y < 0)
-        position.y = 0;
+    // TODO fix
+    // if (position.y > room_dimensions.y - collision_bias)
+    //     position.y = room_dimensions.y - collision_bias;
+    // else if (position.y < 0 + collision_bias)
+    //     position.y = 0 + collision_bias;
+    if (position.y > room_dimensions.y - 2 - collision_bias)
+        position.y = room_dimensions.y - 2 - collision_bias;
+    else if (position.y < -2 + collision_bias)
+        position.y = -2 + collision_bias;
 
     if (position.z > room_dimensions.z / 2 - collision_bias)
         position.z = room_dimensions.z / 2 - collision_bias;
@@ -191,44 +196,29 @@ void Camera::update_position(GLFWwindow* window)
 
     std::lock_guard<std::mutex> g(rm->camera_data_mutex);
 
+    // Camera WASD.
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    {
         position += camera_speed * front;
-        constrain_to_boundary();
-    }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    {
         position -= camera_speed * front;
-        constrain_to_boundary();
-    }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    {
         position -= glm::normalize(glm::cross(front, up)) * camera_speed;
-        constrain_to_boundary();
-    }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    {
         position += glm::normalize(glm::cross(front, up)) * camera_speed;
-        constrain_to_boundary();
-    }
+
+    // Camera up/down.
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    {
         position += camera_speed * up;
-        constrain_to_boundary();
-    }
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-    {
         position -= camera_speed * up;
-        constrain_to_boundary();
-    }
+
+    // Camera speed.
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    {
         set_speed_modifier(CameraSpeedSetting::Fast);
-    }
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
-    {
         set_speed_modifier(CameraSpeedSetting::Normal);
-    }
+
+    constrain_to_boundary();
 }
 
 void Camera::update_angle(double xpos, double ypos)
