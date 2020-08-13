@@ -24,21 +24,19 @@ public:
            std::size_t screen_height,
            glm::vec3 room_dimensions_,
            glm::vec3 position_,
-           glm::vec3 target_) :
+           glm::vec3 front_) :
         rm(rm_),
         lastx(screen_width / 2),
         lasty(screen_height / 2),
         room_dimensions(room_dimensions_),
         position(position_),
-        target(target_),
-        front(target_ - position_)
+        front(front_)
     {
     }
 
     friend std::ostream& operator<<(std::ostream&, const Camera&);
 
     glm::vec3 get_position() const;
-    glm::vec3 get_target() const;
     glm::vec3 get_front() const;
     glm::vec3 get_up() const;
     float get_fov() const;
@@ -47,7 +45,9 @@ public:
 
     void set_speed_modifier(CameraSpeedSetting);
     void set_position(glm::vec3);
-    void set_target_and_front(glm::vec3);
+    void set_front(glm::vec3);
+    void set_pitch(float);
+    void set_yaw(float);
 
     void update_position(GLFWwindow* window);
     void update_angle(double xpos, double ypos);
@@ -88,11 +88,10 @@ private:
      */
     float fov = 45.0f;
 
-    float yaw = -90.0f;
-    float pitch = 0.0f;
+    float pitch = CAMERA_PITCH_HEADON;
+    float yaw = CAMERA_YAW_HEADON;
 
     glm::vec3 position;
-    glm::vec3 target;
     glm::vec3 front;
 
     inline void constrain_to_room();
@@ -104,9 +103,9 @@ std::ostream& operator<<(std::ostream& os, const Camera& cam)
     os << "camera.position.y = " << cam.position.y << '\n';
     os << "camera.position.z = " << cam.position.z << '\n';
 
-    os << "camera.target.x = " << cam.target.x << '\n';
-    os << "camera.target.y = " << cam.target.y << '\n';
-    os << "camera.target.z = " << cam.target.z << '\n';
+    os << "camera.front.x = " << cam.front.x << '\n';
+    os << "camera.front.y = " << cam.front.y << '\n';
+    os << "camera.front.z = " << cam.front.z << '\n';
 
     return os;
 }
@@ -114,11 +113,6 @@ std::ostream& operator<<(std::ostream& os, const Camera& cam)
 glm::vec3 Camera::get_position() const
 {
     return position;
-}
-
-glm::vec3 Camera::get_target() const
-{
-    return target;
 }
 
 glm::vec3 Camera::get_front() const
@@ -153,15 +147,24 @@ void Camera::set_speed_modifier(CameraSpeedSetting setting)
     }
 }
 
-void Camera::set_position(glm::vec3 pos)
+void Camera::set_position(glm::vec3 position_)
 {
-    position = pos;
+    position = position_;
 }
 
-void Camera::set_target_and_front(glm::vec3 tar)
+void Camera::set_front(glm::vec3 front_)
 {
-    target = tar;
-    front = target - position;
+    front = front_;
+}
+
+void Camera::set_pitch(float pitch_)
+{
+    pitch = pitch_;
+}
+
+void Camera::set_yaw(float yaw_)
+{
+    yaw = yaw_;
 }
 
 /*
@@ -253,7 +256,6 @@ void Camera::update_angle(double xpos, double ypos)
     direction.y = sin(glm::radians(pitch));
     direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     front = glm::normalize(direction);
-    target = position - front;
 }
 
 void Camera::update_pov(double yoffset)

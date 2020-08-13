@@ -108,7 +108,6 @@ bool WindowManager::init()
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, static_cast<void(*)(GLFWwindow*, int, int)>(FramebufferCallback<void(GLFWwindow*, int, int)>::callback));
     glfwSetCursorPosCallback(window, static_cast<void(*)(GLFWwindow*, double, double)>(CursorCallback<void(GLFWwindow*, double, double)>::callback));
-    glfwSetScrollCallback(window, static_cast<void(*)(GLFWwindow*, double, double)>(ScrollCallback<void(GLFWwindow*, double, double)>::callback));
 
     /*
      * Load OpenGL function pointers.
@@ -235,18 +234,24 @@ void WindowManager::process_input()
             {
                 std::lock_guard<std::mutex> g(rm->camera_data_mutex);
                 camera->set_position(CAMERA_POSITION_HEADON);
-                camera->set_target_and_front(CAMERA_TARGET_HEADON);
+                camera->set_front(CAMERA_FRONT_HEADON);
+                camera->set_pitch(CAMERA_PITCH_HEADON);
+                camera->set_yaw(CAMERA_YAW_HEADON);
             }
+            // camera->update_angle(screen_width / 2, screen_height / 2);
         }
         // TODO
-        // if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
-        // {
-        //     {
-        //         std::lock_guard<std::mutex> g(rm->camera_data_mutex);
-        //         camera->set_position(CAMERA_POSITION_OVERHEAD);
-        //         camera->set_target_and_front(CAMERA_TARGET_OVERHEAD);
-        //     }
-        // }
+        if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+        {
+            {
+                std::lock_guard<std::mutex> g(rm->camera_data_mutex);
+                camera->set_position(CAMERA_POSITION_OVERHEAD);
+                camera->set_front(CAMERA_FRONT_OVERHEAD);
+                camera->set_pitch(CAMERA_PITCH_OVERHEAD);
+                camera->set_yaw(CAMERA_YAW_OVERHEAD);
+            }
+            // camera->update_angle(screen_width / 2, screen_height / 2);
+        }
 
         camera->update_position(window);
     }

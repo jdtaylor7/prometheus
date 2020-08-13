@@ -405,14 +405,14 @@ void UiManager::process_frame()
             ImGui::BulletText("y: %.3f", camera->get_position().y);
             ImGui::BulletText("z: %.3f", camera->get_position().z);
 
+            ImGui::Text("Camera Front");
+            ImGui::BulletText("x: %.3f", camera->get_front().x);
+            ImGui::BulletText("y: %.3f", camera->get_front().y);
+            ImGui::BulletText("z: %.3f", camera->get_front().z);
+
             ImGui::Text("Camera Orientation");
             ImGui::BulletText("pitch: %.3f", camera->get_pitch());
             ImGui::BulletText("yaw: %.3f", camera->get_yaw());
-
-            ImGui::Text("Target Position");
-            ImGui::BulletText("x: %.3f", camera->get_target().x);
-            ImGui::BulletText("y: %.3f", camera->get_target().y);
-            ImGui::BulletText("z: %.3f", camera->get_target().z);
 
             ImGui::End();
         }

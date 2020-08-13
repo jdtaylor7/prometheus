@@ -64,12 +64,14 @@ std::ostream& operator<<(std::ostream& os, const DroneData& data)
 const DroneData INITIAL_DRONE_DATA = DroneData(glm::vec3(0.0, 0.1, 0.0),
                                                glm::vec3(0.0, 0.0, 0.0));
 
-const glm::vec3 CAMERA_POSITION_HEADON = glm::vec3(0.0, 1.0, 4.0);
-const glm::vec3 CAMERA_TARGET_HEADON = glm::vec3(0.0, 1.0, 3.0);
-// const glm::vec3 CAMERA_POSITION_HEADON = glm::vec3(0.0, 2.35, 12.0);
-// const glm::vec3 CAMERA_TARGET_HEADON = glm::vec3(0.0, 2.45, 12.0);
+const glm::vec3 CAMERA_POSITION_HEADON = glm::vec3(0.0, 2.0, 11.5);
+const glm::vec3 CAMERA_FRONT_HEADON = glm::vec3(0.0, -0.087, -0.996);
+const float CAMERA_PITCH_HEADON = -5.0;
+const float CAMERA_YAW_HEADON = -90.0;
 
-const glm::vec3 CAMERA_POSITION_OVERHEAD = glm::vec3(0.0, 4.0, 0.0);
-const glm::vec3 CAMERA_TARGET_OVERHEAD = glm::vec3(0.0, 3.0, 0.0);
+const glm::vec3 CAMERA_POSITION_OVERHEAD = glm::vec3(6.952, 5.641, 9.737);
+const glm::vec3 CAMERA_FRONT_OVERHEAD = glm::vec3(-0.579, -0.342, -0.740);
+const float CAMERA_PITCH_OVERHEAD = -20.0;
+const float CAMERA_YAW_OVERHEAD = -128.0;
 
 #endif /* SHARED_HPP */
