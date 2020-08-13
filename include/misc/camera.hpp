@@ -95,7 +95,7 @@ private:
     glm::vec3 target;
     glm::vec3 front;
 
-    inline void constrain_to_boundary();
+    inline void constrain_to_room();
 };
 
 std::ostream& operator<<(std::ostream& os, const Camera& cam)
@@ -167,14 +167,14 @@ void Camera::set_target_and_front(glm::vec3 tar)
 /*
  * Prevent camera from leaving enclosure.
  */
-inline void Camera::constrain_to_boundary()
+inline void Camera::constrain_to_room()
 {
     if (position.x > room_dimensions.x / 2 - collision_bias)
         position.x = room_dimensions.x / 2 - collision_bias;
     else if (position.x < (-1 * room_dimensions.x / 2) + collision_bias)
         position.x = (-1 * room_dimensions.x / 2 + collision_bias);
 
-    // TODO fix
+    // TODO update when room position fixed.
     // if (position.y > room_dimensions.y - collision_bias)
     //     position.y = room_dimensions.y - collision_bias;
     // else if (position.y < 0 + collision_bias)
@@ -218,7 +218,7 @@ void Camera::update_position(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
         set_speed_modifier(CameraSpeedSetting::Normal);
 
-    constrain_to_boundary();
+    constrain_to_room();
 }
 
 void Camera::update_angle(double xpos, double ypos)

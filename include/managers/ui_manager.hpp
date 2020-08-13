@@ -144,7 +144,7 @@ UiManager::UiManager(GLFWwindow* window_,
 #ifdef OS_CYGWIN
     controls_t_win(310.0, 130.0),
 #elif OS_LINUX
-    controls_t_win(360.0, 130.0),
+    controls_t_win(275.0, 165.0),
 #endif
     controls_e_win(228.0, 82.0),
     drone_win(300.0, 480.0),
@@ -288,7 +288,7 @@ void UiManager::process_frame()
             ImGui::Separator();
 
             ImGui::Text("Available serial devices:");
-            ImGui::SameLine();
+            // ImGui::SameLine();
 #ifdef OS_CYGWIN
             ImGui::SetNextItemWidth(65);
 #elif OS_LINUX
@@ -300,7 +300,7 @@ void UiManager::process_frame()
                          port_list.size());
 
             ImGui::Text("Current serial port status:");
-            ImGui::SameLine();
+            // ImGui::SameLine();
             if (!serial_port->is_open())
             {
                 ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Disconnected");
@@ -329,7 +329,7 @@ void UiManager::process_frame()
 
             ImGui::BulletText("Camera control (1, default)");
             ImGui::BulletText("Drone control (2)");
-            ImGui::BulletText("Reset view (r)");
+            ImGui::BulletText("Reset scene (r)");
 
             ImGui::End();
             break;
