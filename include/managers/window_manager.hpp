@@ -70,7 +70,6 @@ private:
      */
     void framebuffer_size_callback(GLFWwindow* window, int width, int height);
     void cursor_callback(GLFWwindow* window, double xpos, double ypos);
-    void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 };
 
 bool WindowManager::init()
@@ -99,13 +98,12 @@ bool WindowManager::init()
 
     // Prepare wrapper function objects for passing as callbacks. Solution based
     // off this Stackoverflow post: https://stackoverflow.com/a/19809787. Cannot
-    // use other solutions like creating a lambda, creating a std::function
+    // use other solutions as creating a lambda, creating a std::function
     // object, and making the member function static all do not suffice. This
     // post explains the problem in even more depth:
     // https://stackoverflow.com/a/402385.
     FramebufferCallback<void(GLFWwindow*, int, int)>::func = std::bind(&WindowManager::framebuffer_size_callback, this, _1, _2, _3);
     CursorCallback<void(GLFWwindow*, double, double)>::func = std::bind(&WindowManager::cursor_callback, this, _1, _2, _3);
-    ScrollCallback<void(GLFWwindow*, double, double)>::func = std::bind(&WindowManager::scroll_callback, this, _1, _2, _3);
 
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, static_cast<void(*)(GLFWwindow*, int, int)>(FramebufferCallback<void(GLFWwindow*, int, int)>::callback));
@@ -276,12 +274,6 @@ void WindowManager::cursor_callback(GLFWwindow* window, double xpos, double ypos
 {
     if (*viewer_mode == ViewerMode::Edit)
         camera->update_angle(xpos, ypos);
-}
-
-void WindowManager::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-    if (*viewer_mode == ViewerMode::Edit)
-        camera->update_pov(yoffset);
 }
 
 #endif /* WINDOW_MANAGER_HPP */
