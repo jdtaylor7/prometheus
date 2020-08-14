@@ -1,7 +1,7 @@
 [![Version][version-badge]](version-url)
 [![MIT License][license-badge]](LICENSE.md)
 
-<img alt="Prometheus Logo" style="float: right;" src="assets/logos/logo_with_text.png">
+<img alt="Prometheus Logo" style="float: center;" src="assets/logos/logo_with_text.png">
 
 Prometheus is a real-time drone monitoring application. Built from with OpenGL,
 it allows one to easily visualize the telemetry from a drone system. It runs in
