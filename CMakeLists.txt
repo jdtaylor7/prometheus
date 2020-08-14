@@ -82,10 +82,10 @@ add_library(windows_serial_port OBJECT src/drivers/windows_serial_port.cpp)
 add_library(serial_port OBJECT src/drivers/serial_port.cpp)
 
 # Add executables.
-add_executable(main src/main.cpp)
+add_executable(prometheus src/prometheus.cpp)
 
 # Link libraries.
-target_link_libraries(main
+target_link_libraries(prometheus
     glad
     stb_image
     glfw

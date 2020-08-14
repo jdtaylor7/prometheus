@@ -1,12 +1,14 @@
 #ifndef WINDOW_MANAGER_HPP
 #define WINDOW_MANAGER_HPP
 
+#include <filesystem>
 #include <functional>
 #include <memory>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <stb_image.h>
 
 #include "callbacks.hpp"
 #include "logger.hpp"
@@ -14,6 +16,8 @@
 #include "shared.hpp"
 #include "timer_manager.hpp"
 #include "viewer_mode.hpp"
+
+namespace fs = std::filesystem;
 
 class WindowManager
 {
@@ -54,6 +58,8 @@ public:
     void swap_buffers();
     void poll_events();
 private:
+    // namespace fs = std::filesystem;
+
     std::size_t screen_width;
     std::size_t screen_height;
     GLFWwindow* window;
@@ -66,6 +72,11 @@ private:
     Camera* camera;
     ViewerMode* viewer_mode;
     SerialPort* serial_port;
+
+    fs::path icon_dir = "assets/icons";
+    fs::path icon_16 = icon_dir / "icon_16.png";
+    fs::path icon_32 = icon_dir / "icon_32.png";
+    fs::path icon_48 = icon_dir / "icon_48.png";
 
     // Timers.
     std::unique_ptr<TimerManager> timer_manager;
@@ -92,11 +103,45 @@ bool WindowManager::init()
     /*
      * GLFW window creation.
      */
-    window = glfwCreateWindow(screen_width, screen_height, "Drone Viewer", NULL, NULL);
+    // window = glfwCreateWindow(screen_width, screen_height, "Drone Viewer", NULL, NULL);
+    window = glfwCreateWindow(screen_width, screen_height, "Prometheus", NULL, NULL);
     if (!window)
     {
-        logger.log(LogLevel::fatal, "Failed to create GLFW window\n");
+        logger.log(LogLevel::fatal, "WindowManager::init: Failed to create GLFW window\n");
         return false;
+    }
+
+    /*
+     * Set window icon.
+     */
+    bool get_icons = true;
+    if (!fs::exists(icon_16))
+    {
+        logger.log(LogLevel::error, "WindowManager::init: File does not exist: ", icon_16, '\n');
+        get_icons = false;
+    }
+    if (!fs::exists(icon_32))
+    {
+        logger.log(LogLevel::error, "WindowManager::init: File does not exist: ", icon_32, '\n');
+        get_icons = false;
+    }
+    if (!fs::exists(icon_48))
+    {
+        logger.log(LogLevel::error, "WindowManager::init: File does not exist: ", icon_48, '\n');
+        get_icons = false;
+    }
+
+    if (get_icons)
+    {
+        GLFWimage icons[3];
+        int num_channels;
+        icons[0].pixels = stbi_load(icon_16.c_str(), &icons[0].width, &icons[0].height, &num_channels, 0);
+        icons[1].pixels = stbi_load(icon_32.c_str(), &icons[1].width, &icons[1].height, &num_channels, 0);
+        icons[2].pixels = stbi_load(icon_48.c_str(), &icons[2].width, &icons[2].height, &num_channels, 0);
+        glfwSetWindowIcon(window, 3, icons);
+        stbi_image_free(icons[0].pixels);
+        stbi_image_free(icons[1].pixels);
+        stbi_image_free(icons[2].pixels);
     }
 
     using namespace std::placeholders;

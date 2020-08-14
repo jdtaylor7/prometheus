@@ -1,6 +1,8 @@
 [![Version][version-badge]](version-url)
 [![MIT License][license-badge]](LICENSE.md)
 
+![Prometheus Logo](https://github.com/jdtaylor7/drone_viewer/blob/master/assets/logos/logo_with_text.png?raw=true)
+
 # Drone Viewer
 
 Viewing application for drone project.
