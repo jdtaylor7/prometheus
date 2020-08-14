@@ -1,7 +1,7 @@
 [![Version][version-badge]](version-url)
 [![MIT License][license-badge]](LICENSE.md)
 
-![Prometheus Logo](assets/logos/logo_with_text.png)
+<img alt="Prometheus Logo" style="float: right;" src="assets/logos/logo_with_text.png">
 
 Prometheus is a real-time drone monitoring application. Built from with OpenGL,
 it allows one to easily visualize the telemetry from a drone system. It runs in
@@ -46,7 +46,9 @@ The viewer is built with [CMake](https://cmake.org/) via a build script:
 
 Run the binary from the root project directory:
 
-`./build/prometheus`
+```
+./build/prometheus
+```
 
 Some file pathnames are relative so running from the build directory itself will
 not work.
