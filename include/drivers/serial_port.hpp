@@ -6,8 +6,6 @@
 #ifdef OS_CYGWIN
 #include <Process.h>
 #include <windows.h>
-#elif OS_LINUX
-#include "libusb.h"
 #endif
 
 #ifdef OS_CYGWIN

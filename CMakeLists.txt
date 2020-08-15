@@ -103,4 +103,6 @@ target_link_libraries(prometheus
     linux_serial_port
     windows_serial_port
     serial_port
+    dl
+    pthread
 )
