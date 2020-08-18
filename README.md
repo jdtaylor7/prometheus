@@ -5,8 +5,8 @@
     <img alt="Prometheus logo" src="assets/logos/logo_with_text.png">
 </p>
 
-Prometheus is a real-time drone monitoring application. Built from with OpenGL,
-it allows one to easily visualize the telemetry from a drone system. It runs in
+Prometheus is a real-time drone monitoring application. Built with OpenGL, it
+allows one to easily visualize the telemetry from a drone system. It runs in
 Linux under X11.
 
 ### Dependencies
