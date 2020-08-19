@@ -36,9 +36,15 @@ For Ubuntu, the following packages should be installed:
 * [libglfw3-dev](https://packages.ubuntu.com/focal/libglfw3-dev)
 * [libassimp-dev](https://packages.ubuntu.com/xenial/libassimp-dev)
 
+You can do so with this one-liner:
+
+```
+sudo apt install libgl1-mesa-dev libglfw3 libglfw3-dev libassimp-dev
+```
+
 ### Building
 
-The viewer is built with [CMake](https://cmake.org/) via a build script:
+Prometheus is built with [CMake](https://cmake.org/) via a build script:
 
 ```
 ./build.sh -t prometheus
@@ -52,8 +58,8 @@ Run the binary from the root project directory:
 ./build/prometheus
 ```
 
-Some file pathnames are relative so running from the build directory itself will
-not work.
+At the moment some file pathnames are relative so running from the build
+directory itself will not work.
 
 [version-badge]: https://img.shields.io/github/release/jdtaylor7/drone_viewer/all.svg
 [version-url]: https://github.com/jdtaylor7/drone_viewer/releases/latest
