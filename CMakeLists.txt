@@ -28,16 +28,10 @@ find_library(LIBSERIAL_LIB serial "${PROJECT_SOURCE_DIR}/third_party/libserial/l
 # Detect OS.
 string(COMPARE EQUAL "${CMAKE_SYSTEM_NAME}" "Linux" is_linux)
 if(is_linux)
-    set(CXXOPTS "${CXXOPTS} -DOS_LINUX")
+    add_compile_definitions(OS_LINUX)
 	include_directories(/usr/include/libusb-1.0)
 elseif(CYGWIN)
-    set(CXXOPTS "${CXXOPTS} -DOS_CYGWIN")
-endif()
-
-if (TEST_MODE)
-    message("Setting TEST_MODE in cmake")
-    # add_compile_definitions("-DTEST_MODE")
-    set(CXXOPTS "${CXXOPTS} -DTEST_MODE")
+    add_compile_definitions(OS_CYGWIN)
 endif()
 
 # Add include directories
@@ -64,13 +58,9 @@ link_directories(
     "${ASSIMP_LIBRARIES}"
 )
 
-# Add compiler/linker options.
-set(CXXOPTS "${CXXOPTS} -DIMGUI_IMPL_OPENGL_LOADER_GLAD")
-set(LINKOPTS "${LINKOPTS} -lGL -lglfw -Wl,-Bstatic -lm -lrt -Wl,-Bdynamic -ldl -lX11 -lpthread")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXXOPTS}")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LINKOPTS}")
-message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
-message(STATUS "CMAKE_EXE_LINKER_FLAGS: ${CMAKE_EXE_LINKER_FLAGS}")
+# Add global compiler/linker options.
+add_compile_definitions(IMGUI_IMPL_OPENGL_LOADER_GLAD)
+add_link_options("LINKER:-lGL,-lglfw,-Bstatic,-lm,-lrt,-Bdynamic,-ldl,-lX11,-lpthread")
 
 # Add libraries.
 add_library(glad OBJECT third_party/glad/src/glad.c)
@@ -92,6 +82,11 @@ add_library(serial_port OBJECT src/drivers/serial_port.cpp)
 
 # Add executables.
 add_executable(prometheus src/prometheus.cpp)
+
+# Add target options/definitions.
+if (TEST_MODE)
+    target_compile_definitions(prometheus PRIVATE TEST_MODE)
+endif()
 
 # Link libraries.
 target_link_libraries(prometheus
