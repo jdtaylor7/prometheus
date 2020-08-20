@@ -14,6 +14,7 @@ Linux under X11.
 Some dependencies are included in the source directory, but a few must be
 installed locally. Those which must be installed locally are:
 
+* CMake
 * OpenGL
 * GLFW
 * Assimp
@@ -23,6 +24,7 @@ installed locally. Those which must be installed locally are:
 The above dependencies can be installed via the following packages from the
 official Arch Linux repositories:
 
+* [cmake](https://www.archlinux.org/packages/extra/x86_64/cmake/)
 * [glfw-x11](https://www.archlinux.org/packages/community/x86_64/glfw-x11/)
 * [assimp](https://www.archlinux.org/packages/extra/x86_64/assimp/)
 * Others
@@ -31,6 +33,7 @@ official Arch Linux repositories:
 
 For Ubuntu, the following packages should be installed:
 
+* [cmake](https://packages.ubuntu.com/focal/cmake)
 * [libgl1-mesa-dev](https://packages.ubuntu.com/focal/libgl1-mesa-dev)
 * [libglfw3](https://packages.ubuntu.com/focal/libglfw3)
 * [libglfw3-dev](https://packages.ubuntu.com/focal/libglfw3-dev)
