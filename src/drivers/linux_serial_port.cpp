@@ -34,8 +34,7 @@ std::vector<std::string> LinuxSerialPort::find_ports()
 
     if (!fs::exists(serial_device_path))
     {
-        std::cerr << "Serial device directory does not exist\n";
-        return std::vector<std::string>{};
+        logger.log(LogLevel::info, "Serial device directory does not exist\n"); return std::vector<std::string>{};
     }
 
     for (auto& entry : fs::directory_iterator(serial_device_path))
@@ -63,7 +62,7 @@ bool LinuxSerialPort::open(const std::string& port)
     }
     catch (const LibSerial::OpenFailed&)
     {
-        std::cerr << "Failed to open serial port: " << port << '\n';
+        logger.log(LogLevel::warning, "Failed to open serial port: ", port, '\n');
         return false;
     }
     port_open = true;
