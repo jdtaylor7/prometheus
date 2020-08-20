@@ -17,6 +17,9 @@ commands:
       - run:
           name: Run prometheus
           command: |
+            pwd
+            ls -l
+            uname -a
             ./build.sh -t -e prometheus
             ./build/prometheus
 
