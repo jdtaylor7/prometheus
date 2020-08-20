@@ -48,9 +48,9 @@ workflows:
     jobs:
       - build_archlinux
       - build_ubuntu
-      - run_archlinux
+      - run_archlinux:
           requires:
             - build_archlinux
-      - run_ubuntu
+      - run_ubuntu:
           requires:
             - build_ubuntu
