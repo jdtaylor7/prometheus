@@ -1,30 +1,55 @@
 version: 2.1
 
-jobs:
-  build_arch:
-    docker:
-      - image: jdtaylor7/prometheus:latest-archlinux
+commands:
+  build_prometheus:
     steps:
       - checkout
       - run:
           name: Build prometheus
           command: |
+            pwd
+            ls -l
+            docker images
             uname -a
+            hostnamectl
             ./build.sh -t prometheus
+
+jobs:
+  build_archlinux:
+    docker:
+      - image: jdtaylor7/prometheus:latest-archlinux
+    steps:
+      - build_prometheus
+      # - checkout
+      # - run:
+      #     build_steps
+          # name: Build prometheus
+          # command: |
+            # pwd
+            # ls -l
+            # docker images
+            # uname -a
+            # hostnamectl
+            # ./build.sh -t prometheus
   build_ubuntu:
     docker:
       - image: jdtaylor7/prometheus:latest-ubuntu
     steps:
-      - checkout
-      - run:
-          name: Build prometheus
-          command: |
-            uname -a
-            ./build.sh -t prometheus
+      - build_prometheus
+      # - checkout
+      # - run:
+      #     name: Build prometheus
+      #     command: |
+      #       pwd
+      #       ls -l
+      #       docker images
+      #       uname -a
+      #       hostnamectl
+      #       ./build.sh -t prometheus
 
 workflows:
   version: 2.1
   test_all:
     jobs:
-      - build_arch
+      - build_archlinux
       - build_ubuntu
