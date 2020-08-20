@@ -1,0 +1,24 @@
+version 2.1
+
+executors:
+  docker_executor:
+    docker:
+      - image: jdtaylor7/prometheus:latest-archlinux
+      - image: jdtaylor7/prometheus:latest-ubuntu
+
+jobs:
+  build:
+    executor: docker_executor
+    steps:
+      - checkout
+      - run:
+          name: Build Prometheus
+          command: |
+            cd prometheus
+            ./build.sh -t prometheus
+
+workflows:
+  version: 2.1
+  test_all:
+    jobs:
+      - build

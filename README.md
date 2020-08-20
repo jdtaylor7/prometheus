@@ -1,3 +1,4 @@
+[![CircleCI][circle-badge]][circle-url]
 [![Version][version-badge]](version-url)
 [![MIT License][license-badge]](LICENSE.md)
 
@@ -64,6 +65,8 @@ Run the binary from the root project directory:
 At the moment some file pathnames are relative so running from the build
 directory itself will not work.
 
+[circle-badge]: https://circleci.com/gh/jdtaylor7/prometheus.svg?style=svg
+[circle-url]: https://circleci.com/gh/jdtaylor7/prometheus
 [version-badge]: https://img.shields.io/github/release/jdtaylor7/drone_viewer/all.svg
 [version-url]: https://github.com/jdtaylor7/drone_viewer/releases/latest
 [license-badge]: https://img.shields.io/badge/license-MIT-007EC7.svg
