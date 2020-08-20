@@ -16,7 +16,9 @@ commands:
     steps:
       - run:
           name: Run prometheus
-          command: ./build/prometheus
+          command: |
+            ./build.sh -t -e prometheus
+            ./build/prometheus
 
 jobs:
   build_archlinux:
