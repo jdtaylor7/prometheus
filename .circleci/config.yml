@@ -12,8 +12,6 @@ commands:
             uname -a
             cat /etc/*-release
             ./build.sh -t -e prometheus
-
-commands:
   run_prometheus:
     steps:
       - run:
