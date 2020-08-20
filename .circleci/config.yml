@@ -10,7 +10,7 @@ commands:
             pwd
             ls -l
             uname -a
-            hostnamectl
+            cat /etc/*-release
             ./build.sh -t prometheus
 
 jobs:
