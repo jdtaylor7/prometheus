@@ -13,6 +13,13 @@ commands:
             cat /etc/*-release
             ./build.sh -t -e prometheus
 
+commands:
+  run_prometheus:
+    steps:
+      - run:
+          name: Run prometheus
+          command: ./build/prometheus
+
 jobs:
   build_archlinux:
     docker:
@@ -24,6 +31,16 @@ jobs:
       - image: jdtaylor7/prometheus:latest-ubuntu
     steps:
       - build_prometheus
+  run_archlinux:
+    docker:
+      - image: jdtaylor7/prometheus:latest-archlinux
+    steps:
+      - run_prometheus
+  run_ubuntu:
+    docker:
+      - image: jdtaylor7/prometheus:latest-ubuntu
+    steps:
+      - run_prometheus
 
 workflows:
   version: 2.1
@@ -31,3 +48,9 @@ workflows:
     jobs:
       - build_archlinux
       - build_ubuntu
+      - run_archlinux
+          requires:
+            - build_archlinux
+      - run_ubuntu
+          requires:
+            - build_ubuntu

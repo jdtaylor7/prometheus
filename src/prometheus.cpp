@@ -8,7 +8,7 @@ Logger logger = Logger(LogLevel::info);
 int main()
 {
 #ifdef TEST_MODE
-    logger.log(LogLevel::info, "TEST MODE ACTIVATED!\n");
+    logger.log(LogLevel::info, "Test mode: Enabled\n");
 #endif
 
     DroneViewer viewer{};
@@ -17,6 +17,12 @@ int main()
     while (viewer.is_running())
     {
         if (!viewer.process_frame()) return -1;
+
+#ifdef TEST_MODE
+        logger.log(LogLevel::info,
+            "Test mode: End of first loop. Terminating with no errors\n");
+        return 0;
+#endif
     }
 
     return 0;
