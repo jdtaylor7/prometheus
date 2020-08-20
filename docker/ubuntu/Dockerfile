@@ -9,6 +9,10 @@ RUN apt-get update --yes && apt-get upgrade --yes
 RUN apt-get install -q --yes git g++ cmake libgl1-mesa-dev libglfw3 \
     libglfw3-dev libassimp-dev
 
+# Clear apt-get cache.
+RUN apt-get clean &&
+    rm -rf /var/lib/apt/lists/*
+
 RUN echo "Defaults      lecture = never" > /etc/sudoers \
  && useradd -m -G sudo -s /bin/bash circleci
 
