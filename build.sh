@@ -3,15 +3,17 @@
 # Exit if any command fails.
 set -e
 
-while getopts "rt:h" flag
+while getopts "re:th" flag
 do
     case $flag in
     r) r_flag=1 ;;
-    t) t_flag=1
-       t_val="$OPTARG" ;;
+    e) e_flag=1
+       e_val="$OPTARG" ;;
+    t) t_flag=1 ;;
     h | ?) echo "Usage: $0: [-r][-t target]"
            echo "   -r: Rebuild build directory"
-           echo "   -t: Specify build target"
+           echo "   -e: Specify build executable"
+           echo "   -t: Build in test mode"
            exit 2;;
     esac
 done
@@ -23,12 +25,22 @@ fi
 mkdir -p build
 cd build
 
-cmake -DCMAKE_BUILD_TYPE=Release -Wno-dev ..
-
+# Add make command line variables.
+compile_flags="-DCMAKE_BUILD_TYPE=Release -Wno-dev"
 if [ ! -z "$t_flag" ]; then
-    echo "Building target $t_val"
-    cmake --build . --target "$t_val"
+    echo "Building in test mode"
+    compile_flags="$compile_flags -DTEST_MODE=ON"
+fi
+
+cmake $compile_flags ..
+
+# Add cmake build command line variables.
+build_flags=""
+if [ ! -z "$e_flag" ]; then
+    echo "Building target $e_val"
+    build_flags="$build_flags --target $e_val"
 else
     echo "Building all targets"
-    cmake --build .
 fi
+
+cmake --build . $build_flags

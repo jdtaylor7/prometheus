@@ -11,7 +11,7 @@ commands:
             ls -l
             uname -a
             cat /etc/*-release
-            ./build.sh -t prometheus
+            ./build.sh -t -e prometheus
 
 jobs:
   build_archlinux:

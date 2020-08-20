@@ -13,6 +13,9 @@ set(CMAKE_BUILD_TYPE Release)
 # Create compilation database for Sourcetrail.
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
+# Add options.
+option(TEST_MODE "Run in test mode" OFF)
+
 # Add packages.
 set(CMAKE_PREFIX_PATH /usr/lib/glfw)
 find_package(OpenGL REQUIRED)
@@ -29,6 +32,12 @@ if(is_linux)
 	include_directories(/usr/include/libusb-1.0)
 elseif(CYGWIN)
     set(CXXOPTS "${CXXOPTS} -DOS_CYGWIN")
+endif()
+
+if (TEST_MODE)
+    message("Setting TEST_MODE in cmake")
+    # add_compile_definitions("-DTEST_MODE")
+    set(CXXOPTS "${CXXOPTS} -DTEST_MODE")
 endif()
 
 # Add include directories
