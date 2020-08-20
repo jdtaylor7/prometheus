@@ -14,6 +14,7 @@ jobs:
       - run:
           name: Build Prometheus
           command: |
+            uname -a
             ./build.sh -t prometheus
 
 workflows:
