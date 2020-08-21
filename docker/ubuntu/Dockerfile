@@ -13,6 +13,7 @@ RUN apt-get install -q --yes git g++ cmake libgl1-mesa-dev libglfw3 \
 RUN apt-get clean &&
     rm -rf /var/lib/apt/lists/*
 
+# TODO is the sudo file incorrect?
 RUN echo "Defaults      lecture = never" > /etc/sudoers \
  && useradd -m -G sudo -s /bin/bash circleci
 
