@@ -7,10 +7,9 @@ commands:
       - run:
           name: Build prometheus
           command: |
-            pwd
-            ls -l
-            uname -a
             cat /etc/*-release
+            echo $HOME
+            ls -la ~
             ./build.sh -t -e prometheus
   run_prometheus:
     steps:
@@ -18,9 +17,9 @@ commands:
       - run:
           name: Run prometheus
           command: |
-            pwd
-            ls -l
-            uname -a
+            cat /etc/*-release
+            echo $HOME
+            ls -la ~
             ./build.sh -t -e prometheus
             ./build/prometheus
 

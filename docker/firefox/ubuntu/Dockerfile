@@ -25,4 +25,4 @@ USER circleci
 ENV HOME /home/circleci
 WORKDIR /home/circleci
 
-# CMD /usr/bin/firefox
+CMD /usr/bin/firefox
