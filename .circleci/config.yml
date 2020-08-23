@@ -27,19 +27,23 @@ jobs:
   build_archlinux:
     docker:
       - image: jdtaylor7/prometheus:latest-archlinux
-    steps: build_prometheus
+    steps:
+      - build_prometheus
   build_ubuntu:
     docker:
       - image: jdtaylor7/prometheus:latest-ubuntu
-    steps: build_prometheus
+    steps:
+      - build_prometheus
   run_archlinux:
     docker:
       - image: jdtaylor7/prometheus:latest-archlinux
-    steps: run_prometheus
+    steps:
+      - run_prometheus
   run_ubuntu:
     docker:
       - image: jdtaylor7/prometheus:latest-ubuntu
-    steps: run_prometheus
+    steps:
+      - run_prometheus
 
 workflows:
   version: 2.1
@@ -48,6 +52,8 @@ workflows:
       - build_archlinux
       - build_ubuntu
       - run_archlinux:
-          requires: build_archlinux
+          requires:
+            - build_archlinux
       - run_ubuntu:
-          requires: build_ubuntu
+          requires:
+            - build_ubuntu
