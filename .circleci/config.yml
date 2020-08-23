@@ -1,49 +1,63 @@
 version: 2.1
 
+executors:
+  docker_executor:
+    docker:
+      - image: cimg/base:2020.01
+
 commands:
   build_prometheus:
     steps:
-      - checkout
+      - setup_remote_docker
       - run:
           name: Build prometheus
           command: |
-            cat /etc/*-release
-            echo $HOME
-            ls -la ~
-            ./build.sh -t -e prometheus
-  run_prometheus:
-    steps:
-      - checkout
-      - run:
-          name: Run prometheus
-          command: |
-            cat /etc/*-release
-            echo $HOME
-            ls -la ~
-            ./build.sh -t -e prometheus
-            ./build/prometheus
+            # Download docker cli.
+            apk add docker-cli
+            # Retrieve image.
+            docker pull jdtaylor7/prometheus:latest-archlinux
+            # Create dummy container to hold volume.
+            docker create -v /home/circleci --name configs  jdtaylor7/prometheus:latest-archlinux /bin/true
+            # Copy Xauthority config into dummy volume.
+            docker cp ~/.Xauthority configs:/home/circleci/.Xauthority
+            # Check environment variables.
+            echo $DISPLAY
+            # Run container.
+            docker run -it --rm --network=host --volumes-from configs -e DISPLAY=$DISPLAY jdtaylor7/prometheus:latest-archlinux
+            # Build code.
+            ssh remote-docker "./build.sh -t -e prometheus"
+
+  # run_prometheus:
+  #   steps:
+  #     - checkout
+  #     - run:
+  #         name: Run prometheus
+  #         command: |
+  #           cat /etc/*-release
+  #           echo $HOME
+  #           ls -la ~
+  #           ./build.sh -t -e prometheus
+  #           ./build/prometheus
 
 jobs:
   build_archlinux:
-    docker:
-      - image: jdtaylor7/prometheus:latest-archlinux
+    executor: docker_executor
     steps:
       - build_prometheus
   build_ubuntu:
-    docker:
-      - image: jdtaylor7/prometheus:latest-ubuntu
+    executor: docker_executor
     steps:
       - build_prometheus
-  run_archlinux:
-    docker:
-      - image: jdtaylor7/prometheus:latest-archlinux
-    steps:
-      - run_prometheus
-  run_ubuntu:
-    docker:
-      - image: jdtaylor7/prometheus:latest-ubuntu
-    steps:
-      - run_prometheus
+  # run_archlinux:
+  #   docker:
+  #     - image: jdtaylor7/prometheus:latest-archlinux
+  #   steps:
+  #     - run_prometheus
+  # run_ubuntu:
+  #   docker:
+  #     - image: jdtaylor7/prometheus:latest-ubuntu
+  #   steps:
+  #     - run_prometheus
 
 workflows:
   version: 2.1
@@ -51,9 +65,9 @@ workflows:
     jobs:
       - build_archlinux
       - build_ubuntu
-      - run_archlinux:
-          requires:
-            - build_archlinux
-      - run_ubuntu:
-          requires:
-            - build_ubuntu
+      # - run_archlinux:
+      #     requires:
+      #       - build_archlinux
+      # - run_ubuntu:
+      #     requires:
+      #       - build_ubuntu
