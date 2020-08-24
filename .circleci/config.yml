@@ -1,13 +1,14 @@
 version: 2.1
 
 executors:
-  linux_executor:
-    machine:
-      image: ubuntu-1604:201903-01
+  docker_executor:
+    docker:
+      image: docker:19.03.12
 
 commands:
   build_prometheus:
     steps:
+      - setup_remote_docker
       - run:
           name: Verify docker is installed
           command: docker run hello-world
@@ -47,7 +48,7 @@ commands:
 
 jobs:
   build_archlinux:
-    executor: linux_executor
+    executor: docker_executor
     steps:
       - build_prometheus
   # build_ubuntu:
