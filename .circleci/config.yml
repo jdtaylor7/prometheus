@@ -20,6 +20,7 @@ commands:
             apt-get update
             apt-get install docker-ce docker-ce-cli containerd.io
             docker run hello-world
+      - run:
           name: Set up container
           command: |
             # Retrieve image.
@@ -32,8 +33,9 @@ commands:
             echo $DISPLAY
             # Run container.
             docker run -it --rm --network=host --volumes-from configs -e DISPLAY=$DISPLAY jdtaylor7/prometheus:latest-archlinux
-        name: Build prometheus
-            command: |
+      - run:
+          name: Build prometheus
+          command: |
             ssh remote-docker "./build.sh -t -e prometheus"
 
   # run_prometheus:
