@@ -32,7 +32,9 @@ commands:
             docker cp ~/.Xauthority configs:/home/circleci/.Xauthority
             # Run container and build prometheus.
             docker run -it --rm --network=host --volumes-from configs -e DISPLAY=$DISPLAY jdtaylor7/prometheus:latest-${DISTRO_TAG} /bin/sh -c " \
-                startx"
+                cd prometheus && \
+                ./build.sh -r -e prometheus && \
+                ./build/prometheus"
 
 jobs:
   test_archlinux:
