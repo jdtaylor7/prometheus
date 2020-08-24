@@ -71,9 +71,7 @@ workflows:
   version: 2.1
   test_all:
     jobs:
-      - build_archlinux:
-          requires:
-            - startx
+      - build_archlinux
       # - build_ubuntu
       # - run_archlinux:
       #     requires:
