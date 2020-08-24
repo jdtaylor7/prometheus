@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 # Set project name.
-project(prometheus VERSION 0.1.0)
+project(prometheus VERSION 0.2.0)
 
 # Specify C++ standard.
 set(CMAKE_CXX_STANDARD 17)
