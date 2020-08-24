@@ -33,7 +33,8 @@ commands:
             # Run container.
             docker run -it --rm --network=host --volumes-from configs -e DISPLAY=$DISPLAY jdtaylor7/prometheus:latest-archlinux
             # Build prometheus.
-            ssh remote-docker "./build.sh -t -e prometheus"
+            # ssh remote-docker "./build.sh -t -e prometheus"
+            ssh remote-docker "echo 123"
   # run_prometheus:
   #   steps:
   #     - checkout
