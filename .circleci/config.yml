@@ -14,8 +14,9 @@ commands:
       - run:
           name: Download and start X
           command: |
-            sudo apt-get install -y x11vnc
+            apt-get install -y x11vnc
             x11vnc -forever -nopw
+          background: true
       - run:
           name: Verify environment set up correctly
           command: |
