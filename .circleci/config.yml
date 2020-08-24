@@ -22,7 +22,7 @@ commands:
             touch ~/.Xauthority
             cat ~/.Xauthority
       - run:
-          name: Set up container and build prometheus
+          name: Set up container and test prometheus
           command: |
             # Retrieve image.
             docker pull jdtaylor7/prometheus:latest-${DISTRO_TAG}

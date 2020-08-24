@@ -25,22 +25,13 @@ installed locally. Those which must be installed locally are:
 The above dependencies can be installed via the following packages from the
 official Arch Linux repositories:
 
-* [cmake](https://www.archlinux.org/packages/extra/x86_64/cmake/)
-* [glfw-x11](https://www.archlinux.org/packages/community/x86_64/glfw-x11/)
-* [assimp](https://www.archlinux.org/packages/extra/x86_64/assimp/)
-* Others
+```
+sudo pacman -Syu cmake glfw-x11 assimp
+```
 
 ##### Ubuntu Focal (20.04LTS)
 
-For Ubuntu, the following packages should be installed:
-
-* [cmake](https://packages.ubuntu.com/focal/cmake)
-* [libgl1-mesa-dev](https://packages.ubuntu.com/focal/libgl1-mesa-dev)
-* [libglfw3](https://packages.ubuntu.com/focal/libglfw3)
-* [libglfw3-dev](https://packages.ubuntu.com/focal/libglfw3-dev)
-* [libassimp-dev](https://packages.ubuntu.com/xenial/libassimp-dev)
-
-You can do so with this one-liner:
+The following packages are required in Ubuntu:
 
 ```
 sudo apt install libgl1-mesa-dev libglfw3 libglfw3-dev libassimp-dev
@@ -51,7 +42,7 @@ sudo apt install libgl1-mesa-dev libglfw3 libglfw3-dev libassimp-dev
 Prometheus is built with [CMake](https://cmake.org/) via a build script:
 
 ```
-./build.sh -t prometheus
+./build.sh -e prometheus
 ```
 
 ### Running
