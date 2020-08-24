@@ -33,7 +33,7 @@ commands:
             # Run container and build prometheus.
             docker run -it --rm --network=host --volumes-from configs -e DISPLAY=$DISPLAY jdtaylor7/prometheus:latest-${DISTRO_TAG} /bin/sh -c " \
                 cd prometheus && \
-                ./build.sh -r -e prometheus && \
+                ./build.sh -t -e prometheus && \
                 ./build/prometheus"
 
 jobs:
@@ -55,4 +55,4 @@ workflows:
   test_all:
     jobs:
       - test_archlinux
-      # - test_ubuntu
+      - test_ubuntu
