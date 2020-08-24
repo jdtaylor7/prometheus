@@ -1,19 +1,27 @@
 version: 2.1
 
 executors:
-  docker_executor:
-    docker:
-      - image: docker:19.03.12
+  linux_executor:
+    machine:
+      image: ubuntu-1604:201903-01
 
 commands:
   build_prometheus:
     steps:
       - setup_remote_docker
       - run:
-          name: Build prometheus
+          name: Download and install docker cli.
           command: |
-            # Download docker cli.
-            apk add docker-cli
+            apt-get update
+            apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+            apt-key fingerprint 0EBFCD88
+            add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+            apt-get update
+            apt-get install docker-ce docker-ce-cli containerd.io
+            docker run hello-world
+          name: Set up container
+          command: |
             # Retrieve image.
             docker pull jdtaylor7/prometheus:latest-archlinux
             # Create dummy container to hold volume.
@@ -24,7 +32,8 @@ commands:
             echo $DISPLAY
             # Run container.
             docker run -it --rm --network=host --volumes-from configs -e DISPLAY=$DISPLAY jdtaylor7/prometheus:latest-archlinux
-            # Build code.
+        name: Build prometheus
+            command: |
             ssh remote-docker "./build.sh -t -e prometheus"
 
   # run_prometheus:
@@ -41,11 +50,11 @@ commands:
 
 jobs:
   build_archlinux:
-    executor: docker_executor
+    executor: linux_executor
     steps:
       - build_prometheus
   build_ubuntu:
-    executor: docker_executor
+    executor: linux_executor
     steps:
       - build_prometheus
   # run_archlinux:
