@@ -6,7 +6,7 @@ executors:
       - image: docker:19.03.12
 
 commands:
-  build_prometheus:
+  build_steps:
     steps:
       - setup_remote_docker
       - run:
@@ -42,15 +42,17 @@ jobs:
     environment:
       - DISTRO_TAG: archlinux
     steps:
-      - build_prometheus
-  # build_ubuntu:
-  #   executor: linux_executor
-  #   steps:
-  #     - build_prometheus
+      - build_steps
+  build_ubuntu:
+    executor: docker_executor
+    environment:
+      - DISTRO_TAG: ubuntu
+    steps:
+      - build_steps
 
 workflows:
   version: 2.1
   test_all:
     jobs:
       - build_archlinux
-      # - build_ubuntu
+      - build_ubuntu
