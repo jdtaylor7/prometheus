@@ -17,8 +17,8 @@ commands:
           command: |
             pwd
             ls -la
-            echo $DISPLAY
-            echo ${DISTRO_TAG}
+            echo "DISPLAY: $DISPLAY"
+            echo "DISTRO_TAG: ${DISTRO_TAG}"
             # Generate .Xauthority file.
             touch ~/.Xauthority
             cat ~/.Xauthority
@@ -33,9 +33,10 @@ commands:
             docker cp ~/.Xauthority configs:/home/circleci/.Xauthority
             # Run container and build prometheus.
             docker run -it --rm --network=host --volumes-from configs -e DISPLAY=$DISPLAY jdtaylor7/prometheus:latest-${DISTRO_TAG} /bin/sh -c " \
-                cd prometheus && \
-                ./build.sh -t -e prometheus && \
-                ./build/prometheus"
+                # cd prometheus && \
+                # ./build.sh -t -e prometheus && \
+                # ./build/prometheus"
+                startx"
 
 jobs:
   test_archlinux:
