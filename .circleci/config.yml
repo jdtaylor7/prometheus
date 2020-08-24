@@ -17,6 +17,8 @@ commands:
             pwd
             ls -la
             echo $DISPLAY
+            # Generate .Xauthority file.
+            startx
             cat ~/.Xauthority
       - run:
           name: Set up container
