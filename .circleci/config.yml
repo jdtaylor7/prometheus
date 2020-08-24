@@ -1,14 +1,13 @@
 version: 2.1
 
 executors:
-  docker_executor:
-    docker:
-      - image: docker:19.03.12
+  linux_executor:
+    machine:
+      - image: ubuntu-1604:201903-01
 
 commands:
   test_steps:
     steps:
-      - setup_remote_docker
       - run:
           name: Verify docker is installed
           command: docker run hello-world
@@ -37,13 +36,13 @@ commands:
 
 jobs:
   test_archlinux:
-    executor: docker_executor
+    executor: linux_executor
     environment:
       - DISTRO_TAG: archlinux
     steps:
       - test_steps
   test_ubuntu:
-    executor: docker_executor
+    executor: linux_executor
     environment:
       - DISTRO_TAG: ubuntu
     steps:
