@@ -30,8 +30,10 @@ commands:
             docker create -v /home/circleci --name configs jdtaylor7/prometheus:latest-archlinux /bin/true
             # Copy Xauthority config into dummy volume.
             docker cp ~/.Xauthority configs:/home/circleci/.Xauthority
-            # Run container.
-            docker run -it --rm --network=host --volumes-from configs -e DISPLAY=$DISPLAY jdtaylor7/prometheus:latest-archlinux /bin/sh -c "cd prometheus && ./build.sh -t -e prometheus"
+            # Run container and build prometheus.
+            docker run -it --rm --network=host --volumes-from configs -e DISPLAY=$DISPLAY jdtaylor7/prometheus:latest-archlinux /bin/sh -c " \
+                cd prometheus && \
+                ./build.sh -t -e prometheus"
       # - run:
       #     name: Build prometheus
       #     command: |
