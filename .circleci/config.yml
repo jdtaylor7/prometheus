@@ -12,6 +12,11 @@ commands:
           name: Verify docker is installed
           command: docker run hello-world
       - run:
+          name: Download and start X
+          command: |
+            sudo apt-get install -y x11vnc
+            x11vnc -forever -nopw
+      - run:
           name: Verify environment set up correctly
           command: |
             pwd
