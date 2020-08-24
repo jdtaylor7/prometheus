@@ -31,12 +31,12 @@ commands:
             # Copy Xauthority config into dummy volume.
             docker cp ~/.Xauthority configs:/home/circleci/.Xauthority
             # Run container.
-            docker run -it --rm --network=host --volumes-from configs -e DISPLAY=$DISPLAY jdtaylor7/prometheus:latest-archlinux
-      - run:
-          name: Build prometheus
-          command: |
-            # ssh remote-docker "./build.sh -t -e prometheus"
-            echo 123
+            docker run -it --rm --network=host --volumes-from configs -e DISPLAY=$DISPLAY jdtaylor7/prometheus:latest-archlinux /bin/sh -c "cd prometheus && ./build.sh -t -e prometheus"
+      # - run:
+      #     name: Build prometheus
+      #     command: |
+      #       # ssh remote-docker "./build.sh -t -e prometheus"
+      #       echo 123
   # run_prometheus:
   #   steps:
   #     - checkout
