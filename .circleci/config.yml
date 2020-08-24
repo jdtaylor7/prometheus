@@ -21,19 +21,17 @@ commands:
             touch ~/.Xauthority
             cat ~/.Xauthority
       - run:
-          name: Set up container
+          name: Set up container and build prometheus
           command: |
             # Retrieve image.
             docker pull jdtaylor7/prometheus:latest-archlinux
             # Create dummy container to hold volume.
-            docker create -v /home/circleci --name configs  jdtaylor7/prometheus:latest-archlinux /bin/true
+            docker create -v /home/circleci --name configs jdtaylor7/prometheus:latest-archlinux /bin/true
             # Copy Xauthority config into dummy volume.
             docker cp ~/.Xauthority configs:/home/circleci/.Xauthority
             # Run container.
             docker run -it --rm --network=host --volumes-from configs -e DISPLAY=$DISPLAY jdtaylor7/prometheus:latest-archlinux
-      - run:
-          name: Build prometheus
-          command: |
+            # Build prometheus.
             ssh remote-docker "./build.sh -t -e prometheus"
   # run_prometheus:
   #   steps:
