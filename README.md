@@ -22,8 +22,8 @@ installed locally. Those which must be installed locally are:
 
 ##### Arch Linux
 
-The above dependencies can be installed via the following packages from the
-official Arch Linux repositories:
+The above dependencies can be installed on Arch Linux via the following packages
+from the official Arch Linux repositories:
 
 ```
 sudo pacman -Syu cmake glfw-x11 assimp
@@ -31,10 +31,10 @@ sudo pacman -Syu cmake glfw-x11 assimp
 
 ##### Ubuntu Focal (20.04LTS)
 
-The following packages are required in Ubuntu:
+The following packages are required on Ubuntu:
 
 ```
-sudo apt install libgl1-mesa-dev libglfw3 libglfw3-dev libassimp-dev
+sudo apt install cmake libgl1-mesa-dev libglfw3 libglfw3-dev libassimp-dev
 ```
 
 ### Building
