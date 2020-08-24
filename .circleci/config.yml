@@ -8,7 +8,7 @@ executors:
 commands:
   build_prometheus:
     steps:
-      - setup_remote_docker
+      # - setup_remote_docker
       - run:
           name: Download and install docker cli.
           command: |
