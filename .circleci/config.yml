@@ -6,13 +6,6 @@ executors:
       image: ubuntu-1604:201903-01
 
 commands:
-  start_x11:
-   steps:
-      - run:
-          background: true
-          command: |
-            sudo apt-get install -y xllvnc
-            x11vnc -forever -nopw
   build_prometheus:
     steps:
       - run:
@@ -25,7 +18,7 @@ commands:
             ls -la
             echo $DISPLAY
             # Generate .Xauthority file.
-            startx
+            touch ~/.Xauthority
             cat ~/.Xauthority
       - run:
           name: Set up container
@@ -55,10 +48,6 @@ commands:
   #           ./build/prometheus
 
 jobs:
-  startx:
-    executor: linux_executor
-    steps:
-      - start_x11
   build_archlinux:
     executor: linux_executor
     steps:
@@ -82,7 +71,6 @@ workflows:
   version: 2.1
   test_all:
     jobs:
-      - startx
       - build_archlinux:
           requires:
             - startx
