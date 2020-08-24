@@ -58,10 +58,10 @@ jobs:
     executor: linux_executor
     steps:
       - build_prometheus
-  build_ubuntu:
-    executor: linux_executor
-    steps:
-      - build_prometheus
+  # build_ubuntu:
+  #   executor: linux_executor
+  #   steps:
+  #     - build_prometheus
   # run_archlinux:
   #   docker:
   #     - image: jdtaylor7/prometheus:latest-archlinux
@@ -78,7 +78,7 @@ workflows:
   test_all:
     jobs:
       - build_archlinux
-      - build_ubuntu
+      # - build_ubuntu
       # - run_archlinux:
       #     requires:
       #       - build_archlinux
