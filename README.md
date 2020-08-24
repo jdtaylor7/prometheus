@@ -7,8 +7,8 @@
 </p>
 
 Prometheus is a real-time drone monitoring application. Built with OpenGL, it
-allows one to easily visualize the telemetry from a drone system. It runs in
-Linux under X11.
+allows one to easily visualize the telemetry from a drone system. It runs under
+X11 and is supported on Arch Linux and Ubuntu Focal.
 
 ### Dependencies
 
@@ -20,7 +20,7 @@ installed locally. Those which must be installed locally are:
 * GLFW
 * Assimp
 
-##### Arch/Manjaro (XFCE 64 bit version)
+##### Arch Linux
 
 The above dependencies can be installed via the following packages from the
 official Arch Linux repositories:
