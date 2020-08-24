@@ -8,21 +8,16 @@ executors:
 commands:
   build_prometheus:
     steps:
-      # - setup_remote_docker
-      # - run:
-      #     name: Download and install docker cli.
-      #     command: |
-      #       apt-get update
-      #       apt-get install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
-      #       curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-      #       apt-key fingerprint 0EBFCD88
-      #       add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-      #       apt-get update
-      #       apt-get install docker-ce docker-ce-cli containerd.io
-      #       docker run hello-world
       - run:
           name: Verify docker is installed
           command: docker run hello-world
+      - run:
+          name: Verify environment set up correctly
+          command: |
+            pwd
+            ls -la
+            echo $DISPLAY
+            cat ~/.Xauthority
       - run:
           name: Set up container
           command: |
@@ -32,8 +27,6 @@ commands:
             docker create -v /home/circleci --name configs  jdtaylor7/prometheus:latest-archlinux /bin/true
             # Copy Xauthority config into dummy volume.
             docker cp ~/.Xauthority configs:/home/circleci/.Xauthority
-            # Check environment variables.
-            echo $DISPLAY
             # Run container.
             docker run -it --rm --network=host --volumes-from configs -e DISPLAY=$DISPLAY jdtaylor7/prometheus:latest-archlinux
       - run:
