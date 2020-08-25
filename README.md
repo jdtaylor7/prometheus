@@ -56,7 +56,7 @@ Run the binary from the root project directory:
 At the moment some file pathnames are relative so running from the build
 directory itself will not work.
 
-An image of Prometheus's interface is shown below:
+### Demo
 
 ![gif of prometheus](assets/gifs/prometheus.gif)
 
