@@ -58,7 +58,7 @@ directory itself will not work.
 
 An image of Prometheus's interface is shown below:
 
-![gif of prometheus](assets/images/prometheus.gif)
+![gif of prometheus](assets/gifs/prometheus.gif)
 
 [circle-badge]: https://circleci.com/gh/jdtaylor7/prometheus.svg?style=svg
 [circle-url]: https://circleci.com/gh/jdtaylor7/prometheus
