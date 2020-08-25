@@ -43,7 +43,7 @@ void pause(unsigned int delay_time)
 /*
  * Noise while floating in place.
  */
-void send_packet_type1()
+void sim1()
 {
   float a_noise = 5;
   float r_noise = 100;
@@ -55,9 +55,9 @@ void send_packet_type1()
   a3_f = random(a_noise) - a_noise / 2;
 
   // Orientation.
-  r1_f = random(a_noise) - r_noise / 2;
-  r2_f = random(a_noise) - r_noise / 2;
-  r3_f = random(a_noise) - r_noise / 2;
+  r1_f = random(r_noise) - r_noise / 2;
+  r2_f = random(r_noise) - r_noise / 2;
+  r3_f = random(r_noise) - r_noise / 2;
 
   // Scale data.
   a1_i = (int)(a1_f * 100);
@@ -72,6 +72,41 @@ void send_packet_type1()
   Serial.println(buf);
 }
 
+/*
+ * Cycle between taking off and landing.
+ */
+void sim2()
+{
+  float a_noise = 5;
+  float r_noise = 100;
+  float min_height = 2000;
+  float max_height = 2000;
+
+  // Position.
+  a1_f = random(a_noise) - a_noise / 2;
+  a2_f = random(a_noise) - a_noise / 2 + 40 * abs(sin(i));
+  a3_f = random(a_noise) - a_noise / 2;
+
+  // Orientation.
+  r1_f = random(r_noise) - r_noise / 2;
+  r2_f = random(r_noise) - r_noise / 2;
+  r3_f = random(r_noise) - r_noise / 2;
+
+  // Scale data.
+  a1_i = (int)(a1_f * 100);
+  a2_i = (int)(a2_f * 100);
+  a3_i = (int)(a3_f * 100);
+  r1_i = (int)(r1_f * 100);
+  r2_i = (int)(r2_f * 100);
+  r3_i = (int)(r3_f * 100);
+
+  // Build and send packet.
+  sprintf(buf, "%c%05i,%05i,%05i,%05i,%05i,%05i", START_SYMBOL, a1_i, a2_i, a3_i, r1_i, r2_i, r3_i);
+  Serial.println(buf);
+
+  i += 0.025;
+}
+
 void setup()
 {
   // Initialize digital pin LED_BUILTIN as an output.
@@ -83,6 +118,7 @@ void setup()
 
 void loop()
 {
-  send_packet_type1();
+//  sim1();
+  sim2();
   pause(DELAY_TIME_MS);
 }
