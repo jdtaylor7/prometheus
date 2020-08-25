@@ -118,7 +118,7 @@ void setup()
 
 void loop()
 {
-//  sim1();
-  sim2();
+  sim1();
+//  sim2();
   pause(DELAY_TIME_MS);
 }
