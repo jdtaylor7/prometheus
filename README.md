@@ -53,7 +53,7 @@ Run the binary from the root project directory:
 ./build/prometheus
 ```
 
-At the moment some file pathnames are relative so running from the build
+At the moment some file path names are relative so running from the build
 directory itself will not work.
 
 ### Demo

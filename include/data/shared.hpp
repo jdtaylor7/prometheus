@@ -76,4 +76,9 @@ const glm::vec3 CAMERA_FRONT_OVERHEAD = glm::vec3(-0.579, -0.342, -0.740);
 const float CAMERA_PITCH_OVERHEAD = -20.0;
 const float CAMERA_YAW_OVERHEAD = -128.0;
 
+const glm::vec3 CAMERA_POSITION_CLOSE = glm::vec3(0.633, 3.184, 4.162);
+const glm::vec3 CAMERA_FRONT_CLOSE = glm::vec3(-0.143, -0.096, -0.985);
+const float CAMERA_PITCH_CLOSE = -5.5;
+const float CAMERA_YAW_CLOSE = -98.25;
+
 #endif /* SHARED_HPP */

@@ -190,8 +190,10 @@ bool DroneViewer::init()
         SCREEN_WIDTH,
         SCREEN_HEIGHT,
         room_dimensions,
-        CAMERA_POSITION_HEADON,
-        CAMERA_FRONT_HEADON);
+        // CAMERA_POSITION_HEADON,
+        // CAMERA_FRONT_HEADON);
+        CAMERA_POSITION_CLOSE,
+        CAMERA_FRONT_CLOSE);
 
     /*
      * Initialize data managers.

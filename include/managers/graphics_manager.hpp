@@ -219,6 +219,9 @@ void GraphicsManager::render_scene(Shader* shader)
     // Set model matrix.
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, drone_data->position);
+    model = glm::rotate(model, glm::radians(drone_data->orientation.y), glm::vec3(1.0, 0.0, 0.0));  // pitch
+    model = glm::rotate(model, glm::radians(drone_data->orientation.z), glm::vec3(0.0, 1.0, 0.0));  // yaw
+    model = glm::rotate(model, glm::radians(drone_data->orientation.x), glm::vec3(0.0, 0.0, 1.0));  // roll
     model = glm::scale(model, glm::vec3(drone_scale_factor));
     shader->set_mat4fv("model", model);
 
