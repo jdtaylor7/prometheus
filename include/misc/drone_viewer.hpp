@@ -42,7 +42,6 @@ private:
     const std::vector<std::size_t> TELEMETRY_ROT_RATE_OFFSETS = {19, 25, 31};
 
     static constexpr std::size_t SCREEN_WIDTH = 1200;
-    // static constexpr std::size_t SCREEN_WIDTH = 900;
     static constexpr std::size_t SCREEN_HEIGHT = 900;
 
     static constexpr bool SHOW_DEMO_WINDOW = false;

@@ -26,7 +26,7 @@ The above dependencies can be installed on Arch Linux via the following packages
 from the official Arch Linux repositories:
 
 ```
-sudo pacman -Syu cmake glfw-x11 assimp
+sudo pacman -Syu base-devel cmake glfw-x11 assimp
 ```
 
 ##### Ubuntu Focal (20.04LTS)
@@ -55,6 +55,10 @@ Run the binary from the root project directory:
 
 At the moment some file pathnames are relative so running from the build
 directory itself will not work.
+
+An image of Prometheus's interface is shown below:
+
+![screenshot of prometheus](assets/images/prometheus_screenshot.png)
 
 [circle-badge]: https://circleci.com/gh/jdtaylor7/prometheus.svg?style=svg
 [circle-url]: https://circleci.com/gh/jdtaylor7/prometheus
