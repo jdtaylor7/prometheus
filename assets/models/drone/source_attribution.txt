@@ -1,0 +1,5 @@
+"Quadrocopter 2" model by yanix on sketchfab: https://sketchfab.com/3d-models/quadrocopter-2-6885c5f1a68148e1b2b3a4f69b8b3d70
+
+Model is licensed under the Creative Commons license.
+
+Modifications (Joey de Vries) were made to facilitate loading of the model in the OpenGL tutorial found at learnopengl.com.

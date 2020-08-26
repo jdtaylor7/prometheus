@@ -1,0 +1,3 @@
+"Free Material - Polycrystalline Solar Cells - PBR0126" texture from textures.com: https://www.textures.com/download/pbr0173/133208
+
+Modifications (Jordan Taylor) of the diffuse texture were made to ease integration into the code with just two textures (diffuse and specular). The coloring was also tweaked.
