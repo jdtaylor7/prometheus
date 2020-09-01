@@ -189,7 +189,10 @@ void Room::draw(Shader* shader)
         logger.log(LogLevel::debug, "Room::draw (second loop)\n");
 
     if (!shader)
+    {
         logger.log(LogLevel::warning, "Room::draw: shader is null");
+        return;
+    }
 
     shader->use();
 
@@ -213,72 +216,70 @@ void Room::draw(Shader* shader)
     }
 
     /*
-     * Set shader attributes.
+     * Set light attributes.
      */
-    shader->use();
-    if (sl)
+    if (!sl)
     {
-        // Directional light properties.
-        if (sl->dir)
-        {
-            shader->set_vec3("dir_light.direction", sl->dir->direction);
+        logger.log(LogLevel::warning, "Mesh::draw: No scene lighting present\n");
+        return;
+    }
 
-            shader->set_vec3("dir_light.ambient", sl->dir->ambient);
-            shader->set_vec3("dir_light.diffuse", sl->dir->diffuse);
-            shader->set_vec3("dir_light.specular", sl->dir->specular);
-        }
-        else
-        {
-            logger.log(LogLevel::debug, "Room:draw: No directional light present in the scene\n");
-        }
+    // Directional light properties.
+    if (sl && sl->dir)
+    {
+        shader->set_vec3("dir_light.direction", sl->dir->direction);
 
-        // Point light properties.
-        for (std::size_t i = 0; i < sl->points.size(); i++)
-        {
-            std::string attr_prefix{"point_lights[" + std::to_string(i) + "]."};
-
-            if (sl->points[i])
-            {
-                shader->set_vec3(attr_prefix + "position", sl->points[i]->position);
-                shader->set_vec3(attr_prefix + "ambient", sl->points[i]->ambient);
-                shader->set_vec3(attr_prefix + "diffuse", sl->points[i]->color * sl->points[i]->diffuse);
-                shader->set_vec3(attr_prefix + "specular", sl->points[i]->color * sl->points[i]->specular);
-                shader->set_float(attr_prefix + "constant", sl->points[i]->constant);
-                shader->set_float(attr_prefix + "linear", sl->points[i]->linear);
-                shader->set_float(attr_prefix + "quadratic", sl->points[i]->quadratic);
-
-            }
-            else
-            {
-                logger.log(LogLevel::debug, "Room:draw: No point light present in the scene\n");
-            }
-        }
-
-        // Spotlight properties.
-        if (sl->spot)
-        {
-            shader->set_vec3("spotlight.position", sl->spot->position);
-            shader->set_vec3("spotlight.direction", sl->spot->direction);
-
-            shader->set_float("spotlight.inner_cutoff", glm::cos(glm::radians(sl->spot->inner_cutoff)));
-            shader->set_float("spotlight.outer_cutoff", glm::cos(glm::radians(sl->spot->outer_cutoff)));
-
-            shader->set_vec3("spotlight.ambient", sl->spot->ambient);
-            shader->set_vec3("spotlight.diffuse", sl->spot->diffuse);
-            shader->set_vec3("spotlight.specular", sl->spot->specular);
-
-            shader->set_float("spotlight.constant", sl->spot->constant);
-            shader->set_float("spotlight.linear", sl->spot->linear);
-            shader->set_float("spotlight.quadratic", sl->spot->quadratic);
-        }
-        else
-        {
-            logger.log(LogLevel::debug, "Room:draw: No spotlight present in the scene\n");
-        }
+        shader->set_vec3("dir_light.ambient", sl->dir->ambient);
+        shader->set_vec3("dir_light.diffuse", sl->dir->diffuse);
+        shader->set_vec3("dir_light.specular", sl->dir->specular);
     }
     else
     {
-        logger.log(LogLevel::warning, "Room:draw: SceneLighting pointer is null\n");
+        logger.log(LogLevel::debug, "Room:draw: No directional light present in the scene\n");
+    }
+
+    // Point light properties.
+    for (std::size_t i = 0; i < sl->points.size(); i++)
+    {
+        std::string attr_prefix{"point_lights[" + std::to_string(i) + "]."};
+
+        if (sl && sl->points[i])
+        {
+            shader->set_vec3(attr_prefix + "position", sl->points[i]->position);
+            shader->set_vec3(attr_prefix + "ambient", sl->points[i]->ambient);
+            shader->set_vec3(attr_prefix + "diffuse", sl->points[i]->color * sl->points[i]->diffuse);
+            shader->set_vec3(attr_prefix + "specular", sl->points[i]->color * sl->points[i]->specular);
+            shader->set_float(attr_prefix + "constant", sl->points[i]->constant);
+            shader->set_float(attr_prefix + "linear", sl->points[i]->linear);
+            shader->set_float(attr_prefix + "quadratic", sl->points[i]->quadratic);
+
+        }
+        else
+        {
+            logger.log(LogLevel::debug, "Room:draw: No point light present in the scene\n");
+        }
+    }
+
+    // Spotlight properties.
+    if (sl && sl->spot)
+    {
+        shader->set_vec3("spotlight.position", sl->spot->position);
+        shader->set_vec3("spotlight.direction", sl->spot->direction);
+
+        shader->set_float("spotlight.inner_cutoff", glm::cos(glm::radians(sl->spot->inner_cutoff)));
+        shader->set_float("spotlight.outer_cutoff", glm::cos(glm::radians(sl->spot->outer_cutoff)));
+
+        shader->set_vec3("spotlight.ambient", sl->spot->ambient);
+        shader->set_vec3("spotlight.diffuse", sl->spot->diffuse);
+        shader->set_vec3("spotlight.specular", sl->spot->specular);
+
+        shader->set_float("spotlight.constant", sl->spot->constant);
+        shader->set_float("spotlight.linear", sl->spot->linear);
+        shader->set_float("spotlight.quadratic", sl->spot->quadratic);
+    }
+    else
+    {
+        logger.log(LogLevel::debug, "Room:draw: No spotlight present in the scene\n");
     }
 
     /*

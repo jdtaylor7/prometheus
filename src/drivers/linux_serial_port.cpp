@@ -34,7 +34,8 @@ std::vector<std::string> LinuxSerialPort::find_ports()
 
     if (!fs::exists(serial_device_path))
     {
-        logger.log(LogLevel::info, "Serial device directory does not exist\n"); return std::vector<std::string>{};
+        logger.log(LogLevel::info, "Serial device directory does not exist\n");
+        return std::vector<std::string>{};
     }
 
     for (auto& entry : fs::directory_iterator(serial_device_path))
@@ -120,11 +121,20 @@ bool LinuxSerialPort::config()
 
     logger.log(LogLevel::info, "Configuring ", port_name, "\n");
 
-    stream.SetBaudRate(cfg->br);
-    stream.SetCharacterSize(cfg->cs);
-    stream.SetFlowControl(cfg->fc);
-    stream.SetParity(cfg->py);
-    stream.SetStopBits(cfg->sb);
+    if (cfg)
+    {
+        stream.SetBaudRate(cfg->br);
+        stream.SetCharacterSize(cfg->cs);
+        stream.SetFlowControl(cfg->fc);
+        stream.SetParity(cfg->py);
+        stream.SetStopBits(cfg->sb);
+    }
+    else
+    {
+        logger.log(LogLevel::error, "LinuxSerialPort::config: cfg pointer is \
+            null");
+        return false;
+    }
 
     port_configured = true;
     return true;

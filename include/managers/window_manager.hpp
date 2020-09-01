@@ -58,8 +58,6 @@ public:
     void swap_buffers();
     void poll_events();
 private:
-    // namespace fs = std::filesystem;
-
     std::size_t screen_width;
     std::size_t screen_height;
     GLFWwindow* window;
@@ -103,7 +101,6 @@ bool WindowManager::init()
     /*
      * GLFW window creation.
      */
-    // window = glfwCreateWindow(screen_width, screen_height, "Drone Viewer", NULL, NULL);
     window = glfwCreateWindow(screen_width, screen_height, "Prometheus", NULL, NULL);
     if (!window)
     {
@@ -150,7 +147,7 @@ bool WindowManager::init()
     // off this Stackoverflow post: https://stackoverflow.com/a/19809787. Cannot
     // use other solutions as creating a lambda, creating a std::function
     // object, and making the member function static all do not suffice. This
-    // post explains the problem in even more depth:
+    // post explains the problem in more depth:
     // https://stackoverflow.com/a/402385.
     FramebufferCallback<void(GLFWwindow*, int, int)>::func = std::bind(&WindowManager::framebuffer_size_callback, this, _1, _2, _3);
     CursorCallback<void(GLFWwindow*, double, double)>::func = std::bind(&WindowManager::cursor_callback, this, _1, _2, _3);

@@ -115,8 +115,14 @@ void Mesh::draw(Shader* shader)
     shader->use();
     shader->set_float("material.shininess", 16.0f);
 
+    if (!sl)
+    {
+        logger.log(LogLevel::warning, "Mesh::draw: No scene lighting present\n");
+        return;
+    }
+
     // Directional light properties.
-    if (sl->dir)
+    if (sl && sl->dir)
     {
         shader->set_vec3("dir_light.direction", sl->dir->direction);
 
@@ -134,7 +140,7 @@ void Mesh::draw(Shader* shader)
     {
         std::string attr_prefix{"point_lights[" + std::to_string(i) + "]."};
 
-        if (sl->points[i])
+        if (sl && sl->points[i])
         {
             shader->set_vec3(attr_prefix + "position", sl->points[i]->position);
             shader->set_vec3(attr_prefix + "ambient", sl->points[i]->ambient);
@@ -151,7 +157,7 @@ void Mesh::draw(Shader* shader)
     }
 
     // Spotlight properties.
-    if (sl->spot)
+    if (sl && sl->spot)
     {
         shader->set_vec3("spotlight.position", sl->spot->position);
         shader->set_vec3("spotlight.direction", sl->spot->direction);

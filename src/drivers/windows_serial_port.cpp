@@ -203,7 +203,7 @@ bool WindowsSerialPort::start_reading()
 
 void WindowsSerialPort::stop_reading()
 {
-    this->port_reading.store(false);
+    port_reading.store(false);
     SetEvent(thread_term);
 }
 
