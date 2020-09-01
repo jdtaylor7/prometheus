@@ -146,7 +146,7 @@ UiManager::UiManager(GLFWwindow* window_,
 #elif OS_LINUX
     controls_t_win(275.0, 165.0),
 #endif
-    controls_e_win(228.0, 82.0),
+    controls_e_win(290.0, 170.0),
     drone_win(300.0, 480.0),
     camera_win(150.0, 220.0),
     rm(resource_manager_),
@@ -288,7 +288,6 @@ void UiManager::process_frame()
             ImGui::Separator();
 
             ImGui::Text("Available serial devices:");
-            // ImGui::SameLine();
 #ifdef OS_CYGWIN
             ImGui::SetNextItemWidth(65);
 #elif OS_LINUX
@@ -300,7 +299,6 @@ void UiManager::process_frame()
                          port_list.size());
 
             ImGui::Text("Current serial port status:");
-            // ImGui::SameLine();
             if (!serial_port->is_open())
             {
                 ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Disconnected");
@@ -327,8 +325,17 @@ void UiManager::process_frame()
                 ImGuiCond_Always);
             ImGui::Begin("Edit Controls", NULL, imgui_window_flags);
 
-            ImGui::BulletText("Camera control (1, default)");
-            ImGui::BulletText("Drone control (2)");
+            ImGui::BulletText("Camera control");
+            ImGui::Indent();
+            ImGui::BulletText("Look around: Mouse");
+            ImGui::BulletText("Horizontal controls: WASD");
+            ImGui::BulletText("Vertical controls: Space/Control");
+            ImGui::BulletText("Increase speed: Hold shift");
+            ImGui::Unindent();
+            ImGui::BulletText("Drone control");
+            ImGui::Indent();
+            ImGui::BulletText("Vertical controls: Up/Down arrows");
+            ImGui::Unindent();
             ImGui::BulletText("Reset scene (r)");
 
             ImGui::End();

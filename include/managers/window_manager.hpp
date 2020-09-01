@@ -255,7 +255,6 @@ void WindowManager::process_input()
 
     if (*viewer_mode == ViewerMode::Edit)
     {
-        // TODO Testing.
         if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
         {
             std::lock_guard<std::mutex> g(rm->drone_data_mutex);
@@ -263,8 +262,6 @@ void WindowManager::process_input()
             if (drone_data->position.y > room_dimensions.y - (DRONE_OFFSET_TOP / 2))
                 drone_data->position.y = room_dimensions.y - (DRONE_OFFSET_TOP / 2);
         }
-
-        // TODO Testing.
         if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
         {
             std::lock_guard<std::mutex> g(rm->drone_data_mutex);
@@ -288,17 +285,6 @@ void WindowManager::process_input()
                 camera->set_front(CAMERA_FRONT_HEADON);
                 camera->set_pitch(CAMERA_PITCH_HEADON);
                 camera->set_yaw(CAMERA_YAW_HEADON);
-            }
-        }
-        // TODO
-        if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
-        {
-            {
-                std::lock_guard<std::mutex> g(rm->camera_data_mutex);
-                camera->set_position(CAMERA_POSITION_OVERHEAD);
-                camera->set_front(CAMERA_FRONT_OVERHEAD);
-                camera->set_pitch(CAMERA_PITCH_OVERHEAD);
-                camera->set_yaw(CAMERA_YAW_OVERHEAD);
             }
         }
 
