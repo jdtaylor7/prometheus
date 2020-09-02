@@ -35,8 +35,8 @@ struct DroneData
 
     void operator+=(const DroneData& rhs)
     {
-        this->position += rhs.position;
-        this->orientation += rhs.orientation;
+        position += rhs.position;
+        orientation += rhs.orientation;
     }
 
     glm::vec3 position{};

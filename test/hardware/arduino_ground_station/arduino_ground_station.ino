@@ -5,8 +5,11 @@ const unsigned int HEARTBEAT_LED = 13;  // Uno
 /*
  * For packet formatting, assume data comes in as floats values -10 to +10. We'll
  * operate with a precision of 0.001. Therefore, we'll multiply incoming floats
- * by 1000 and convert them to ints before uploading them to the viewer application.
- * The viewer will then divide them by 1000 before interpreting them further.
+ * by 1000 and convert them to ints before uploading them to prometheus. The
+ * application will then divide them by 1000 before interpreting them further.
+ *
+ * Note this method is just a stopgap; data won't be transmitted as text once
+ * this is refined.
  */
 
 const unsigned int DELAY_TIME_MS = 10;

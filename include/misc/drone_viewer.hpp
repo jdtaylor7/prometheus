@@ -228,7 +228,6 @@ bool DroneViewer::init()
         SCREEN_WIDTH,
         SCREEN_HEIGHT,
         room_dimensions,
-        resource_manager.get(),
         drone_data.get(),
         camera.get(),
         use_anti_aliasing);

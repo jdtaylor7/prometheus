@@ -244,12 +244,16 @@ void UiManager::process_frame()
             break;
         }
 
-        if (ImGui::RadioButton("Telemetry (t)", &e, 0))
+        if (!rm)
+            logger.log(LogLevel::error, "UiManager::process_frame: \
+                rm is null\n");
+
+        if (rm && ImGui::RadioButton("Telemetry (t)", &e, 0))
         {
             std::lock_guard<std::mutex> g(rm->viewer_mode_mutex);
             *viewer_mode = ViewerMode::Telemetry;
         }
-        if (ImGui::RadioButton("Edit scene (e)", &e, 1))
+        if (rm && ImGui::RadioButton("Edit scene (e)", &e, 1))
         {
             std::lock_guard<std::mutex> g(rm->viewer_mode_mutex);
             *viewer_mode = ViewerMode::Edit;
@@ -273,9 +277,17 @@ void UiManager::process_frame()
                 ImGuiCond_Always);
             ImGui::Begin("Telemetry Controls", NULL, imgui_window_flags);
 
+            if (!serial_port)
+                logger.log(LogLevel::error, "UiManager::process_frame \
+                    serial_port is null\n");
+
             static int selected_port_idx = 0;
-            std::vector<std::string> available_ports = serial_port->get_available_ports();
+            std::vector<std::string> available_ports{};
             std::vector<const char*> port_list;
+
+            if (serial_port)
+                available_ports = serial_port->get_available_ports();
+
             for (auto& s : available_ports)
             {
                 port_list.push_back(s.c_str());
@@ -299,15 +311,15 @@ void UiManager::process_frame()
                          port_list.size());
 
             ImGui::Text("Current serial port status:");
-            if (!serial_port->is_open())
+            if (serial_port && !serial_port->is_open())
             {
                 ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Disconnected");
             }
-            else if (serial_port->is_open() && !serial_port->is_reading())
+            else if (serial_port && serial_port->is_open() && !serial_port->is_reading())
             {
                 ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.1f, 1.0f), "%s ready", serial_port->get_port_name().c_str());
             }
-            else if (serial_port->is_open() && serial_port->is_reading())
+            else if (serial_port && serial_port->is_open() && serial_port->is_reading())
             {
                 ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Reading %s", serial_port->get_port_name().c_str());
             }
@@ -345,9 +357,14 @@ void UiManager::process_frame()
     }
 
     // Drone data window.
+    if (!drone_data)
+        logger.log(LogLevel::error, "UiManager::process_frame: \
+            drone_data is null\n");
+
     ImGui::SetNextWindowSize(ImVec2(drone_win.width, drone_win.height),
         ImGuiCond_Always);
     ImGui::SetNextWindowPos(ImVec2(drone_win.xpos, drone_win.ypos), ImGuiCond_Always);
+    if (drone_data)
     {
         ImGui::Begin("Drone Data", NULL, imgui_window_flags);
 
@@ -398,7 +415,11 @@ void UiManager::process_frame()
     }
 
     // Camera data window.
-    if (show_camera_data_window)
+    if (!camera)
+        logger.log(LogLevel::error, "UiManager::process_frame: \
+            camera is null\n");
+
+    if (camera && show_camera_data_window)
     {
         ImGui::SetNextWindowSize(ImVec2(camera_win.width, camera_win.height),
             ImGuiCond_Always);

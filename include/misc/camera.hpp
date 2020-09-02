@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+#include "logger.hpp"
 #include "resource_manager.hpp"
 #include "shared.hpp"
 
@@ -192,6 +193,12 @@ void Camera::update_position(GLFWwindow* window)
 {
     float camera_speed = camera_speed_modifier * delta_time;
 
+    if (!rm)
+    {
+        logger.log(LogLevel::error, "Camera::update_position: rm is null\n");
+        return;
+    }
+
     std::lock_guard<std::mutex> g(rm->camera_data_mutex);
 
     // Camera WASD.
@@ -221,6 +228,12 @@ void Camera::update_position(GLFWwindow* window)
 
 void Camera::update_angle(double xpos, double ypos)
 {
+    if (!rm)
+    {
+        logger.log(LogLevel::error, "Camera::update_angle: rm is null\n");
+        return;
+    }
+
     std::lock_guard<std::mutex> g(rm->camera_data_mutex);
 
     if (first_mouse)
@@ -255,6 +268,12 @@ void Camera::update_angle(double xpos, double ypos)
 
 void Camera::update_pov(double yoffset)
 {
+    if (!rm)
+    {
+        logger.log(LogLevel::error, "Camera::update_pov: rm is null\n");
+        return;
+    }
+
     std::lock_guard<std::mutex> g(rm->camera_data_mutex);
 
     fov -= yoffset;
@@ -270,6 +289,12 @@ void Camera::update_pov(double yoffset)
  */
 void Camera::process_frame()
 {
+    if (!rm)
+    {
+        logger.log(LogLevel::error, "Camera::process_frame: rm is null\n");
+        return;
+    }
+
     std::lock_guard<std::mutex> g(rm->camera_data_mutex);
 
     float current_frame = glfwGetTime();

@@ -126,7 +126,7 @@ public:
 
     bool init();
 
-    DroneData filter_data();
+    DroneData filter_data(std::vector<DroneData>);
     std::shared_ptr<std::string> build_latest_packet();
     bool process_telemetry();
 private:
@@ -149,7 +149,6 @@ private:
 
     static constexpr std::size_t RAW_DATA_BUF_MAXLEN = 32;
     std::vector<DroneData> raw_data_buf;
-    // float integration_sum = 0.0f;  // TODO
 };
 
 bool TelemetryManager::init()
@@ -173,15 +172,15 @@ bool TelemetryManager::init()
 /*
  * Implement simple moving average filter.
  */
-DroneData TelemetryManager::filter_data()
+DroneData TelemetryManager::filter_data(std::vector<DroneData> buf)
 {
     DroneData sum{};
 
-    for (auto& e : raw_data_buf)
+    for (auto& e : buf)
         sum += e;
 
-    return DroneData{sum.position / (float)raw_data_buf.size(),
-                     sum.orientation / (float)raw_data_buf.size()};
+    return DroneData{sum.position / (float)buf.size(),
+                     sum.orientation / (float)buf.size()};
 }
 
 /*
@@ -261,7 +260,12 @@ std::shared_ptr<std::string> TelemetryManager::build_latest_packet()
 bool TelemetryManager::process_telemetry()
 {
     auto packet_str = std::make_shared<std::string>();
-    if (serial_port->is_reading())
+
+    if (!serial_port)
+        logger.log(LogLevel::error, "TelemetryManager::process_telemetry: \
+            serial_port is null\n");
+
+    if (serial_port && serial_port->is_reading())
     {
         packet_str = build_latest_packet();
         if (packet_str)
@@ -286,22 +290,16 @@ bool TelemetryManager::process_telemetry()
     }
 
     // Filter input.
+    if (resource_manager)
     {
         std::lock_guard<std::mutex> g(resource_manager->drone_data_mutex);
-        *drone_data = filter_data();
+        *drone_data = filter_data(raw_data_buf);
     }
-
-    // // Integrate. TODO just store integrated value in z value for now.
-    // {
-    //     if (!std::isnan(drone_data->position.x))
-    //         integration_sum += drone_data->position.x * 0.01;
-    //     std::lock_guard<std::mutex> g(resource_manager->drone_data_mutex);
-    //     drone_data->position.z = integration_sum;
-    //
-    //     logger.log(LogLevel::info, "drone.x = ", drone_data->position.x, '\n');
-    //     logger.log(LogLevel::info, "integration_sum = ", integration_sum, '\n');
-    //     logger.log(LogLevel::info, "drone.z = ", drone_data->position.z, '\n');
-    // }
+    else
+    {
+        logger.log(LogLevel::error, "TelemetryManager::process_telemetry: \
+            resource_manager is null\n");
+    }
 
     return true;
 }

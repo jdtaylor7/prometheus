@@ -27,14 +27,12 @@ public:
     GraphicsManager(std::size_t screen_width_,
         std::size_t screen_height_,
         glm::vec3 room_dimensions_,
-        ResourceManager* resource_manager_,
         DroneData* drone_data_,
         Camera* camera_,
         bool use_anti_aliasing_) :
             screen_width(screen_width_),
             screen_height(screen_height_),
             room_dimensions(room_dimensions_),
-            resource_manager(resource_manager_),
             drone_data(drone_data_),
             camera(camera_),
             use_anti_aliasing(use_anti_aliasing_)
@@ -51,7 +49,6 @@ private:
     const std::size_t screen_width;
     const std::size_t screen_height;
     const glm::vec3 room_dimensions;
-    // const glm::vec3 room_pos{};
 
     /*
      * Internal state.
@@ -103,7 +100,6 @@ private:
      */
     DroneData* drone_data;
     Camera* camera;
-    ResourceManager* resource_manager;
 
     /*
      * Shaders.
@@ -200,7 +196,11 @@ void GraphicsManager::render_scene(Shader* shader)
     shader->use();
 
     // Position properties.
-    shader->set_vec3("view_pos", camera->get_position());
+    if (camera)
+        shader->set_vec3("view_pos", camera->get_position());
+    else
+        logger.log(LogLevel::error, "GraphicsManager::render_scene: \
+            camera is null");
 
     /*
      * Draw room.
@@ -218,11 +218,19 @@ void GraphicsManager::render_scene(Shader* shader)
      */
     // Set model matrix.
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, drone_data->position);
-    model = glm::rotate(model, glm::radians(drone_data->orientation.y), glm::vec3(1.0, 0.0, 0.0));  // pitch
-    model = glm::rotate(model, glm::radians(drone_data->orientation.z), glm::vec3(0.0, 1.0, 0.0));  // yaw
-    model = glm::rotate(model, glm::radians(drone_data->orientation.x), glm::vec3(0.0, 0.0, 1.0));  // roll
-    model = glm::scale(model, glm::vec3(drone_scale_factor));
+    if (drone_data)
+    {
+        model = glm::translate(model, drone_data->position);
+        model = glm::rotate(model, glm::radians(drone_data->orientation.y), glm::vec3(1.0, 0.0, 0.0));  // pitch
+        model = glm::rotate(model, glm::radians(drone_data->orientation.z), glm::vec3(0.0, 1.0, 0.0));  // yaw
+        model = glm::rotate(model, glm::radians(drone_data->orientation.x), glm::vec3(0.0, 0.0, 1.0));  // roll
+        model = glm::scale(model, glm::vec3(drone_scale_factor));
+    }
+    else
+    {
+        logger.log(LogLevel::error, "GraphicsManager::render_scene: \
+            drone_data is null\n");
+    }
     shader->set_mat4fv("model", model);
 
     // Render drone.
@@ -249,15 +257,26 @@ void GraphicsManager::process_frame()
     // lookAt matrix which always looks at the model). This is fine since we
     // only have one model in the scene. It also means we can use shadow
     // mapping instead of point shadows, which is simpler.
-    if (!sl->points[0])
+    if (!sl)
+        logger.log(LogLevel::error, "GraphicsManager::process_frame: \
+            sl is null\n");
+
+    if (sl && !sl->points[0])
         generate_shadows = false;
 
     logger.log(LogLevel::debug, "generate_shadows = ", generate_shadows, '\n');
     glm::mat4 light_space_matrix;
     if (generate_shadows)
     {
-        glm::mat4 light_view = glm::lookAt(
-            sl->points[0]->position, drone_data->position, glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 light_view{};
+        if (drone_data && sl)
+            light_view = glm::lookAt(
+                sl->points[0]->position,
+                drone_data->position,
+                glm::vec3(0.0f, 1.0f, 0.0f));
+        else
+            logger.log(LogLevel::error, "GraphicsManager::process_frame: \
+                light_view is null\n");
         light_space_matrix = light_projection * light_view;
 
         // Pass uniforms to shader.
@@ -305,7 +324,11 @@ void GraphicsManager::process_frame()
 
     // Set view and projection matrices. Model matrix set per object in
     // render_scene function.
-    view = glm::lookAt(camera->get_position(), camera->get_position() + camera->get_front(), camera->get_up());
+    if (camera)
+        view = glm::lookAt(camera->get_position(), camera->get_position() + camera->get_front(), camera->get_up());
+    else
+        logger.log(LogLevel::error, "GraphicsManager::process_frame: \
+            camera is null\n");
     projection = glm::perspective(glm::radians(fov), float(screen_width) / screen_height, 0.1f, 100.0f);
 
     // Assign projection and view matrices.
@@ -320,8 +343,18 @@ void GraphicsManager::process_frame()
         // Pass depth map to objects, to render shadows.
         if (first_loop)
             logger.log(LogLevel::debug, "GraphicsManager::process_frame: Set depth maps\n");
-        room->set_depth_map(depth_map);
-        drone->set_depth_map(depth_map);
+
+        if (room)
+            room->set_depth_map(depth_map);
+        else
+            logger.log(LogLevel::error, "GraphicsManager::process_frame: \
+                room is null\n");
+
+        if (drone)
+            drone->set_depth_map(depth_map);
+        else
+            logger.log(LogLevel::error, "GraphicsManager::process_frame: \
+                drone is null\n");
     }
 
     // Render scene normally.
@@ -339,14 +372,23 @@ void GraphicsManager::process_frame()
     plight_shader->set_mat4fv("view", view);
 
     // Render point light(s).
-    for (auto& point_light : sl->points)
+    if (sl)
     {
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, point_light->position);
-        model = glm::scale(model, glm::vec3(point_light->scale_factor));
-        plight_shader->set_mat4fv("model", model);
-        plight_shader->set_vec3("color", point_light->color);
-        point_light->draw();
+        for (auto& point_light : sl->points)
+        {
+            if (!point_light)
+            {
+                logger.log(LogLevel::error, "GraphicsManager::process_frame: \
+                    point_light is null\n");
+                continue;
+            }
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, point_light->position);
+            model = glm::scale(model, glm::vec3(point_light->scale_factor));
+            plight_shader->set_mat4fv("model", model);
+            plight_shader->set_vec3("color", point_light->color);
+            point_light->draw();
+        }
     }
 
     if (second_loop)

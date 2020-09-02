@@ -200,38 +200,80 @@ GLFWwindow* WindowManager::get_window() const
 
 void WindowManager::process_input()
 {
+    /*
+     * Exit application.
+     */
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    /*
+     * Enter telemetry mode.
+     */
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
     {
-        std::lock_guard<std::mutex> g(rm->viewer_mode_mutex);
-        *viewer_mode = ViewerMode::Telemetry;
+        if (rm)
+        {
+            std::lock_guard<std::mutex> g(rm->viewer_mode_mutex);
+            *viewer_mode = ViewerMode::Telemetry;
+        }
+        else
+        {
+            logger.log(LogLevel::error, "WindowManager::process_input: \
+                rm pointer is null\n");
+        }
     }
+    /*
+     * Enter edit mode.
+     */
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
-        std::lock_guard<std::mutex> g(rm->viewer_mode_mutex);
-        *viewer_mode = ViewerMode::Edit;
+        if (rm)
+        {
+            std::lock_guard<std::mutex> g(rm->viewer_mode_mutex);
+            *viewer_mode = ViewerMode::Edit;
+        }
+        else
+        {
+            logger.log(LogLevel::error, "WindowManager::process_input: \
+                rm pointer is null\n");
+        }
     }
 
     if (*viewer_mode == ViewerMode::Telemetry)
     {
+        /*
+         * Show cursor, disables camera control.
+         */
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
+        /*
+         * Scan for serial devices.
+         */
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         {
             if (timer_manager->is_finished(TimerName::ComScanTimer))
             {
-                serial_port->find_ports();
+                if (serial_port)
+                    serial_port->find_ports();
+                else
+                    logger.log(LogLevel::error, "WindowManager::process_input: \
+                        serial_port is null\n");
                 timer_manager->start_timer(TimerName::ComScanTimer);
             }
         }
 
+        /*
+         * Connect to selected serial device.
+         */
         if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
         {
             if (timer_manager->is_finished(TimerName::ComConnectTimer))
             {
-                if (!serial_port->get_available_ports().empty())
+                if (!serial_port)
+                    logger.log(LogLevel::error, "WindowManager::process_input: \
+                        serial_port is null\n");
+
+                if (serial_port && !serial_port->get_available_ports().empty())
                 {
                     serial_port->open(serial_port->get_available_ports()[0]);
                     serial_port->config();
@@ -240,14 +282,25 @@ void WindowManager::process_input()
             }
         }
 
+        /*
+         * Start/stop reading from connected serial device.
+         */
         if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
         {
             if (timer_manager->is_finished(TimerName::ComReadTimer))
             {
-                if (serial_port->is_reading())
-                    serial_port->stop_reading();
+                if (serial_port)
+                {
+                    if (serial_port->is_reading())
+                        serial_port->stop_reading();
+                    else
+                        serial_port->start_reading();
+                }
                 else
-                    serial_port->start_reading();
+                {
+                    logger.log(LogLevel::error, "WindowManager::process_input: \
+                        serial_port is null\n");
+                }
                 timer_manager->start_timer(TimerName::ComReadTimer);
             }
         }
@@ -255,6 +308,14 @@ void WindowManager::process_input()
 
     if (*viewer_mode == ViewerMode::Edit)
     {
+        /*
+         * Disable cursor to allow camera control.
+         */
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+        /*
+         * Edit drone position.
+         */
         if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
         {
             std::lock_guard<std::mutex> g(rm->drone_data_mutex);
@@ -270,15 +331,24 @@ void WindowManager::process_input()
                 drone_data->position.y = room_position.y + (DRONE_OFFSET_BOT / 2);
         }
 
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
+        /*
+         * Reset camera and drone.
+         */
+        if (!camera)
+            logger.log(LogLevel::error, "WindowManager::process_input: \
+                camera is null\n");
+        if (!rm)
+            logger.log(LogLevel::error, "WindowManager::process_input: \
+                rm is null\n");
         if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
         {
+            if (rm)
             {
                 std::lock_guard<std::mutex> g(rm->drone_data_mutex);
                 *drone_data = INITIAL_DRONE_DATA;
             }
 
+            if (camera && rm)
             {
                 std::lock_guard<std::mutex> g(rm->camera_data_mutex);
                 camera->set_position(CAMERA_POSITION_HEADON);
@@ -288,7 +358,8 @@ void WindowManager::process_input()
             }
         }
 
-        camera->update_position(window);
+        if (camera)
+            camera->update_position(window);
     }
 }
 
@@ -313,7 +384,11 @@ void WindowManager::framebuffer_size_callback(GLFWwindow* window, int width, int
 void WindowManager::cursor_callback(GLFWwindow* window, double xpos, double ypos)
 {
     if (*viewer_mode == ViewerMode::Edit)
-        camera->update_angle(xpos, ypos);
+        if (camera)
+            camera->update_angle(xpos, ypos);
+        else
+            logger.log(LogLevel::error, "WindowManager::cursor_callback: \
+                camera pointer null\n");
 }
 
 #endif /* WINDOW_MANAGER_HPP */
