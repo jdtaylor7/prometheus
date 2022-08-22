@@ -10,7 +10,7 @@ Prometheus is a real-time drone monitoring application. Built with OpenGL, it
 allows one to easily visualize the telemetry from a drone system. It runs under
 X11 and is supported on Arch Linux and Ubuntu Focal.
 
-### Dependencies
+# Dependencies
 
 Some dependencies are included in the source directory, but a few must be
 installed locally. Those which must be installed locally are:
@@ -20,7 +20,7 @@ installed locally. Those which must be installed locally are:
 * GLFW
 * Assimp
 
-##### Arch Linux
+### Arch Linux
 
 The above dependencies can be installed on Arch Linux via the following packages
 from the official Arch Linux repositories:
@@ -29,7 +29,7 @@ from the official Arch Linux repositories:
 sudo pacman -Syu base-devel cmake glfw-x11 assimp
 ```
 
-##### Ubuntu Focal (20.04LTS)
+### Ubuntu Focal (20.04LTS)
 
 The following packages are required on Ubuntu:
 
@@ -37,7 +37,7 @@ The following packages are required on Ubuntu:
 sudo apt install cmake libgl1-mesa-dev libglfw3 libglfw3-dev libassimp-dev
 ```
 
-### Building
+# Building
 
 Prometheus is built with [CMake](https://cmake.org/) via a build script:
 
@@ -45,7 +45,7 @@ Prometheus is built with [CMake](https://cmake.org/) via a build script:
 ./build.sh -e prometheus
 ```
 
-### Running
+# Running
 
 Run the binary from the root project directory:
 
@@ -56,7 +56,7 @@ Run the binary from the root project directory:
 At the moment some file path names are relative so running from the build
 directory itself will not work.
 
-### Demo
+# Demo
 
 This demo features the display of drone data in real time. The drone position
 and orientation data, as plotted on the left side of the screen, is being

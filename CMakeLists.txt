@@ -16,11 +16,13 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 # Add options.
 option(TEST_MODE "Run in test mode" OFF)
 
-# Add packages.
+# Set prefix paths.
 set(CMAKE_PREFIX_PATH /usr/lib/glfw)
+
+# Add packages.
 find_package(OpenGL REQUIRED)
 find_package(glfw3 3.3 CONFIG REQUIRED)
-find_package(ASSIMP CONFIG REQUIRED)
+find_package(assimp CONFIG REQUIRED)
 
 # Find libraries.
 find_library(LIBSERIAL_LIB serial "${PROJECT_SOURCE_DIR}/third_party/libserial/lib")
