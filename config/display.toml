@@ -1,0 +1,8 @@
+[screen]
+width = 1200
+height = 900
+
+[window]
+demo = false
+implot_demo = false
+camera_data = true

@@ -19,6 +19,7 @@
 #include "shader.hpp"
 #include "shared.hpp"
 #include "telemetry_manager.hpp"
+#include "toml++/toml.h"
 #include "vertex_data.hpp"
 #include "viewer_mode.hpp"
 
@@ -40,13 +41,6 @@ private:
     static constexpr std::size_t TELEMETRY_FLOAT_FORMAT_LEN = 5;
     const std::vector<std::size_t> TELEMETRY_ACCEL_OFFSETS = {1, 7, 13};
     const std::vector<std::size_t> TELEMETRY_ROT_RATE_OFFSETS = {19, 25, 31};
-
-    static constexpr std::size_t SCREEN_WIDTH = 1200;
-    static constexpr std::size_t SCREEN_HEIGHT = 900;
-
-    static constexpr bool SHOW_DEMO_WINDOW = false;
-    static constexpr bool SHOW_IMPLOT_DEMO_WINDOW = false;
-    static constexpr bool SHOW_CAMERA_DATA_WINDOW = true;
 
     const std::string GLSL_VERSION = "#version 330";
 
@@ -153,6 +147,16 @@ private:
 bool DroneViewer::init()
 {
     /*
+     * Parse display config.
+     */
+    auto display_config = toml::parse_file("config/display.toml");
+    auto screen_width = display_config["screen"]["width"].value_or(0);
+    auto screen_height = display_config["screen"]["height"].value_or(0);
+    auto show_demo_window = display_config["window"]["demo"].value_or(false);
+    auto show_implot_demo_window = display_config["window"]["implot_demo"].value_or(false);
+    auto show_camera_data_window = display_config["window"]["camera_data"].value_or(false);
+
+    /*
      * Initialize synchronization constructs.
      */
     resource_manager = std::make_unique<ResourceManager>();
@@ -187,8 +191,8 @@ bool DroneViewer::init()
     drone_data = std::make_unique<DroneData>(INITIAL_DRONE_DATA);
     camera = std::make_unique<Camera>(
         resource_manager.get(),
-        SCREEN_WIDTH,
-        SCREEN_HEIGHT,
+        screen_width,
+        screen_height,
         room_dimensions,
         CAMERA_POSITION_HEADON,
         CAMERA_FRONT_HEADON);
@@ -197,8 +201,8 @@ bool DroneViewer::init()
      * Initialize data managers.
      */
     window_manager = std::make_unique<WindowManager>(
-        SCREEN_WIDTH,
-        SCREEN_HEIGHT,
+        screen_width,
+        screen_height,
         resource_manager.get(),
         viewer_mode.get(),
         drone_data.get(),
@@ -212,21 +216,21 @@ bool DroneViewer::init()
     ui_manager = std::make_unique<UiManager>(
         window_manager->get_window(),
         GLSL_VERSION,
-        SCREEN_WIDTH,
-        SCREEN_HEIGHT,
+        screen_width,
+        screen_height,
         resource_manager.get(),
         viewer_mode.get(),
         drone_data.get(),
         camera.get(),
         serial_port.get(),
-        SHOW_DEMO_WINDOW,
-        SHOW_IMPLOT_DEMO_WINDOW,
-        SHOW_CAMERA_DATA_WINDOW);
+        show_demo_window,
+        show_implot_demo_window,
+        show_camera_data_window);
     if (!ui_manager->init()) return false;
 
     graphics_manager = std::make_unique<GraphicsManager>(
-        SCREEN_WIDTH,
-        SCREEN_HEIGHT,
+        screen_width,
+        screen_height,
         room_dimensions,
         drone_data.get(),
         camera.get(),

@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.14)
 
+# Include modules.
+include(FetchContent)
+
 # Set project name.
 project(prometheus VERSION 0.2.1)
 
@@ -19,13 +22,21 @@ option(TEST_MODE "Run in test mode" OFF)
 # Set prefix paths.
 set(CMAKE_PREFIX_PATH /usr/lib/glfw)
 
-# Add packages.
+# Find packages.
 find_package(OpenGL REQUIRED)
 find_package(glfw3 3.3 CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
 
 # Find libraries.
 find_library(LIBSERIAL_LIB serial "${PROJECT_SOURCE_DIR}/third_party/libserial/lib")
+
+# Fetch packages.
+FetchContent_Declare(
+    tomlplusplus
+    GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
+    GIT_TAG        v3.1.0
+)
+FetchContent_MakeAvailable(tomlplusplus)
 
 # Detect OS.
 string(COMPARE EQUAL "${CMAKE_SYSTEM_NAME}" "Linux" is_linux)
@@ -55,6 +66,8 @@ include_directories(
     "${PROJECT_SOURCE_DIR}/include/misc"
 )
 
+include_directories(tomlplusplus INTERFACE ${tomlplusplus_SOURCE_DIR}/include/)
+
 # Add library directories.
 link_directories(
     "${ASSIMP_LIBRARIES}"
@@ -81,6 +94,8 @@ add_library(implot_demo OBJECT third_party/implot/implot_demo.cpp)
 add_library(linux_serial_port OBJECT src/drivers/linux_serial_port.cpp)
 add_library(windows_serial_port OBJECT src/drivers/windows_serial_port.cpp)
 add_library(serial_port OBJECT src/drivers/serial_port.cpp)
+
+add_library(tomlplusplus INTERFACE)
 
 # Add executables.
 add_executable(prometheus src/prometheus.cpp)
